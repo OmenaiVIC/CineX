@@ -10,9 +10,9 @@ plan:
       transactions:
         - requirement-publish:
             contract-id: SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait
-            remap-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            remap-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             remap-principals:
-              SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+              SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 4680
             path: ".\\.cache/requirements/SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.clar"
             clarity-version: 1
@@ -21,126 +21,126 @@ plan:
       transactions:
         - contract-publish:
             contract-name: escrow-module-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 14040
             path: contracts/escrow-module-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: film-verification-module-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 54290
             path: contracts/film-verification-module-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: crowdfunding-module-traits
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 18160
             path: contracts/crowdfunding-module-traits.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: emergency-module-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 6520
             path: contracts/emergency-module-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: module-base-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 6410
             path: contracts/module-base-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: rewards-module-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 11520
             path: contracts/rewards-module-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: CineX-project
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 512380
             path: contracts/CineX-project.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: rewards-nft-trait
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 9430
             path: contracts/rewards-nft-trait.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: CineX-rewards-sip09
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 103890
             path: contracts/CineX-rewards-sip09.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: Co-EP-rotating-fundings
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 612270
             path: contracts/Co-EP-rotating-fundings.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: crowdfunding-module
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 310880
             path: contracts/crowdfunding-module.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: emergency-module
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 7610
             path: contracts/emergency-module.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: escrow-module
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 134010
             path: contracts/escrow-module.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: film-verification-dummy
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 32220
             path: contracts/film-verification-dummy.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: film-verification-module
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 276870
             path: contracts/film-verification-module.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: module-base
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 6380
             path: contracts/module-base.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: rewards-module
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 144900
             path: contracts/rewards-module.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: verification-mgt-extension
-            expected-sender: ST2FEKV4DK58FTH3A9484J5ARV6WX479ZHX9KQ2WP
+            expected-sender: ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51
             cost: 208550
             path: contracts/verification-mgt-extension.clar
             anchor-block-only: true
