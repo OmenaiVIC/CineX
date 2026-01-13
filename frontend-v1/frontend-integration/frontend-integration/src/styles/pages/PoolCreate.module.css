@@ -1,0 +1,478 @@
+/* Classic Black/White Action Buttons */
+.addButton, .removeButton, .submitButton {
+  display: inline-block;
+  background: #fff;
+  color: #181c32;
+  border: 2px solid #181c32;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.08rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin: 0.3rem 0.5rem 0.3rem 0;
+  transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.addButton:hover, .removeButton:hover, .submitButton:hover {
+  background: #181c32;
+  color: #fff;
+  border-color: #181c32;
+}
+
+.addButton:active, .removeButton:active, .submitButton:active {
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+.addButton:disabled, .removeButton:disabled, .submitButton:disabled {
+  background: #eee;
+  color: #aaa;
+  border-color: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+/* CampaignCreate Hero Section & Form Styles */
+.campaignHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 0.7rem 0.5rem 1.2rem 0.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f3f4f8 100%);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  margin: 0 auto 1rem auto;
+  max-width: 700px;
+}
+.campaignIcon {
+  font-size: 2.2rem;
+  margin-bottom: 0.7rem;
+}
+.campaignTitle {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #181c32;
+  text-align: center;
+  margin-bottom: 0.7rem;
+  letter-spacing: -1px;
+}
+.campaignSubtitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #222;
+  text-align: center;
+  margin-bottom: 0.7rem;
+}
+.description {
+  font-size: 1rem;
+  color: #222;
+  text-align: center;
+  margin-bottom: 1.1rem;
+  font-weight: 400;
+  max-width: 420px;
+  line-height: 1.4;
+}
+.connectWallet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1.2rem;
+}
+.connectMessage {
+  font-size: 0.98rem;
+  color: #888;
+  margin-top: 0.3rem;
+}
+.form {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+  margin: 1.2rem auto 0 auto;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.formSection {
+  margin-bottom: 1.1rem;
+}
+.sectionTitle {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #181c32;
+  margin-bottom: 0.7rem;
+}
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+}
+.label {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #FFBF00;
+}
+.helperText {
+  font-size: 0.92rem;
+  color: #888;
+  margin-top: 0.05rem;
+}
+.input, .textarea {
+  width: 100%;
+  font-size: 0.98rem;
+  padding: 0.7rem 0.9rem;
+  border: 1.2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #222;
+  margin-top: 0.05rem;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: #FFBF00;
+  box-shadow: 0 0 0 1.5px #ffe082;
+}
+.errorMessage {
+  background: #fff3f3;
+  color: #c00;
+  border: 1.2px solid #ffb3b3;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.98rem;
+}
+.successMessage {
+  background: #e6fff3;
+  color: #008060;
+  border: 1.2px solid #b3ffe0;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.98rem;
+}
+.poolCreate {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f8fafc 0%, #f3f4f8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 0 2.5rem 0;
+}
+.poolCreateCard {
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.13);
+  padding: 3.5rem 3.5rem 2.5rem 3.5rem;
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+  position: relative;
+}
+/* Error, Warning, Toast, and Navigation */
+.errorBox {
+  background: #fff3f3;
+  color: #c00;
+  border: 1.5px solid #ffb3b3;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.08rem;
+}
+.warningBox {
+  background: #fffbe6;
+  color: #b8860b;
+  border: 1.5px solid #ffe082;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.08rem;
+}
+.toast {
+  background: #fff;
+  color: #222;
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(255,191,0,0.13);
+  padding: 1.2rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.5rem auto 0 auto;
+  max-width: 500px;
+  text-align: center;
+  border: 1.5px solid #FFBF00;
+}
+.navBtns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 2.2rem;
+}
+
+/* Review Section */
+.reviewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 2rem 0 1.5rem 0;
+}
+.reviewCard {
+  background: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1.2rem 1.5rem;
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+.reviewCard h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #181c32;
+  margin-bottom: 0.7rem;
+}
+.reviewList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #444;
+  font-size: 1.05rem;
+}
+.reviewList li {
+  margin-bottom: 0.5rem;
+}
+
+/* Member Chips */
+.memberChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+.chip {
+  background: #fffbe6;
+  color: #222;
+  border-radius: 16px;
+  padding: 0.4rem 1.1rem 0.4rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(255,191,0,0.08);
+}
+.chipRemove {
+  background: none;
+  border: none;
+  color: #c00;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  font-weight: 900;
+  transition: color 0.2s;
+}
+.chipRemove:hover {
+  color: #ff3333;
+}
+
+/* File and Agreement Preview */
+.filePreview {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #555;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  display: inline-block;
+}
+.agreementPreview {
+  margin-top: 0.7rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  color: #444;
+  font-size: 1rem;
+}
+.poolCreateCard {
+  background: #fff;
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.13);
+  padding: 3.5rem 2.5rem 2.5rem 2.5rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 2.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+
+.header {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 2.2rem;
+  color: #181c32;
+  text-align: center;
+  letter-spacing: -1.2px;
+}
+
+.stepper {
+  display: flex;
+  justify-content: center;
+  gap: 2.2rem;
+  margin-bottom: 2.2rem;
+  width: 100%;
+  font-size: 1.1rem;
+}
+
+.step {
+  font-size: 1.25rem;
+  color: #888;
+  font-weight: 700;
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
+  padding-bottom: 0.3rem;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+
+.step.active {
+  opacity: 1;
+  color: #181c32;
+  border-bottom: 3px solid #FFBF00;
+  background: linear-gradient(90deg, #fffbe6 0%, #fff9c4 100%);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 8px rgba(255,191,0,0.08);
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 2.2rem;
+}
+
+.formGrid label {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #FFBF00;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.formGrid input,
+.formGrid textarea,
+.formGrid select {
+  width: 100%;
+  font-size: 1.08rem;
+  padding: 1.1rem 1.2rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  background: #f9fafb;
+  color: #222;
+  margin-top: 0.1rem;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.formGrid input:focus,
+.formGrid textarea:focus,
+.formGrid select:focus {
+  outline: none;
+  border-color: #FFBF00;
+  box-shadow: 0 0 0 2px #ffe082;
+}
+
+.formGrid textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.formGrid .formHint {
+  font-size: 0.98rem;
+  color: #888;
+  margin-top: 0.2rem;
+}
+
+.formGrid .formSubLabel {
+  font-size: 0.93rem;
+  color: #555;
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+}
+
+.formGrid .formSection {
+  width: 100%;
+  margin-bottom: 1.2rem;
+}
+
+.nextBtn {
+  background: #FFBF00;
+  color: #222;
+  border: none;
+  border-radius: 10px;
+  padding: 1.1rem 2.5rem;
+  font-weight: 900;
+  font-size: 1.15rem;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 16px rgba(255,191,0,0.13);
+  letter-spacing: -0.5px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.nextBtn:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.nextBtn:hover:not(:disabled), .nextBtn:focus:not(:disabled) {
+  background: #FFD700;
+  color: #222;
+  box-shadow: 0 6px 24px rgba(255,191,0,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (max-width: 1100px) {
+  .poolCreateCard {
+    padding: 2rem 1rem 1.5rem 1rem;
+    max-width: 99vw;
+  }
+}
+
+@media (max-width: 700px) {
+  .poolCreateCard {
+    max-width: 99vw;
+    padding: 1.2rem 0.5rem;
+  }
+  .header {
+    font-size: 1.3rem;
+    padding: 0 0.5rem;
+  }
+  .stepper {
+    gap: 0.7rem;
+    font-size: 0.98rem;
+  }
+  .formGrid {
+    gap: 0.8rem;
+  }
+  .nextBtn {
+    width: 100%;
+    padding: 1.1rem 0;
+    font-size: 1.08rem;
+  }
+}
