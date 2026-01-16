@@ -8,7 +8,7 @@ import { STACKS_TESTNET, STACKS_MAINNET, type StacksNetwork } from '@stacks/netw
 export type NetworkType = 'devnet' | 'testnet' | 'mainnet';
 
 // Hardcoded fallback to prevent "Deployment Plan Invalid" crashes on Vercel
-const DEFAULT_TESTNET_ADDRESS = 'ST3F1JDPZ9S85FPBG712QY96TC4FJC1XHPFD8GH2T';
+const DEFAULT_TESTNET_ADDRESS = 'ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51';
 
 /**
  * Get configured Stacks network instance based on environment
