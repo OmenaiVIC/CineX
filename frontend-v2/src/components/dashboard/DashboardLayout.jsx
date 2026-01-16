@@ -1,29 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
 
 export default function DashboardLayout({ children }) {
   const { userType, isAuthenticated } = useAuth();
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const filmmakerNav = [
-    { to: '/dashboard/filmmaker', label: 'Overview' },
-    { to: '/dashboard/filmmaker/crowdfunding', label: 'My Campaigns' },
-    { to: '/dashboard/filmmaker/create-campaign', label: 'Create Campaign' },
-    { to: '/dashboard/filmmaker/create-campaign?type=private', label: 'Create Private Pool' },
-    { to: '/dashboard/filmmaker/co-ep', label: 'Co-EP Rotating Funds' },
-    { to: '/dashboard/filmmaker/verification', label: 'Film Verification' },
-    { to: '/dashboard/filmmaker/settings', label: 'Settings' },
+    { to: '/dashboard/filmmaker', label: 'Overview', icon: '🏠' },
+    { to: '/dashboard/filmmaker/crowdfunding', label: 'My Campaigns', icon: '🎬' },
+    { to: '/dashboard/filmmaker/create-campaign', label: 'Create Campaign', icon: '➕' },
+    { to: '/dashboard/filmmaker/create-campaign?type=private', label: 'Create Private Pool', icon: '🔒' },
+    { to: '/dashboard/filmmaker/co-ep', label: 'Co-EP Rotating Funds', icon: '🔄' },
+    { to: '/dashboard/filmmaker/verification', label: 'Film Verification', icon: '✅' },
+    { to: '/dashboard/filmmaker/settings', label: 'Settings', icon: '⚙️' },
   ];
 
   const publicNav = [
-    { to: '/dashboard/public', label: 'Overview' },
-    { to: '/active-pools', label: 'Active Pools' },
+    { to: '/dashboard/public', label: 'Overview', icon: '🏠' },
+    { to: '/active-pools', label: 'Active Pools', icon: '🌐' },
   ];
 
   const endorserNav = [
-    { to: '/dashboard/endorser', label: 'Tasks' },
-    { to: '/dashboard/endorser/history', label: 'Earnings' },
+    { to: '/dashboard/endorser', label: 'Tasks', icon: '📋' },
+    { to: '/dashboard/endorser/history', label: 'Earnings', icon: '💰' },
   ];
 
   const navToRender = userType === 'filmmaker' ? filmmakerNav : userType === 'endorser' ? endorserNav : publicNav;
@@ -35,26 +36,66 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="min-h-screen flex bg-white">
-      <aside className="w-72 bg-gray-900 text-white flex-shrink-0">
-        <div className="px-6 py-8">
-          <h2 className="text-xl font-bold mb-4">CineX</h2>
-          <p className="text-sm text-gray-300 mb-6">Dashboard</p>
-          <nav className="space-y-2">
-            {navToRender.map((item) => {
-              const path = item.to.split('?')[0];
-              const active = location.pathname === path || location.pathname.startsWith(path + '/') || location.pathname.startsWith(path);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  aria-current={active ? 'page' : undefined}
-                  className={`block px-4 py-2 rounded-md text-sm ${active ? 'bg-yellow-500 text-black font-semibold' : 'text-gray-200 hover:bg-gray-800'}`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+      <aside className={`bg-black text-white flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-72'}`}>
+        <div className={`py-8 ${isCollapsed ? 'px-2' : 'px-6'}`}>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center mb-6' : 'justify-between mb-4'}`}>
+            {!isCollapsed && <h2 className="text-xl font-bold">CineX</h2>}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="text-gray-300 hover:text-white p-1"
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              )}
+            </button>
+          </div>
+          {!isCollapsed && (
+            <>
+              <p className="text-sm text-gray-300 mb-6">Dashboard</p>
+              <nav className="space-y-2">
+                {navToRender.map((item) => {
+                  const path = item.to.split('?')[0];
+                  const active = location.pathname === path || location.pathname.startsWith(path + '/') || location.pathname.startsWith(path);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      aria-current={active ? 'page' : undefined}
+                      className={`block px-4 py-2 rounded-md text-sm ${active ? 'bg-yellow-500 text-black font-semibold' : 'text-gray-200 hover:bg-gray-800'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </>
+          )}
+          {isCollapsed && (
+            <nav className="space-y-2">
+              {navToRender.map((item) => {
+                const path = item.to.split('?')[0];
+                const active = location.pathname === path || location.pathname.startsWith(path + '/') || location.pathname.startsWith(path);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    aria-current={active ? 'page' : undefined}
+                    className={`block px-2 py-3 rounded-md text-center text-lg ${active ? 'bg-yellow-500 text-black' : 'text-gray-200 hover:bg-gray-800'}`}
+                    title={item.label}
+                  >
+                    {item.icon}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
         </div>
       </aside>
 
