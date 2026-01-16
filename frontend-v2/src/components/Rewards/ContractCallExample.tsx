@@ -19,10 +19,10 @@ export default function ContractCallExample() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Contract Details (Ensure these match your Testnet deployment)
-  const contractAddress = 'ST3F1JDPZ9S85FPBG712QY96TC4FJC1XHPFD8GH2T';
+  // Contract Details 
+  const contractAddress = 'ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51';
   const contractName = 'crowdfunding-module';
-  const functionName = 'contribute'; // Verify this is the function name in your .clar file
+  const functionName = 'contribute-to-campaign'; // Verify this is the function name in your .clar file
 
   const handleContractCall = async () => {
     // 1. Basic Validation
