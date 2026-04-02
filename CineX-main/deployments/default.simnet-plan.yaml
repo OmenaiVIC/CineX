@@ -1,0 +1,164 @@
+---
+id: 0
+name: "Simulated deployment, used as a default for `clarinet console`, `clarinet test` and `clarinet check`"
+network: simnet
+genesis:
+  wallets:
+    - name: deployer
+      address: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: faucet
+      address: STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_1
+      address: ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_2
+      address: ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_3
+      address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_4
+      address: ST2NEB84ASENDXKYGJPQW86YXQCEFEX2ZQPG87ND
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_5
+      address: ST2REHHS5J3CERCRBEPMGH7921Q6PYKAADT7JP2VB
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_6
+      address: ST3AM1A56AK2C1XAFJ4115ZSV26EB49BVQ10MGCS0
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_7
+      address: ST3PF13W7Z0RRM42A8VZRVFQ75SV1K26RXEP8YGKJ
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_8
+      address: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+  contracts:
+    - genesis
+    - lockup
+    - bns
+    - cost-voting
+    - costs
+    - pox
+    - costs-2
+    - pox-2
+    - costs-3
+    - pox-3
+    - pox-4
+    - signers
+    - signers-voting
+    - costs-4
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - emulated-contract-publish:
+            contract-name: nft-trait
+            emulated-sender: SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9
+            path: ".\\.cache\\requirements\\SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.clar"
+            clarity-version: 1
+      epoch: "2.0"
+    - id: 1
+      transactions:
+        - emulated-contract-publish:
+            contract-name: escrow-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\escrow-module-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: film-verification-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\film-verification-module-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: crowdfunding-module-traits
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\crowdfunding-module-traits.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: emergency-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\emergency-module-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: module-base-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\module-base-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: rewards-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\rewards-module-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: CineX-project
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\CineX-project.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: rewards-nft-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\rewards-nft-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: CineX-rewards-sip09
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\CineX-rewards-sip09.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: Co-EP-rotating-fundings
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\Co-EP-rotating-fundings.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: crowdfunding-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\crowdfunding-module.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: emergency-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\emergency-module.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: escrow-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\escrow-module.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: film-verification-dummy
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\film-verification-dummy.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: film-verification-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\film-verification-module.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: module-base
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\module-base.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: rewards-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\rewards-module.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: verification-mgt-extension
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\verification-mgt-extension.clar"
+            clarity-version: 2
+      epoch: "2.5"

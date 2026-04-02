@@ -1,0 +1,325 @@
+/* Enhanced Transaction Demo Component Styles */
+
+.container {
+  min-height: 100vh;
+  background-color: white;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background-color: black;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: yellow;
+  color: black;
+  padding: 10px;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.clearButton {
+  color: white;
+  background: none;
+  border: 1px solid white;
+  padding: 5px 10px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.navigation {
+  display: flex;
+  gap: 10px;
+  background-color: white;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 2px solid black;
+  border-radius: 8px;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 12px 20px;
+  font-weight: bold;
+  font-size: 16px;
+  color: black;
+  border: 2px solid black;
+  cursor: pointer;
+  background-color: lightgray;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tabButton.active {
+  background-color: yellow;
+}
+
+.tabButton:hover {
+  background-color: #f3f4f6;
+}
+
+.tabButton.active:hover {
+  background-color: yellow;
+}
+
+.tabIcon {
+  font-size: 18px;
+}
+
+.content {
+  background-color: white;
+  border: 2px solid black;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.instructions {
+  background-color: black;
+  color: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.instructionsTitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20px;
+  border-bottom: 2px solid yellow;
+  padding-bottom: 10px;
+}
+
+.instructionItem {
+  background-color: yellow;
+  color: black;
+  padding: 15px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+.notification {
+  background-color: red;
+  color: white;
+  padding: 15px;
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 18px;
+  border-radius: 6px;
+}
+
+.spaceY4 > * + * {
+  margin-top: 16px;
+}
+
+/* Demo section styling */
+.demoSection {
+  margin-bottom: 24px;
+}
+
+.demoTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 16px;
+  background-color: yellow;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.demoContainer {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 24px;
+  border: 2px solid black;
+}
+
+.spaceY6 > * + * {
+  margin-top: 24px;
+}
+
+/* Form styling */
+.formField {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 4px;
+}
+
+.formInput {
+  width: 100%;
+  border: 2px solid black;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: white;
+}
+
+.formSelect {
+  width: 100%;
+  border: 2px solid black;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: white;
+}
+
+/* Button styling */
+.primaryButton {
+  background-color: black;
+  color: yellow;
+  padding: 12px 20px;
+  border: 2px solid black;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.primaryButton:hover {
+  background-color: yellow;
+  color: black;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background-color: white;
+  color: black;
+  padding: 12px 20px;
+  border: 2px solid black;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.secondaryButton:hover {
+  background-color: #f3f4f6;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Status and info boxes */
+.statusBox {
+  background-color: white;
+  padding: 15px;
+  border: 2px solid black;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.statusLabel {
+  font-size: 16px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 10px;
+}
+
+.statusValue {
+  font-size: 14px;
+  font-weight: bold;
+  color: black;
+  background-color: yellow;
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Grid layout for forms */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Wallet connection status */
+.walletStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .walletStatus {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.addressBox {
+  background-color: white;
+  padding: 15px;
+  border: 2px solid black;
+  border-radius: 6px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .addressBox {
+    text-align: right;
+  }
+}
+
+.addressValue {
+  font-size: 14px;
+  font-weight: bold;
+  color: black;
+  background-color: yellow;
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  font-family: monospace;
+}
