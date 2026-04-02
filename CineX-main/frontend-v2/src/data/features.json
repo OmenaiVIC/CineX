@@ -1,0 +1,43 @@
+{
+  "secureAccessFeatures": [
+    "Transparent & Secure: All transactions recorded on blockchain",
+    "Community-Driven: Filmmakers supporting filmmakers",
+    "Fair Rotation: Everyone gets equal opportunity",
+    "Track Everything: See pool status and member contributions in real-time"
+  ],
+  "brandLogos": [
+    "/images/figma.svg",
+    "/images/notion.svg",
+    "/images/slack.svg",
+    "/images/spotify.svg",
+    "/images/twitter.svg",
+    "/images/desktop.svg"
+  ],
+  "whyUsCards": [
+    {
+      "id": 1,
+      "image": "/images/bg-image1.png",
+      "category": "Features",
+      "title": "Safeguarded with leading banks"
+    },
+    {
+      "id": 2,
+      "image": "/images/bg-image2.png",
+      "category": "Security",
+      "title": "Safeguarded with leading banks"
+    },
+    {
+      "id": 3,
+      "image": "/images/bg-image3.png",
+      "category": "Progress",
+      "title": "Safeguarded with leading banks"
+    }
+  ],
+  "billingTabs": [
+    { "id": "introduction", "label": "Introduction", "image": "/images/dashboard2.png" },
+    { "id": "aggregation", "label": "Aggregation", "image": "/images/dashboard3.png" },
+    { "id": "pricing", "label": "Pricing & Credits", "image": "/images/dashboard2.png" },
+    { "id": "integrations", "label": "Integrations", "image": "/images/dashboard3.png" },
+    { "id": "api", "label": "API & Webhooks", "image": "/images/dashboard2.png" }
+  ]
+}
