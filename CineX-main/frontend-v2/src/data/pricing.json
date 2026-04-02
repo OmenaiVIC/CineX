@@ -1,0 +1,85 @@
+{
+  "pricing": {
+    "title": "Simple pricing that scales with your business",
+    "subtitle": "Choose an affordable plan that's packed with the best features for engaging your audience, creating customer loyalty, and driving sales.",
+    "monthlyLabel": "Monthly",
+    "annualLabel": "Annually",
+    "savings": "Save 20%"
+  },
+  "plans": [
+    {
+      "id": "basic",
+      "name": "Basic",
+      "description": "During this phase the design is developed to meet the required technical standards to",
+      "monthlyPrice": 10,
+      "annualPrice": 20,
+      "features": [
+        "Core engagement survey",
+        "Topic-based assessments",
+        "Custom topic-based assessments",
+        "Filterable heatmap & analytics"
+      ],
+      "ctaText": "Start now",
+      "ctaLink": "#",
+      "popular": false
+    },
+    {
+      "id": "business",
+      "name": "Business plan",
+      "description": "During this phase the design is developed to meet the required technical standards to",
+      "monthlyPrice": 25,
+      "annualPrice": 50,
+      "features": [
+        "Core engagement survey",
+        "Topic-based assessments",
+        "Custom topic-based assessments",
+        "Filterable heatmap & analytics"
+      ],
+      "ctaText": "Start now",
+      "ctaLink": "#",
+      "popular": true
+    },
+    {
+      "id": "premium",
+      "name": "Premium",
+      "description": "During this phase the design is developed to meet the required technical standards to",
+      "monthlyPrice": 50,
+      "annualPrice": 100,
+      "features": [
+        "Core engagement survey",
+        "Topic-based assessments",
+        "Custom topic-based assessments",
+        "Filterable heatmap & analytics"
+      ],
+      "ctaText": "Start now",
+      "ctaLink": "#",
+      "popular": false
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What are the limits for money transfers from the United States?",
+      "answer": "For most currencies, there are no limits to the transfer amount. Certain currencies might have limits set by our payments partners. You will always see the limit in the Revolut app before making the transfer."
+    },
+    {
+      "question": "Is it safe to send money with Revolut?",
+      "answer": "Yes. Banking services are provided by Metropolitan Commercial Bank, Member FDIC."
+    },
+    {
+      "question": "How can I make an international transfer from the United States?",
+      "answer": "Enter your recipient's details. You'll usually need the recipient's full name and their bank account number and bank code. Some payment methods and destination countries may require additional information."
+    },
+    {
+      "question": "How long does it take to send money abroad from the United States?",
+      "answer": "Different payment methods affect your transfer delivery time. Payments to other Revolut users and card payments are instant."
+    },
+    {
+      "question": "Where can I transfer money to from the United States?",
+      "answer": "Transfers to the following countries are not supported: Afghanistan, Angola, Burkina Faso, Burundi, Cambodia, Central African Republic, Congo (Brazzaville), Congo (Kinshasa), Cuba, Eritrea, Ethiopia, Guinea, Guinea-Bissau, Guyana, Haiti, Iran..."
+    },
+    {
+      "question": "How do I track my transfer?",
+      "answer": "Enter your recipient's details. You'll usually need the recipient's full name and their bank account number and bank code."
+    }
+  ]
+}
