@@ -1,0 +1,113 @@
+[project]
+name = 'CineX-project'
+description = ''
+authors = []
+telemetry = true
+cache_dir = '.\.cache'
+
+[[project.requirements]]
+contract_id = 'SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait'
+[contracts.CineX-project]
+path = 'contracts/CineX-project.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.CineX-rewards-sip09]
+path = 'contracts/CineX-rewards-sip09.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.Co-EP-rotating-fundings]
+path = 'contracts/Co-EP-rotating-fundings.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.crowdfunding-module]
+path = 'contracts/crowdfunding-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.crowdfunding-module-traits]
+path = 'contracts/crowdfunding-module-traits.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.emergency-module]
+path = 'contracts/emergency-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.emergency-module-trait]
+path = 'contracts/emergency-module-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.escrow-module]
+path = 'contracts/escrow-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.escrow-module-trait]
+path = 'contracts/escrow-module-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.film-verification-dummy]
+path = 'contracts/film-verification-dummy.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.film-verification-module]
+path = 'contracts/film-verification-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.film-verification-module-trait]
+path = 'contracts/film-verification-module-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.module-base]
+path = 'contracts/module-base.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.module-base-trait]
+path = 'contracts/module-base-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.rewards-module]
+path = 'contracts/rewards-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.rewards-module-trait]
+path = 'contracts/rewards-module-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.rewards-nft-trait]
+path = 'contracts/rewards-nft-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.verification-mgt-extension]
+path = 'contracts/verification-mgt-extension.clar'
+clarity_version = 2
+epoch = '2.5'
+[repl.analysis]
+passes = ['check_checker']
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
+
+[repl.remote_data]
+enabled = false
+api_url = 'https://api.hiro.so'
+
+[devnet]
+backend = "embedded"

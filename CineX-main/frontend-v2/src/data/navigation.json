@@ -1,0 +1,8 @@
+{
+  "navigationItems": [
+    { "to": "/about", "label": "About" },
+    { "to": "/waitlist", "label": "Waitlist" },
+    { "to": "/active-pools", "label": "Active Pools" },
+    { "to": "/contact", "label": "Contact" }
+  ]
+}

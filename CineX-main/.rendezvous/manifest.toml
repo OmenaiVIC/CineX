@@ -1,0 +1,14 @@
+[project]
+name = "CineX-project"
+clarinet_project_path = "./"
+tests_path = "tests"
+
+# ---------------------
+# CONTRACT → TEST LINKS
+# ---------------------
+
+[[targets]]
+contract = "escrow-module"
+path = "contracts/escrow-module.clar"
+tests = ["tests/escrow-module.tests.clar"]
+

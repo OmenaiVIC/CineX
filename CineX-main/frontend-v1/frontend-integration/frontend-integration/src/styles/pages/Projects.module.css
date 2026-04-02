@@ -1,0 +1,202 @@
+.helperText {
+  color: #888;
+  font-size: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2.5rem 0.5rem;
+  color: #888;
+}
+.emptyState h2 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.ctaLink {
+  color: #FFBF00;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.ctaLink:hover {
+  color: #bfa000;
+}
+.projectsPage {
+  background-color: #f0f2f5;
+  padding: 1.2rem 0.5rem;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.searchAndFilter {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.searchInput,
+.filterSelect {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: #fff;
+  color: #333;
+}
+
+.categoryLabel {
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  max-width: 98vw;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .projectsPage {
+    padding: 0.3rem;
+  }
+  .header h1 {
+    font-size: 1rem;
+  }
+  .searchAndFilter {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .projectGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    max-width: 100vw;
+  }
+  .pagination button {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
+  }
+}
+
+.projectLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.pagination button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:hover {
+  background-color: #e9ecef;
+}
+
+.pagination button:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Styles for the in-lined ProjectCard component */
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail {
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  position: relative;
+  background-color: #e9ecef;
+}
+
+.thumbnail img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.filmmaker {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 1.5rem;
+}
+
+.funding {
+  margin-top: auto;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress {
+  height: 100%;
+  background-color: #007bff;
+  border-radius: 4px;
+}
+
+.fundingText {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #333;
+}
