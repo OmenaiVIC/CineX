@@ -18,6 +18,8 @@ const wallet6 = accounts.get("wallet_6")!;
 const wallet7 = accounts.get("wallet_7")!; 
 const wallet8 = accounts.get("wallet_8")!; 
 const wallet9 = accounts.get("wallet_9")!;
+const wallet10 = accounts.get("wallet_10")!;
+const wallet11 = accounts.get("wallet_11")!;
 const workFlowWallet = accounts.get("wallet_10")!; // for integration test
 
 
@@ -271,7 +273,7 @@ describe("film-verification-module", () => {
 
 
 
-// --- REGISTRATION TEST (updated for non-default filmmaker)---
+// --- REGISTRATION TEST (updated for non-default filmmaker)---//
   // Verify a filmmaker can register their own identity details. 
   it("registers filmmaker identity", () => {
     // Register wallet1 as a filmmaker with identity metadata.
@@ -372,7 +374,9 @@ describe("film-verification-module", () => {
     expect(portfolioResult.result).toBeOk(Cl.uint(1));
   });
  
-
+ // ---------------------------------------------------------------------------
+  // VERIFICATION PAYMENT + ADMIN VERIFICATION
+  // ---------------------------------------------------------------------------
   // Verify a filmmaker can only be verified by admin after payment is recorded.
   it("admin verifies filmmaker identity after verification fee payment", () => {
     // Register wallet3 before attempting fee payment or verification.
@@ -392,7 +396,7 @@ describe("film-verification-module", () => {
     const paymentResult = payBasicVerificationFee(wallet3);
 
     // Assert the fee payment call succeeds.
-    (paymentResult.result).toBeOk(Cl.bool(true));
+    expect(paymentResult.result).toBeOk(Cl.bool(true));
 
     // Verify the filmmaker as admin using a future expiration block.
     const verificationResult = verifyFilmmakerAsAdmin(wallet3, FUTURE_EXPIRATION_BLOCK);
@@ -414,8 +418,255 @@ describe("film-verification-module", () => {
 
     // Assert wallet3 is now currently verified.
     expect(verifiedStatus.result).toBeOk(Cl.bool(true));
+  });
+
+  it("prevents non-admin from verifying a filmmaker", () => {
+    // ADDED for important auth coverage on verify-filmmaker-identity.
+    const registrationResult = registerFilmmaker(
+      wallet4,
+      "Unauthorized Verify Target",
+      "https://www.unauth-verify.com",
+      HASH_4,
+      1,
+      5000
+    );
+
+    expect(registrationResult.result).toBeOk(Cl.uint(4));
+
+    const paymentResult = payBasicVerificationFee(wallet4);
+    expect(paymentResult.result).toBeOk(Cl.bool(true));
+    
+    const unauthorizedVerify = callPublicFn({
+      //Specify the contract to call.
+      contractName,
+      // Specify the function that marks a filmmaker as verified.
+      functionName: "verify-filmmaker-identity",
+      // Pass the filmmaker principal and new expiration block arguments
+      functionArgs: [Cl.principal(wallet4), Cl.uint(FUTURE_EXPIRATION_BLOCK)],
+      // Use wallet 4 as another (apparently unauthorized) sender calling this contract
+      sender: wallet4,
+    });
+
+    expect(unauthorizedVerify.result).toBeErr(Cl.uint(1001));
+  });
+
+
+   // ---------------------------------------------------------------------------
+  // EXPIRATION UPDATE
+  // ---------------------------------------------------------------------------
+  it("updates filmmaker expiration period", () => {
+    const registrationResult = registerFilmmaker(
+      wallet5,
+      "Expiry Filmmaker",
+      "https://www.expiry.com",
+      HASH_5,
+      1,
+      5000
+    );
+
+    expect(registrationResult.result).toBeOk(Cl.uint(5));
+
+    const paymentResult = payBasicVerificationFee(wallet5);
+    expect(paymentResult.result).toBeOk(Cl.bool(true));
+
+    const verifyResult = verifyFilmmakerAsAdmin(wallet5, FUTURE_EXPIRATION_BLOCK);
+    expect(verifyResult.result).toBeOk(Cl.bool(true));
+
+    const expirationUpdate = callPublicFn({
+      //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "update-filmmaker-expiration-period",
+      // Pass the filmmaker principal and new expiration period
+      functionArg:  [Cl.principal(wallet5), Cl.uint(FUTURE_EXPIRATION_BLOCK_2)],
+      // Use deployer as contract admin updating filmmaker's verification expiry after verification payment is confirmed 
+      sender: deployer,
+    });
+
+    expect(expirationUpdate.result).toBeOk(Cl.uint(FUTURE_EXPIRATION_BLOCK_2));
+    
+    const updatedIdentity = getFilmmakerIdentity(wallet5);
+    expect(updatedIdentity.result).toBeOk(
+      Cl.some(
+        Cl.tuple({
+          "full-name": Cl.stringAscii("Expiry Filmmaker"), //Return the legal name of the recently verified filmmaker's newly updated expiry
+          "profile-url": Cl.stringAscii("https://www.expiry.com"), //Return the profile url of this filmmaker
+          "identity-hash": Cl.bufferFromHex(HASH_5), // hash of documents of this filmmaker 
+          "choice-verification-level": Cl.uint(1), // Return basic verification 1
+          "choice-verification-expiration":Cl.uint(FUTURE_EXPIRATION_BLOCK_2), // Future expiration time
+          "verified": Cl.bool(true), // 
+          "registration-time": expect.anything() as unknown as ReturnType<typeof Cl.uint>,
+        })
+      )
+    );
 
   });
+
+
+  // ---------------------------------------------------------------------------
+  // ENDORSEMENT
+  // ---------------------------------------------------------------------------
+  it("adds filmmaker endorsement through an authorized third-party endorser", () => {
+    // add-filmmaker-endorsement function 
+    // validate the third-party endorser authorization path exposed by the contract.
+    const registrationResult = registerFilmmaker(
+      wallet6, // new test instance of filmmaker principal 
+      "Endorse Filmmaker",
+      "https://www.endorsed.com",
+      HASH_6,
+      1,
+      5000
+    );
+
+    expect(registrationResult.result).toBeOk(Cl.uint(6));
+
+    const setEndorser = callPublicFn({
+      //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "set-third-party-endorser",
+      // admin designates wallet11 as the approved third party endorser
+      functionArg:  [Cl.principal(wallet11)],
+      // Use deployer as contract admin approving third-party endorser
+      sender: deployer,
+    });
+
+    expect(setEndorser.result).toBeOk(Cl.bool(true));
+
+    const thirdPartyAddress = callReadOnlyFn({
+      //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "get-third-party-address",
+      // Function does not take in any argument
+      functionArg:  [],
+      // Deployer calls the read-only function to retrieve the third-party-address
+      sender: deployer,
+    });
+
+    expect(thirdPartyAddress.result).toBeOk(Cl.principal(wallet11)); // return the exact third-party-address 
+
+    // Now we can add-filmmaker-endorsement
+    const endorsementResult = callPublicFn({
+      //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "add-filmmaker-endorsement",
+      // Function takes in arguments
+      functionArg:  [
+        Cl.principal(wallet6), // endorsed filmmaker
+        Cl.stringAscii("Festival Director"), // endorser name
+        Cl.stringAscii("Exceptional Filmmaker"), // endorsement letter
+        Cl.stringAscii("https://www.endorsement.com"), // url link to the endorsement doc
+      ],
+      // Deployer calls the read-only function to retrieve the third-party-address
+      sender: wallet11,
+    })
+
+    expect(endorsementResult.result).toBeOk(Cl.uint(1))// Return new count of newly added endorsement 
+
+  });
+
+
+  // ---------------------------------------------------------------------------
+  // VERIFICATION STATUS
+  // ---------------------------------------------------------------------------
+    
+it("checks if filmmaker is currently verified", () => {
+
+  // Call the read-only function is-filmmaker-currently-verified
+  const verified = callReadOnlyFn({
+    //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "is-filmmaker-currently-verified",
+      // Function takes in arguments
+      functionArg:  [Cl.principal(defaultFilmmaker)], // default filmmaker
+      // Deployer calls the getter function
+      sender: deployer,
+  }); 
+
+  expect(verified.result).toBeOk(Cl.bool(true));
+});
+
+it("returns ERR-NOT-VERIFIED for a registered but not-yet-verified filmmaker", () => {
+  const registrationResult = registerFilmmaker(
+      wallet7,
+      "Unverified Filmmaker",
+      "https://www.unverified.com",
+      HASH_7,
+      1,
+      5000
+    );
+
+    expect(registrationResult.result).toBeOk(Cl.uint(7));
+
+    // Call the read-only function is-filmmaker-currently-verified
+    const verified = callReadOnlyFn({
+      //Specify the contract to call 
+      contractName,
+      //Specify the function Name
+      functionName: "is-filmmaker-currently-verified",
+      // Function takes in argument
+      functionArg:  [Cl.principal(wallet7)], // unverified filmmaker
+      // Deployer calls the getter function
+      sender: deployer,
+  }); 
+
+  expect(verified.result).toBeErr(Cl.uint(1009));
+});
+
+// ---------------------------------------------------------------------------
+// PORTFOLIO AVAILABILITY
+// ---------------------------------------------------------------------------
+it("checks if filmmaker portfolio exists", () => {
+  //creates a real portfolio first, then checks availability.
+  const registrationResult = registerFilmmaker(
+      wallet8, // new test instance of filmmaker principal 
+      "Portfolio Availability Portfolio",
+      "https://www.portfolio-available.com",
+      HASH_8,
+      1,
+      5000
+    );
+
+  expect(registrationResult.result).toBeOk(Cl.uint(8));
+
+  // add filmmaker portfolio
+  const addPortfolio = callPublicFn({
+    //Specify the contract to call 
+    contractName,
+    //Specify the function Name
+    functionName: "add-filmmaker-portfolio",
+    // Function takes in argument
+    functionArg: [
+      Cl.principal(wallet8), // filmmaker principal
+      Cl.stringAscii("Availability Project"), // project name
+      Cl.stringAscii("https://www.availability-project.com"), // project url
+      Cl.stringAscii("Availability project description"), // project description
+      Cl.uint(2025), // project completion year
+    ], 
+      // Filmmaker/wallet8 calls the function to add the portfolio 
+      sender: wallet8,
+  });
+
+  expect(addPortfolio.result).toBeOk(Cl.uint(1));
+
+  // Retrieve the Portfolio 
+  const portfolioAvailable = callReadOnlyFn({
+    //Specify the contract to call 
+    contractName,
+    //Specify the function Name
+    functionName: "is-portfolio-available",
+    // Function takes in argument
+    functionArg: [Cl.principal(wallet8), Cl.uint(1)],
+    sender: deployer,
+  });
+
+  expect(portfolioAvailable.result).toBeOk(Cl.bool(true)); 
+
+});
+
 
 
 
