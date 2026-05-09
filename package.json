@@ -32,6 +32,7 @@
     "vitest-environment-clarinet": "^2.0.0"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^1.6.1"
+    "@vitest/coverage-v8": "^1.6.1",
+    "mcp-server": "^0.0.9"
   }
 }
