@@ -1,5 +1,15 @@
 
 {
     "files.eol": "\n",
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "mcpServers": {
+        "stacks-clarity": {
+            "command": "node",
+            "args": ["${workspaceFolder}/node_modules/mcp-server/index.js"],
+            "env": {
+                "STACKS_NETWORK": "simnet",
+                "CLARITY_VERSION": "2.0"
+            }
+        }
+    }
 }
