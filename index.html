@@ -216,10 +216,13 @@
     @media (max-width: 700px) { .steps-grid { grid-template-columns: 1fr; } }
     .step-card {
       padding: 2rem 1.5rem;
-      text-align: center;
+      text-align: left;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .step-card:hover { transform: translateY(-4px); box-shadow: 0 0 50px rgba(74,222,128,0.1); }
+    .step-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .step-card li { font-size: 0.85rem; color: var(--gray-300); padding-left: 1.2rem; position: relative; }
+    .step-card li::before { content: '→'; position: absolute; left: 0; color: var(--green); }
     .step-num {
       display: inline-flex;
       align-items: center;
@@ -484,17 +487,33 @@
       <div class="glass step-card">
         <div class="step-num">1</div>
         <h4>Verified Intake</h4>
-        <p>Filmmakers onboard via Stacks identity proofs, portfolio verification, and social‑graph endorsements. No anonymous listings.</p>
+        <ul>
+          <li>Creatives onboard via Stacks identity proofs</li>
+          <li>Portfolio verification through on‑chain credentials</li>
+          <li>Social‑graph endorsements from verified peers</li>
+          <li>No anonymous listings — every creator is authenticated</li>
+        </ul>
       </div>
       <div class="glass step-card">
         <div class="step-num">2</div>
         <h4>Milestone Gating</h4>
-        <p>Capital is released in tranches against pre‑agreed deliverables (script, principal photography, post‑production). On-chain verification.</p>
+        <ul>
+          <li>Capital released in tranches against pre‑agreed deliverables</li>
+          <li>Milestones: script delivery, principal photography, post‑production</li>
+          <li>On‑chain verification of milestone completion</li>
+          <li>Transparent, auditable disbursement trail</li>
+        </ul>
       </div>
       <div class="glass step-card">
         <div class="step-num">3</div>
         <h4>Productive Escrow</h4>
-        <p>Idle escrow capital earns a conservative estimated 4–7% APY through Bitcoin secured DeFi strategies (Stacks stacking, sBTC lending). CineX takes a 30% performance fee; 70% of all yield earned passes directly to creators and capital providers. This percentage of earned yield model is standard in DeFi and protects against market volatility.</p>
+        <ul>
+          <li>Idle escrow capital earns 4–7% estimated APY</li>
+          <li>Yield via Bitcoin‑secured DeFi: Stacks stacking &amp; sBTC lending</li>
+          <li>70% of earned yield passes to creators &amp; capital providers</li>
+          <li>CineX takes 30% performance fee (standard DeFi model)</li>
+          <li>Yield‑share model protects against market volatility</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -629,7 +648,7 @@
       <div class="glass trust-card">
         <span class="name">Victor Omenai</span>
         <span class="role">Founder &amp; CEO</span>
-        <span style="font-size:0.82rem;color:var(--gray-400);">Stacks blockchain developer &amp; strategic management consultant. Led CineX MVP development on Stacks testnet; validated by Stacks DeGrant Cohort 3. Previously built payment infrastructure and strategic frameworks for creative economy.</span>
+        <span style="font-size:0.82rem;color:var(--gray-400);">Former film screenwriter turned blockchain developer. Strategic management consultant &amp; Stacks developer selected for Stacks Ascent Blockchain Accelerator. Led CineX MVP development on Stacks testnet; validated by Stacks DeGrants Cohort 3. Uniquely bridges narrative craft with Bitcoin L2 engineering to connect the creative economy with DeFi infrastructure.</span>
         <a href="https://www.linkedin.com/in/victor-olumese-omenai/" target="_blank" rel="noopener">LinkedIn →</a>
       </div>
       <div class="glass trust-card">
