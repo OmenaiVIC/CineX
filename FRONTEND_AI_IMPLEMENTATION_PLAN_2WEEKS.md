@@ -17,12 +17,12 @@ This frontend/AI sprint runs **in parallel** with the contract sprint defined in
 | Contract Day | Contract Delivers | Frontend Day | Frontend Uses |
 |-------------|-------------------|-------------|---------------|
 | Day 1 | cinex-multisig, timelock, asset-registry | Day 1-2 | — (infra, no frontend surface) |
-| Day 2 | reputation.clar `rate-user`, `get-reputation-score` | Day 3-4 | Profile page: reputation score display |
-| Day 3 | project-verification-module | Day 4-5 | Profile page: verification badge, registration |
-| Day 4-5 | milestone-escrow (create, deposit, approve, release) | Day 5-6 | Campaign data for rating context; milestone display on pool page |
+| Day 2 | reputation.clar `rate-user`, `get-reputation-score` | Day 2.5, 3-4 | Onboarding role check, Profile: reputation score |
+| Day 3 | project-verification-module | Day 3.5, 4-5 | Dashboard: verification badge, registration call-to-action |
+| Day 4-5 | milestone-escrow (create, deposit, approve, release) | Day 5-6 | Campaign data for rating; milestone display on dashboards |
 | Day 6-7 | yield-escrow, bitflow-strategy | Day 7 | Yield info panel (read-only, secondary) |
-| Day 8-9 | funding-pool (create, join, propose, vote, execute) | Day 7-8 | Pool homepage: members, proposals, activity |
-| Day 10 | Integration tests complete | Day 9-10 | End-to-end frontend/contract testing |
+| Day 8-9 | funding-pool (create, join, propose, vote, execute) | Day 7-8, 9 | Pool homepage + dashboards + demo mode transaction feedback |
+| Day 10 | Integration tests complete | Day 10-12 | End-to-end frontend/contract testing + deployment |
 
 **Mock-first strategy:** Each frontend service layer starts with a mock implementation (returning realistic sample data). When the corresponding contract is deployed to devnet/testnet, the service swaps to real `openContractCall` / read-only calls. A `VITE_USE_MOCK_DATA` feature flag controls the switch.
 
