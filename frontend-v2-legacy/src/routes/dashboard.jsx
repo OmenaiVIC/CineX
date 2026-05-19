@@ -1,11 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
+import { useRole } from '@hooks/useRole';
 
 export default function DashboardRouter() {
-  const { isAuthenticated, isLoading, userType } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { role, isOnboarded, isLoading: roleLoading } = useRole();
 
-  if (isLoading) return <div className="p-12 text-center">Loading...</div>;
+  if (isLoading || roleLoading) return <div className="p-12 text-center text-gray-400">Loading...</div>;
 
   if (!isAuthenticated) {
     return (
@@ -16,15 +18,22 @@ export default function DashboardRouter() {
     );
   }
 
-  // Simple router-style links to role-specific dashboards
+  if (isOnboarded && role === 'creative') {
+    return <Navigate to="/dashboard/creator" replace />;
+  }
+
+  if (isOnboarded && role === 'backer') {
+    return <Navigate to="/dashboard/backer" replace />;
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-xl">
         <Link to="/dashboard/public" className="p-6 bg-white rounded-lg shadow hover:shadow-md border">Public Dashboard</Link>
-        <Link to="/dashboard/filmmaker" className="p-6 bg-white rounded-lg shadow hover:shadow-md border">Filmmaker Dashboard</Link>
-        <Link to="/dashboard/endorser" className="p-6 bg-white rounded-lg shadow hover:shadow-md border">Endorser Dashboard</Link>
+        <Link to="/dashboard/creator" className="p-6 bg-white rounded-lg shadow hover:shadow-md border">Creator Dashboard</Link>
+        <Link to="/dashboard/backer" className="p-6 bg-white rounded-lg shadow hover:shadow-md border">Backer Dashboard</Link>
       </div>
     </div>
   );

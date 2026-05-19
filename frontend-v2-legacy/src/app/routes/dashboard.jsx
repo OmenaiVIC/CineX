@@ -1,13 +1,14 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
+import { useRole } from '@hooks/useRole';
 import DashboardLayout from '@components/dashboard/DashboardLayout';
 
 export default function DashboardRouter() {
-  const { isAuthenticated, isLoading, userType } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { role, isOnboarded, isLoading: roleLoading } = useRole();
 
-  if (isLoading) return <div className="p-12 text-center">Loading...</div>;
+  if (isLoading || roleLoading) return <div className="p-12 text-center text-gray-400">Loading...</div>;
 
   if (!isAuthenticated) {
     return (
@@ -19,9 +20,9 @@ export default function DashboardRouter() {
             <div className="text-yellow-400 text-5xl mb-4">🔐</div>
             <h3 className="text-xl font-semibold text-white mb-2">Wallet Connection Required</h3>
             <p className="text-gray-400 text-sm mb-6">Sign in with your Stacks wallet to get started</p>
-            <button onClick={() => navigate('/login')} className="w-full px-6 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition duration-300">
+            <Link to="/login" className="block w-full px-6 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition duration-300 text-center">
               Connect Wallet
-            </button>
+            </Link>
           </div>
           <p className="text-gray-500 text-xs">Secure • Non-custodial • Decentralized</p>
         </div>
@@ -29,16 +30,14 @@ export default function DashboardRouter() {
     );
   }
 
-  // Redirect to role-specific dashboard automatically
-  React.useEffect(() => {
-    if (userType && isAuthenticated) {
-      if (userType === 'filmmaker') navigate('/dashboard/filmmaker');
-      else if (userType === 'endorser') navigate('/dashboard/endorser');
-      else navigate('/dashboard/public');
-    }
-  }, [userType, isAuthenticated, navigate]);
+  if (isOnboarded && role === 'creative') {
+    return <Navigate to="/dashboard/creator" replace />;
+  }
 
-  // Styled dashboard entry with role cards
+  if (isOnboarded && role === 'backer') {
+    return <Navigate to="/dashboard/backer" replace />;
+  }
+
   return (
     <DashboardLayout>
       <section className="container mx-auto px-4 py-12">
@@ -60,23 +59,23 @@ export default function DashboardRouter() {
               </div>
             </Link>
 
-            <Link to="/dashboard/filmmaker" className="p-6 bg-black border border-gray-800 rounded-2xl text-white hover:shadow-lg transition">
+            <Link to="/dashboard/creator" className="p-6 bg-black border border-gray-800 rounded-2xl text-white hover:shadow-lg transition">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Filmmaker Dashboard</h3>
-                  <p className="text-gray-400 text-sm mt-2">Create and manage campaigns, private pools and submissions.</p>
+                  <h3 className="text-lg font-semibold">Creator Dashboard</h3>
+                  <p className="text-gray-400 text-sm mt-2">Create and manage campaigns, pools, and your portfolio.</p>
                 </div>
                 <div className="text-yellow-400 text-3xl">🎬</div>
               </div>
             </Link>
 
-            <Link to="/dashboard/endorser" className="p-6 bg-black border border-gray-800 rounded-2xl text-white hover:shadow-lg transition">
+            <Link to="/dashboard/backer" className="p-6 bg-black border border-gray-800 rounded-2xl text-white hover:shadow-lg transition">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Endorser Dashboard</h3>
-                  <p className="text-gray-400 text-sm mt-2">Tasks, reviews and endorsement history.</p>
+                  <h3 className="text-lg font-semibold">Backer Dashboard</h3>
+                  <p className="text-gray-400 text-sm mt-2">Discover projects, track yield, and manage contributions.</p>
                 </div>
-                <div className="text-yellow-400 text-3xl">✅</div>
+                <div className="text-yellow-400 text-3xl">💰</div>
               </div>
             </Link>
           </div>
