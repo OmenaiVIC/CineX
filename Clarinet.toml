@@ -96,6 +96,71 @@ epoch = '2.5'
 path = 'contracts/verification-mgt-extension.clar'
 clarity_version = 2
 epoch = '2.5'
+
+# === Day 1: Admin Infrastructure ===
+
+[contracts.timelock-trait]
+path = 'contracts/timelock-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.asset-registry-trait]
+path = 'contracts/asset-registry-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.cinex-multisig]
+path = 'contracts/cinex-multisig.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.timelock]
+path = 'contracts/timelock.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['timelock-trait']
+
+[contracts.asset-registry]
+path = 'contracts/asset-registry.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['asset-registry-trait']
+
+# === Day 2: Oracle + Reputation + Verification ===
+
+[contracts.oracle-proxy-trait]
+path = 'contracts/oracle-proxy-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.oracle-proxy]
+path = 'contracts/oracle-proxy.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['oracle-proxy-trait', 'cinex-multisig']
+
+[contracts.reputation-trait]
+path = 'contracts/reputation-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.reputation]
+path = 'contracts/reputation.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['reputation-trait', 'project-verification-module']
+
+[contracts.project-verification-module-trait]
+path = 'contracts/project-verification-module-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.project-verification-module]
+path = 'contracts/project-verification-module.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['project-verification-module-trait', 'film-verification-module-trait', 'emergency-module-trait', 'module-base-trait', 'cinex-multisig']
+
 [repl.analysis]
 passes = ['check_checker']
 

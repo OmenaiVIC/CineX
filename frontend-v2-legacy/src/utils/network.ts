@@ -119,3 +119,27 @@ export function getExplorerAddressUrl(address: string): string {
   const network = getNetworkType();
   return `${baseUrl}/address/${address}?chain=${network}`;
 }
+
+/**
+ * switchNetwork
+ * -------------
+ * Persist a network preference to localStorage so the app can pick it up
+ * on the next load.  Environment variables (VITE_NETWORK) cannot be changed
+ * at runtime, so we store the intent and the user must refresh the page
+ * (or the app initialisation reads localStorage).
+ *
+ * @param target - 'testnet' | 'mainnet'
+ *
+ * @example
+ *   import { switchNetwork } from '../utils/network';
+ *   switchNetwork('mainnet');
+ *   // Optionally reload: window.location.reload();
+ */
+export function switchNetwork(target: 'testnet' | 'mainnet'): void {
+  localStorage.setItem('cinex_network_preference', target);
+  // The app can read this key on startup if needed:
+  //   const pref = localStorage.getItem('cinex_network_preference');
+  //   if (pref) setEnv('VITE_NETWORK', pref);
+  // Since VITE_ vars are baked at build time, a hard reload is the
+  // simplest way to pick up a different network.
+}
