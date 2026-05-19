@@ -97,8 +97,6 @@ This section describes the layout and components of each page.
 *   **Hero Section:** A full-bleed background image (a film still) with the tagline: "CineX: Invest Together. Create Together." and a primary CTA button: "Explore Projects".
 *   **Featured Projects:** A horizontally scrolling carousel of featured film projects, with thumbnails, titles, and funding progress bars.
 *   **How It Works:** A section with three simple steps (Discover, Fund, Reward) with icons and brief descriptions.
-*   **Testimonials:** A section with quotes from filmmakers and investors.
-
 #### 2. Projects Page
 
 *   **Search and Filter Bar:** A prominent bar at the top with a search input and dropdown filters for genre, funding status, etc.

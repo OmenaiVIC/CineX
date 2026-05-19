@@ -191,16 +191,31 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 
 #### Day 3 — Project Verification Module (complete) + Tests (8h)
 
-**Task 3.1: `project-verification-module.clar` — refactor completion (3h dev + 1h tests)**
-- [ ] Rename all `filmmaker` identifiers to `creator` (e.g., `creator-identities` instead of `filmmaker-identities`)
-- [ ] Add `project-vertical` field to registration: `(string-ascii 20)` — `"film" | "music" | "gaming" | "immersive-media" | "other"`
-- [ ] Keep `register-creator` (was `register-filmmaker-id`), `add-portfolio`, `verify-project`
-- [ ] Endorsements remain optional (not required for verification)
-- [ ] Implement `module-base-trait` and `emergency-module-trait` (as existing pattern)
-- [ ] Maintain backward compatibility: re-export `is-filmmaker-currently-verified` as alias for `is-creator-currently-verified`
-- [ ] Vars: `admin-contract` (principal — timelock for non-emergency verify), `emergency-admin` (principal — multi-sig for emergency ops)
-- [ ] Timelock path: `verify-project` requires timelock queue
-- [ ] Emergency path: multi-sig can directly call `emergency-verify-project` or `emergency-revoke-verification` bypassing timelock
+**Task 3.1: Tiered funding ceiling + repricing (3h dev + 1h tests)**
+- [ ] **Reprice** verification fees for Global South market:
+  - `basic-verification-fee`: 2 STX → **1 STX** (`u1000000`)
+  - `standard-verification-fee`: 3 STX → **5 STX** (`u5000000`)
+- [ ] **Add cap constants** to `project-verification-module.clar`:
+  - `UNVERIFIED-FUNDING-CAP`: **1,000 STX** (`u1000000000`)
+  - `BASIC-FUNDING-CAP`: **10,000 STX** (`u10000000000`)
+  - `PREMIUM-FUNDING-CAP`: **100,000 STX** (`u100000000000`)
+  - `PLATFORM-MAX`: **1,000,000 STX** (`u1000000000000`) — outer circuit breaker
+- [ ] **Add read-only** `get-verification-funding-cap (creator)` — returns cap based on current verification level (unverified/basic/premium). Expired → unverified cap. Unregistered → unverified cap.
+- [ ] **Add to traits** `film-verification-module-trait.clar` and `project-verification-module-trait.clar`
+- [ ] **Replace binary verification gate** in `crowdfunding-module.clar::create-campaign`:
+  - Remove `is-filmmaker-currently-verified` hard block
+  - Add `get-verification-funding-cap` call
+  - Assert `funding-goal <= funding-cap`
+- [ ] **Add live cap check** in `crowdfunding-module.clar::contribute-to-campaign`:
+  - Assert `new-total-raised <= owner-cap` (checks every deposit — handles expiry/revocation mid-campaign)
+- [ ] **Edge cases covered:**
+  | Case | Solution |
+  |------|----------|
+  | Mid-campaign upgrade | Live cap check on each deposit |
+  | Expiry/revocation | Same — next deposit fails atomically |
+  | Goal exceeds cap | Rejected at creation |
+  | Sybil multiple campaigns | Per-campaign cap, off-chain IP check |
+  | Creator-investor dual role | Verification is creator-side only |
 - **Estimated:** 3h (dev) + 1h (tests)
 
 **Task 3.2: Project Verification regression + backward compat tests (4h)**

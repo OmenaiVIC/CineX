@@ -11,7 +11,6 @@ This comprehensive guide explains how to manage content in the GlobalBank templa
 - [Blog Content](#blog-content)
 - [Pricing Plans](#pricing-plans)
 - [Features and Benefits](#features-and-benefits)
-- [Testimonials](#testimonials)
 - [FAQ Content](#faq-content)
 - [Company Information](#company-information)
 - [Best Practices](#best-practices)
@@ -36,8 +35,7 @@ src/data/
 ├── pricing.json        # Pricing plans and features
 ├── features.json       # Product features and descriptions
 ├── about.json          # About page content and team info
-├── contact.json        # Contact information and form
-└── testimonials.json   # Customer testimonials
+└── contact.json        # Contact information and form
 ```
 
 ## Data Structure
@@ -46,7 +44,7 @@ src/data/
 
 All JSON files follow consistent patterns:
 
-1. **Array Format**: For lists of items (testimonials, features, etc.)
+1. **Array Format**: For lists of items (features, etc.)
 2. **Object Format**: For structured data (blog data, FAQ data)
 3. **Nested Objects**: For complex data relationships
 
@@ -55,7 +53,6 @@ All JSON files follow consistent patterns:
 Components import and use data files directly:
 
 ```jsx
-import testimonials from '@data/testimonials.json';
 import { features } from '@data/features.json';
 ```
 
@@ -361,55 +358,6 @@ Defines product features with icons and descriptions.
 }
 ```
 
-## Testimonials
-
-**File**: `src/data/testimonials.json`
-
-Customer testimonials and reviews.
-
-### Structure
-
-```json
-[
-  {
-    "id": 1,
-    "content": "We're very happy that they are created this amazing bookkeeping software.",
-    "highlightText": "very happy",
-    "author": {
-      "name": "Cooper Levin",
-      "title": "Founder of AIME Inc.",
-      "image": "/images/testimonial-avatar-1.png"
-    }
-  }
-]
-```
-
-### Testimonial Fields
-
-| Field | Type | Description | Required |
-|-------|------|-------------|----------|
-| `id` | number | Unique identifier | ✅ |
-| `content` | string | Testimonial text | ✅ |
-| `highlightText` | string | Text to highlight | ❌ |
-| `author.name` | string | Customer name | ✅ |
-| `author.title` | string | Customer title | ✅ |
-| `author.image` | string | Customer photo | ✅ |
-
-### Adding Testimonials
-
-```json
-{
-  "id": 4,
-  "content": "GlobalBank has transformed our financial operations. Highly recommended!",
-  "highlightText": "streamlined our entire",
-  "author": {
-    "name": "Sarah Johnson",
-    "title": "CFO, TechStart Inc.",
-    "image": "/images/testimonial-avatar-4.png"
-  }
-}
-```
-
 ## FAQ Content
 
 **File**: `src/data/faqData.json`
@@ -586,7 +534,7 @@ Use Git to track changes:
 ```bash
 # Commit data changes
 git add src/data/
-git commit -m "Update pricing plans and testimonials"
+git commit -m "Update pricing plans"
 ```
 
 ### 3. Environment-Specific Data
@@ -618,15 +566,7 @@ const dataConfig = {
 
 ### Debugging Data Issues
 
-```jsx
-// Add debugging to components
-console.log('Loaded data:', testimonials);
 
-// Validate data structure
-if (!testimonials || !Array.isArray(testimonials)) {
-  console.error('Invalid testimonials data');
-}
-```
 
 ## Next Steps
 

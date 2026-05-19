@@ -82,6 +82,7 @@
 (define-constant ERR-FUNDING-GOAL-EXCEEDED (err u319))
 (define-constant ERR-DUPLICATE-CONTRIBUTION (err u320))
 (define-constant ERR-SELF-CONTRIBUTION-NOT-ALLOWED (err u321))
+(define-constant ERR-FUNDING-CAP-EXCEEDED (err u322))
 
 
 
@@ -267,17 +268,17 @@
           ;; Get core-contract
       (authorized-core-contract (var-get core-contract))
 
-      ;; === Check verification status with proper error handling
-      (verification-result (unwrap! (contract-call? verification-address is-filmmaker-currently-verified tx-sender) ERR-NO-VERIFICATION))
-
-      ;; Check existing filmmaker identities, and current verification level
+      ;; Check existing creator identity for verification level display
       (current-identities (unwrap! (contract-call? verification-address get-filmmaker-identity tx-sender) ERR-NO-VERIFICATION))
       (current-verification-level (get choice-verification-level current-identities))
       
-      ;; Get is-verified, if true, return "verified", else, Default to "not verified"
-      (is-verified (if (is-eq verification-result true) 
-                          true 
-                          false))
+      ;; Get tiered funding cap — replaces old binary verification gate
+      (funding-cap (unwrap! (contract-call? verification-address get-verification-funding-cap tx-sender) ERR-NO-VERIFICATION))
+
+      ;; Determine is-verified status from identity data
+      (is-verified (match current-identities
+          data (get verified data)
+          false))
 
       ;; Default to level 0 if there's no verification level 
       (existing-verification-level (if (and (is-some current-verification-level) (is-eq is-verified true)) 
@@ -297,6 +298,9 @@
     
     ;; Validate campaign creation params 
     (try! (validate-campaign-params description funding-goal duration reward-tiers reward-description))
+
+    ;; Check funding goal does not exceed creator's tiered funding cap
+    (asserts! (<= funding-goal funding-cap) ERR-FUNDING-CAP-EXCEEDED)
 
     ;; Take the campaign creation fee from the creator and send to core contract
     (unwrap! (stx-transfer? CAMPAIGN-FEE tx-sender authorized-core-contract) ERR-TRANSFER-FAILED)
@@ -344,7 +348,7 @@
 
 ;; ========== CONTRIBUTE TO A CAMPAIGN ==========
 
-(define-public (contribute-to-campaign (campaign-id uint) (amount uint) (escrow-address <crwd-escrow-trait>))
+(define-public (contribute-to-campaign (campaign-id uint) (amount uint) (escrow-address <crwd-escrow-trait>) (verification-address <crwd-verification-trait>))
   (let
     (
         ;; Try to fetch campaign details
@@ -413,6 +417,11 @@
 
       ;; Ensure current total raised funds is <= funding-goal
       (asserts! (<= new-total-raised current-funding-goal) ERR-FUNDING-GOAL-EXCEEDED)
+
+      ;; Live cap check — owner may have expired or been revoked mid-campaign
+      (let ((owner-cap (unwrap! (contract-call? verification-address get-verification-funding-cap (get owner campaign)) ERR-NO-VERIFICATION)))
+        (asserts! (<= new-total-raised owner-cap) ERR-FUNDING-CAP-EXCEEDED)
+      )
       
       ;; Move funds into escrow (secure temporary storage)
       (unwrap! (contract-call? escrow-address deposit-to-campaign campaign-id amount) ERR-TRANSFER-FAILED)
