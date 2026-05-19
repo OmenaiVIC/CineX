@@ -482,7 +482,7 @@ scripts/
 
 **Parallel with Contract Day 3:** (project-verification-module complete)
 
-**Task 3.1: Wire reputationService to reputation.clar read calls (3h)**
+**Task 3.1: Wire reputationService to reputation.clar + funding cap (3h)**
 - [ ] Implement real `reputationService.getReputationScore(address)`:
   - Read-only call: `contract-call? .reputation get-reputation-score address`
   - Uses `@stacks/transactions` `readOnlyFunction`
@@ -491,25 +491,35 @@ scripts/
   - Read-only call: `contract-call? .reputation get-ratings-for-user address`
   - Handle list response
   - For each rating, attempt to resolve `comment-hash` -> actual comment from off-chain DB (optional)
+- [ ] Implement real `verificationService.getFundingCap(address)`:
+  - Read-only call: `contract-call? .project-verification-module get-verification-funding-cap address`
+  - Returns cap in micro-STX and human-readable string ("1,000 STX" | "10,000 STX" | "100,000 STX")
 - [ ] Add `USE_MOCK_DATA` toggle in service factory: if `false`, use real contract calls; if `true`, mock data
 - [ ] Display reputation score as SVG circular progress ring in `ProfileHeader.tsx`
 - **Estimated:** 3h
 
-**Task 3.2: Verification badge (2h)**
+**Task 3.2: Verification badge + cap display (2h)**
 - [ ] Create `src/components/profile/VerificationBadge.tsx`:
   - Calls `project-verification-module::is-creator-currently-verified` read-only (via `verificationService`)
   - Blue checkmark if verified, grey outline if not
   - Shows `project-vertical` tag: "Film" | "Music" | "Game" | "Immersive Media" | "Other"
+  - Shows funding ceiling: "Can raise up to X STX" — parsed from `get-verification-funding-cap`
   - Tooltip on hover: verification level, expiration block height
 - [ ] Integrate into `ProfileHeader.tsx`
+- [ ] Add cap display to campaign creation form (`CreateCampaignPage`): show creator's current ceiling before they set a goal. If goal > ceiling, show inline warning.
 - **Estimated:** 2h
 
-**Task 3.3: Ratings received section (2h)**
+**Task 3.3: Ratings received section + cap staleness guard (2h)**
 - [ ] In `RatingsReceived.tsx`:
   - For each rating: rater avatar (or initial), star display, comment (if resolved), link to campaign
   - Paginated: "Load more" button (offset/limit)
   - Empty state: "No ratings yet. Be the first to collaborate with this creator."
   - Rater name links to `/profile/:raterAddress`
+- [ ] **Staleness guard in deposit flow (`ContributeToCampaign` or `useContribute` hook):**
+  - Before submitting the deposit transaction, re-call `get-verification-funding-cap` for the campaign owner
+  - If the cap has changed since the page loaded (e.g., verification expired while browsing), show a blocking modal:
+    "This creator's funding ceiling has changed. The deposit cannot proceed. Refresh the page to see the latest."
+  - If the deposit would exceed the cap, reject client-side before calling `openContractCall`
 - **Estimated:** 2h
 
 **Task 3.4: Tribe affiliations section (1h)**

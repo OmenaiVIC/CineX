@@ -51,5 +51,9 @@
 
         ;; Emergency revoke verification (bypasses timelock, multi-sig only)
         (emergency-revoke-verification (principal) (response bool uint))
+
+        ;; Get the maximum funding cap for a creator based on their verification level
+        ;; Returns cap in micro-STX: unverified=1K, basic=10K, premium=100K
+        (get-verification-funding-cap (principal) (response uint uint))
     )
 )

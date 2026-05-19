@@ -59,15 +59,10 @@ function BlogSinglePage() {
             {/* Meta Info */}
             <div className="flex items-center gap-6 text-white/60 mb-8">
               <div className="flex items-center gap-3">
-                <img
-                  src="/images/author-avatar.png"
-                  alt="Author"
-                  className="w-10 h-10 rounded-full"
-                  onError={(e) => {
-                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='%23059669'%3E%3Ccircle cx='20' cy='20' r='20'/%3E%3Ctext x='20' y='28' text-anchor='middle' fill='white' font-size='14' font-family='Arial'%3E%3C/text%3E%3C/svg%3E";
-                  }}
-                />
-                <span>{post.author || 'Global Bank Team'}</span>
+                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                  {(post.author || 'G').charAt(0).toUpperCase()}
+                </div>
+                <span>{post.author || 'CineX Team'}</span>
               </div>
               <span>•</span>
               <span>{post.date}</span>

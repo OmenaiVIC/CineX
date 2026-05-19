@@ -445,29 +445,6 @@ const HomePage = lazy(() => import('@routes/home'));
 const AboutPage = lazy(() => import('@routes/about'));
 ```
 
-### Component-Based Lazy Loading
-
-```jsx
-// Lazy load sections within pages
-const TestimonialsSection = lazy(() =>
-  import('@features/home/components/testimonials-section')
-);
-
-function HomePage() {
-  return (
-    <div>
-      <HeroSection />
-      <FeaturesSection />
-
-      {/* Lazy load below-the-fold content */}
-      <Suspense fallback={<div className="h-96 bg-gray-100 animate-pulse" />}>
-        <TestimonialsSection />
-      </Suspense>
-    </div>
-  );
-}
-```
-
 ### Intersection Observer for Progressive Loading
 
 ```jsx

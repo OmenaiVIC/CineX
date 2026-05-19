@@ -20,9 +20,9 @@
     (create-campaign ((string-ascii 500) uint uint uint uint (string-ascii 150) <crwd-verification-trait>) (response uint uint))
     
     ;; Contribute funds to a campaign
-        ;; paramters: 
-            ;; campaign ID - uint; amount - uint; 
-    (contribute-to-campaign (uint uint <crwd-escrow-trait>) (response bool uint))
+        ;; parameters: 
+            ;; campaign ID - uint; amount - uint; escrow contract; verification contract
+    (contribute-to-campaign (uint uint <crwd-escrow-trait> <crwd-verification-trait>) (response bool uint))
     
     ;; Claim contributed funds as campaign owner
         ;; paramters: 
