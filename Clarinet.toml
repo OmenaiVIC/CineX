@@ -161,6 +161,19 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['project-verification-module-trait', 'film-verification-module-trait', 'emergency-module-trait', 'module-base-trait', 'cinex-multisig']
 
+# === Day 4-5: Milestone Escrow ===
+
+[contracts.milestone-escrow-trait]
+path = 'contracts/milestone-escrow-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.milestone-escrow]
+path = 'contracts/milestone-escrow.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module']
+
 [repl.analysis]
 passes = ['check_checker']
 
