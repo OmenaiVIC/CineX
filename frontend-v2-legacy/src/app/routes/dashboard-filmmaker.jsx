@@ -5,6 +5,9 @@ import DashboardLayout from '@components/dashboard/DashboardLayout';
 import PublicCampaignForm from '@features/campaign/components/public-campaign-form';
 import PrivatePoolForm from '@features/campaign/components/private-pool-form';
 import { createCrowdfundingService } from '../../services/crowdfundingService';
+import FeedWidget from '@features/dashboard/components/FeedWidget';
+import AIRecommendations from '@features/dashboard/components/AIRecommendations';
+import ReputationSummary from '@features/dashboard/components/ReputationSummary';
 
 export default function FilmmakerDashboard() {
   const { userData, isAuthenticated, isLoading, userSession } = useAuth();
@@ -118,7 +121,7 @@ export default function FilmmakerDashboard() {
 
   return (
     <DashboardLayout>
-      <section className="container mx-auto px-4 py-12">
+      <section className="py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold">Filmmaker Dashboard</h2>
@@ -129,6 +132,7 @@ export default function FilmmakerDashboard() {
           </div>
         </div>
 
+        {/* Action cards row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="p-6 bg-black border border-gray-800 rounded-2xl text-white">
             <div className="flex items-start justify-between">
@@ -244,7 +248,19 @@ export default function FilmmakerDashboard() {
               </div>
             </div>
           </div>
+        </div>
 
+        {/* Bottom row: Feed + Reputation + AI */}
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <FeedWidget maxItems={5} />
+          </div>
+          <div>
+            <ReputationSummary />
+          </div>
+        </div>
+        <div className="mt-6">
+          <AIRecommendations />
         </div>
       </section>
 

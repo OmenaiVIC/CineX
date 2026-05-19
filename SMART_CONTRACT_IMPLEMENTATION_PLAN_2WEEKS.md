@@ -166,6 +166,8 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 - [ ] Fallback: `get-stx-price-with-fallback` — if `last-updated > STALE-THRESHOLD` (144 blocks), return error
 - **Estimated:** 2h (dev) + 1h (tests)
 
+> **v2 upgrade path:** The `set-price-oracle` function in `oracle-proxy.clar` is a designed placeholder for Pyth Network integration. When implemented, it will accept Pyth VAAs and cache the verified price. See `CINEX_PYTH_ORACLE_INTEGRATION_v2_ROADMAP.md` for the full roadmap.
+
 **Task 2.2: `reputation.clar` + `reputation-trait.clar` (3h dev + 1h tests)**
 - [ ] Trait: `rate-user`, `get-reputation-score`, `get-ratings-for-user`
 - [ ] Data: `ratings` (map {rater, target, campaign-id} => {rating uint 1-5, comment-hash (optional (buff 32)), timestamp uint})
@@ -551,7 +553,7 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 | Manipulated price | Fee calculation attacks | Low | Multi-sig pushes price; timelock delays large price changes for 24h review. |
 | Oracle contract paused | Fees cannot be computed | Low | Admin can set fallback hardcoded price (via timelock for non-emergency, multi-sig direct for emergency). |
 
-**v1 decision:** Multi-sig push model (not Pyth/Alex pull). Simpler, auditable, no external dependency. Team pushes price daily. Timelock prevents single-signer price manipulation.
+**v1 decision:** Multi-sig push model (not Pyth/Alex pull). Simpler, auditable, no external dependency. Team pushes price daily. Timelock prevents single-signer price manipulation. → See `CINEX_PYTH_ORACLE_INTEGRATION_v2_ROADMAP.md` for the strategic rationale and v2 Pyth upgrade plan.
 
 ### 3.2 DeFi Protocol Risk (yield-escrow / Bitflow)
 
