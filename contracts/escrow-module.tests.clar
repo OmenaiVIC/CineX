@@ -143,8 +143,8 @@
 ;; INVARIANTS FOR ESCROW MODULE
 ;; ====================================
 
-;; INVARIANT 1: Campaign balance must always be ≥ 0
-;; This ensures that no bug or unauthorized operation can ever make a campaign’s escrow balance negative.
+;; INVARIANT 1: Campaign balance must always be = 0
+;; This ensures that no bug or unauthorized operation can ever make a campaign�s escrow balance negative.
 (define-read-only (invariant-balance-non-negative (campaign-id uint))
   (let
     (
@@ -171,7 +171,7 @@
   )
 )
 
-;; INVARIANT 3: Module version number must always be ≥ 1
+;; INVARIANT 3: Module version number must always be = 1
 ;; Ensures module version is properly maintained - that the module version is valid (no uninitialized or downgraded version below u1).
 (define-read-only (invariant-module-version-valid)
   (let

@@ -1420,7 +1420,28 @@ STACKS_API_URL=https://api.testnet.hiro.so
 
 ---
 
-## 8. Files to Create (68 total)
+## 8. Post-Sprint: Pyth/Hermes Frontend Integration
+
+**Status:** Planned (v2, after 2-week sprint)
+**Roadmap:** See `CINEX_PYTH_ORACLE_INTEGRATION_v2_ROADMAP.md` for the full v2 Pyth integration strategy.
+
+When the oracle-proxy contract is upgraded to accept Pyth VAAs (post-sprint v2 work), the frontend needs a service to fetch and submit VAAs alongside contract calls.
+
+**New files:**
+- `src/services/pythService.ts` — wraps `@pythnetwork/hermes-client` to fetch VAAs for STX/USD and BTC/USD price feeds. Falls back to mock data when `VITE_USE_MOCK_DATA=true`.
+- `src/hooks/usePythPrice.ts` — returns `{ price, vaaBytes, isLoading, isStale }` for use in transaction flows that need fresh prices.
+
+**Modified files:**
+- `src/services/index.ts` — add Pyth service to factory
+- `src/hooks/useTransaction.ts` — optionally attach VAA bytes to contract calls targeting oracle-proxy
+
+**Mock strategy:** When `VITE_USE_MOCK_DATA=true`, `pythService.ts` returns a canned VAA hex string (pre-encoded mock price). No Hermes SDK calls are made.
+
+**Dependencies:** `npm install @pythnetwork/hermes-client`
+
+---
+
+## 9. Files to Create (68 total)
 
 ```
 frontend-v2/src/ (27 new files)

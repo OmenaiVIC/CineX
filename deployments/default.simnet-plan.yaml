@@ -122,6 +122,31 @@ plan:
             path: "contracts\\Co-EP-rotating-fundings.clar"
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: asset-registry-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\asset-registry-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: asset-registry
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\asset-registry.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: timelock-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\timelock-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: timelock
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\timelock.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: cinex-multisig
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\cinex-multisig.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: crowdfunding-module
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: "contracts\\crowdfunding-module.clar"
@@ -150,6 +175,39 @@ plan:
             contract-name: module-base
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: "contracts\\module-base.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: oracle-proxy-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\oracle-proxy-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: oracle-proxy
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\oracle-proxy.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: project-verification-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\project-verification-module-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: project-verification-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\project-verification-module.clar"
+            clarity-version: 2
+      epoch: "2.5"
+    - id: 2
+      transactions:
+        - emulated-contract-publish:
+            contract-name: reputation-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\reputation-trait.clar"
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: reputation
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\reputation.clar"
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: rewards-module
