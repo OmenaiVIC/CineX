@@ -27,8 +27,6 @@ When clicked, it slides in or drops down to show:
 * CTA buttons (e.g., “Join a Pool”, “Submit Proposal”)
 * Overview of platform purpose
 * Recent film projects/funding stats preview
-* Testimonials / success stories (optional)
-
 ---
 
 ### 📊 **Dashboard Page (when "Dashboard" is clicked)**

@@ -300,18 +300,6 @@ import FeaturesSection from '@features/home/components/features-section';
 <FeaturesSection />
 ```
 
-#### Testimonials Section
-
-**File**: `testimonials-section.jsx`
-
-Customer testimonials carousel.
-
-```jsx
-import TestimonialsSection from '@features/home/components/testimonials-section';
-
-<TestimonialsSection />
-```
-
 ### Pricing Feature Components
 
 **Location**: `src/features/pricing/components/`

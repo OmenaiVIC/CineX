@@ -278,7 +278,6 @@ URL	Source
 https://images.unsplash.com/...	Pools section hero images
 https://www.youtube.com/embed/t06RUxPbp_c	Home page hero video
 https://example.com/trailer1.mp4	Mock campaign media (services)
-https://randomuser.me/api/portraits/...	Testimonial avatars (frontend-v1)
 https://forms.gle/VPsAYm3PUmyGTnGq7	Waitlist form redirect
 https://xverse.app/, https://wallet.hiro.so/	Wallet installation links
 https://twitter.com, https://facebook.com, https://instagram.com	Social media links (frontend-v1 footer)

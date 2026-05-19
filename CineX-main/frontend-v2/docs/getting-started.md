@@ -136,7 +136,7 @@ globalbank/
 ### 📊 **Data-Driven Content**
 - JSON-based content management
 - Easy to update without code changes
-- Structured data for blogs, pricing, testimonials
+- Structured data for blogs, pricing
 
 ### ⚡ **Performance Optimized**
 - Lazy loading for routes
