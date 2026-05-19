@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
+import { useRole } from '@hooks/useRole';
 
 export default function DashboardLayout({ children }) {
-  const { userType, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { role } = useRole();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const filmmakerNav = [
-    { to: '/dashboard/filmmaker', label: 'Overview', icon: '🏠' },
-    { to: '/dashboard/filmmaker/crowdfunding', label: 'My Campaigns', icon: '🎬' },
+  const creatorNav = [
+    { to: '/dashboard/creator', label: 'Overview', icon: '🏠' },
+    { to: '/dashboard/creator/campaigns', label: 'My Campaigns', icon: '🎬' },
     { to: '/dashboard/filmmaker/create-campaign', label: 'Create Campaign', icon: '➕' },
-    { to: '/dashboard/filmmaker/create-campaign?type=private', label: 'Create Private Pool', icon: '🔒' },
-    { to: '/dashboard/filmmaker/co-ep', label: 'Co-EP Rotating Funds', icon: '🔄' },
-    { to: '/dashboard/filmmaker/verification', label: 'Film Verification', icon: '✅' },
-    { to: '/dashboard/filmmaker/settings', label: 'Settings', icon: '⚙️' },
+    { to: '/active-pools', label: 'Active Pools', icon: '🌐' },
+  ];
+
+  const backerNav = [
+    { to: '/dashboard/backer', label: 'Overview', icon: '🏠' },
+    { to: '/active-pools', label: 'Discover Pools', icon: '🌐' },
   ];
 
   const publicNav = [
@@ -22,12 +26,7 @@ export default function DashboardLayout({ children }) {
     { to: '/active-pools', label: 'Active Pools', icon: '🌐' },
   ];
 
-  const endorserNav = [
-    { to: '/dashboard/endorser', label: 'Tasks', icon: '📋' },
-    { to: '/dashboard/endorser/history', label: 'Earnings', icon: '💰' },
-  ];
-
-  const navToRender = userType === 'filmmaker' ? filmmakerNav : userType === 'endorser' ? endorserNav : publicNav;
+  const navToRender = role === 'creative' ? creatorNav : role === 'backer' ? backerNav : publicNav;
 
   // Only show layout with sidebar if authenticated
   if (!isAuthenticated) {

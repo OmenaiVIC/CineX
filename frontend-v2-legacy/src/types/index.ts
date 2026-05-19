@@ -458,3 +458,59 @@ export interface Milestone {
   /** Unix ms when the milestone was actually completed */
   completedAt?: number;
 }
+
+// ===========================================================================
+// Day 2.5 — Onboarding & Role types
+// ===========================================================================
+
+export type UserRole = 'creative' | 'backer';
+
+export interface OnboardingState {
+  address: string;
+  role: UserRole | null;
+  isOnboarded: boolean;
+  isDemo: boolean;
+}
+
+// ===========================================================================
+// Day 3.5 — Dashboard data types
+// ===========================================================================
+
+export interface DashboardStats {
+  activeCampaigns: number;
+  totalRaised: string;
+  reputationScore: number;
+  activePools: number;
+  totalContributed: string;
+  yieldEarned: string;
+  backedCreators: number;
+}
+
+export interface YieldData {
+  totalYield: string;
+  strategies: YieldStrategy[];
+  isLoading: boolean;
+}
+
+export interface YieldStrategy {
+  id: string;
+  name: string;
+  apr: string;
+  deposited: string;
+  status: 'active' | 'pending' | 'ended';
+}
+
+export interface Pool {
+  id: string;
+  name: string;
+  description: string;
+  creator: string;
+  maxMembers: number;
+  currentMembers: number;
+  contributionAmount: string;
+  category: string;
+  status: 'open' | 'active' | 'funded' | 'closed';
+  deadline: number;
+  targetAmount: string;
+  currentAmount: string;
+}
