@@ -319,3 +319,142 @@ export interface VerifiedFilmmaker {
   completedCampaigns: number;
   totalFundedAmount: string; // In microSTX
 }
+
+// ===========================================================================
+// Day 1 — New types for Reputation, Feed, Settings, Milestones
+// ===========================================================================
+
+/**
+ * Profile
+ * -------
+ * Off-chain user profile for the CineX platform.  Sits alongside the
+ * on-chain UserProfile and holds display-friendly fields that don't
+ * need to live on the blockchain.
+ */
+export interface Profile {
+  /** Stacks address this profile belongs to */
+  address: string;
+  /** Display name (may differ from the on-chain username) */
+  displayName?: string;
+  /** Short bio / tagline */
+  bio?: string;
+  /** Avatar image URL */
+  avatarUrl?: string;
+  /** Whether the user has completed the off-chain onboarding */
+  isOnboarded: boolean;
+  /** Unix ms timestamp of first profile creation */
+  joinedAt: number;
+  /** External links the user wants to share */
+  socialLinks: Record<string, string>;
+  /** Aggregate reputation score (0-5, from Rating entries) */
+  reputationScore: number;
+  /** Total number of ratings received */
+  ratingCount: number;
+}
+
+/**
+ * Rating
+ * ------
+ * A single peer-to-peer reputation rating.  Stored off-chain and
+ * aggregated into the Profile.reputationScore.
+ */
+export interface Rating {
+  /** Unique rating id */
+  id: string;
+  /** Stacks address of the rater */
+  rater: string;
+  /** Stacks address of the person being rated */
+  ratee: string;
+  /** Numeric score 1–5 */
+  score: number;
+  /** Optional written review */
+  review?: string;
+  /** Context category (collaboration, reliability, communication, etc.) */
+  category?: string;
+  /** Unix ms timestamp */
+  createdAt: number;
+  /** Optional project or campaign the rating relates to */
+  projectId?: string;
+}
+
+/**
+ * FeedEvent
+ * ---------
+ * A single entry in the activity feed shown on the dashboard.
+ */
+export interface FeedEvent {
+  /** Unique feed event id */
+  id: string;
+  /** Machine-readable type for UI icons / filtering */
+  type:
+    | "campaign_created"
+    | "campaign_funded"
+    | "pool_formed"
+    | "milestone_reached"
+    | "rating_received"
+    | "profile_updated"
+    | "verification_granted"
+    | "system";
+  /** Stacks address that triggered the event */
+  actor: string;
+  /** Optional id of the related entity (campaign, pool, etc.) */
+  targetId?: string;
+  /** Human-readable one-line summary */
+  summary: string;
+  /** Arbitrary extra data (render hints, links, etc.) */
+  metadata?: Record<string, unknown>;
+  /** Unix ms timestamp */
+  createdAt: number;
+}
+
+/**
+ * UserSettings
+ * ------------
+ * Per-user preferences persisted off-chain.
+ */
+export interface UserSettings {
+  /** Notification toggles */
+  notifications: {
+    email: boolean;
+    inApp: boolean;
+    milestones: boolean;
+  };
+  /** Privacy controls */
+  privacy: {
+    showPortfolio: boolean;
+    showActivity: boolean;
+  };
+  /** Display preferences */
+  display: {
+    theme: "dark" | "light" | "system";
+    language: string;
+  };
+  /** Preferred Stacks network */
+  defaultNetwork: "testnet" | "mainnet";
+}
+
+/**
+ * Milestone
+ * ---------
+ * A funding / development milestone within a campaign.
+ */
+export interface Milestone {
+  /** Unique milestone id */
+  id: string;
+  /** Campaign this milestone belongs to */
+  campaignId: string;
+  /** Short display title */
+  title: string;
+  /** Detailed description */
+  description: string;
+  /** STX needed (in microSTX) to unlock this milestone */
+  fundingRequired: string;
+  /** Unix ms deadline */
+  deadline: number;
+  /** Current status */
+  status: "pending" | "active" | "completed" | "failed";
+  /** Optional list of deliverable descriptions */
+  deliverables?: string[];
+  /** Unix ms when the milestone was actually completed */
+  completedAt?: number;
+}

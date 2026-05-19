@@ -24,6 +24,7 @@ export default defineConfig({
       '@data': path.resolve(__dirname, './src/data'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@config': path.resolve(__dirname, './src/config'),
+      '@services': path.resolve(__dirname, './src/services'),
       '@routes': path.resolve(__dirname, './src/app/routes')
     }
   }

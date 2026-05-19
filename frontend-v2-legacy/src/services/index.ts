@@ -6,6 +6,13 @@ import { CoEPService, createCoEPService } from './coepService';
 import { EscrowService, createEscrowService } from './escrowService';
 import { VerificationService, createVerificationService } from './verificationService';
 import { EmergencyService, createEmergencyService } from './emergencyService';
+import { ReputationService, createReputationService } from './reputationService';
+import { ProfileService, createProfileService } from './profileService';
+import { PoolService, createPoolService } from './poolService';
+import { MilestoneService, createMilestoneService } from './milestoneService';
+import { FeedService, createFeedService } from './feedService';
+import { AiService, createAiService } from './aiService';
+import { UserSettingsService, createUserSettingsService } from './userSettingsService';
 import type { Campaign } from '../types';
 
 export { CrowdfundingService, createCrowdfundingService };
@@ -13,6 +20,13 @@ export { CoEPService, createCoEPService };
 export { EscrowService, createEscrowService };
 export { VerificationService, createVerificationService };
 export { EmergencyService, createEmergencyService };
+export { ReputationService, createReputationService };
+export { ProfileService, createProfileService };
+export { PoolService, createPoolService };
+export { MilestoneService, createMilestoneService };
+export { FeedService, createFeedService };
+export { AiService, createAiService };
+export { UserSettingsService, createUserSettingsService };
 
 export {
   CineXServiceError,
@@ -41,6 +55,11 @@ export type {
   VerifiedFilmmaker,
   PaginationParams,
   PaginatedResponse,
+  Profile,
+  Rating,
+  FeedEvent,
+  UserSettings,
+  Milestone,
 } from '../types';
 
 /**
@@ -59,6 +78,19 @@ export type {
  * const pools = await services.coep.getPools();
  * ```
  */
+/**
+ * createCineXServices
+ * -------------------
+ * Factory that instantiates every CineX service with a shared user session.
+ *
+ * When VITE_USE_MOCK_DATA=true (the default) the contract-calling services
+ * still return mock data.  The new Day 1 services (reputation, profile, pool,
+ * milestone, feed, ai, userSettings) are mock-only at this stage.
+ *
+ * @example
+ *   const svc = createCineXServices(userSession);
+ *   const feed = await svc.feed.getFeed();
+ */
 export function createCineXServices(userSession: any) {
   return {
     crowdfunding: createCrowdfundingService(userSession),
@@ -66,6 +98,14 @@ export function createCineXServices(userSession: any) {
     escrow: createEscrowService(userSession),
     verification: createVerificationService(userSession),
     emergency: createEmergencyService(userSession),
+    // ---- Day 1 additions ------------------------------------------------
+    reputation:    createReputationService(userSession),
+    profile:       createProfileService(userSession),
+    pool:          createPoolService(userSession),
+    milestone:     createMilestoneService(userSession),
+    feed:          createFeedService(userSession),
+    ai:            createAiService(userSession),
+    userSettings:  createUserSettingsService(userSession),
   };
 }
 
@@ -99,6 +139,13 @@ export const ServiceConfig = {
   REQUEST_TIMEOUT: 30000, // 30 seconds
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1 second
+
+  // Mock / demo settings
+  /** Simulated network delay (ms) injected into mock service responses */
+  MOCK_DELAY_MS: 300,
+
+  /** Backend URL for the off-chain API */
+  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001',
 } as const;
 
 /**
@@ -162,6 +209,49 @@ export const DevUtils = {
       updatedAt: Date.now(),
       tags: ['test', 'development'],
       mediaUrls: [],
+    };
+  },
+
+  /**
+   * Generate a mock feed event for testing
+   */
+  generateMockFeedEvent(): import('../../src/types').FeedEvent {
+    return {
+      id: `evt-${Date.now()}`,
+      type: 'system',
+      actor: this.generateMockAddress(),
+      summary: 'Mock feed event for development.',
+      createdAt: Date.now(),
+    };
+  },
+
+  /**
+   * Generate a mock rating for testing
+   */
+  generateMockRating(): import('../../src/types').Rating {
+    return {
+      id: `rating-${Date.now()}`,
+      rater: this.generateMockAddress(),
+      ratee: this.generateMockAddress(),
+      score: Math.floor(Math.random() * 5) + 1,
+      category: 'collaboration',
+      createdAt: Date.now(),
+    };
+  },
+
+  /**
+   * Generate a mock profile for testing
+   */
+  generateMockProfile(): import('../../src/types').Profile {
+    return {
+      address: this.generateMockAddress(),
+      displayName: 'Test User',
+      bio: 'Test profile generated for development.',
+      isOnboarded: false,
+      joinedAt: Date.now(),
+      socialLinks: {},
+      reputationScore: 0,
+      ratingCount: 0,
     };
   },
 };
