@@ -625,7 +625,6 @@ When using custom CSS, use semantic names:
 /* Good: Semantic names */
 .hero-section { }
 .pricing-card { }
-.testimonial-quote { }
 
 /* Avoid: Visual names */
 .pink-box { }

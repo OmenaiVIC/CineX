@@ -2,9 +2,9 @@
   "hero": {
     "label": "Check our stats",
     "title": "About us",
-    "description": "Making credit history with banking",
-    "content": "Global Bank is a strategic branding agency focused on brand creation, rebrands, and brand transformations. We partner with companies to create powerful and engaging brand experiences that connect with customers and drive business growth.",
-    "image": "/images/abouts/about.png",
+    "description": "Making creative IP investable, verifiable, and bankable",
+    "content": "CineX Protocol is a milestone-based financing infrastructure for African creative IP. We connect idle capital to Africa's $5B+ creative economy — making creative projects verifiable, bankable, and investable through on-chain milestone governance and productive escrow.",
+    "image": "/images/about.png",
     "ctaText": "Read more"
   },
   "stats": [
@@ -18,19 +18,17 @@
     "title": "Making credit history with nightcard",
     "content": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
     "images": [
-      "/images/abouts/img2.png",
-      "/images/abouts/img4.png",
-      "/images/abouts/img3.png",
-      "/images/abouts/img.png"
+      "/images/img2.png",
+      "/images/img4.png",
+      "/images/img3.png",
+      "/images/img.png"
     ]
   },
   "team": [
-    { "name": "Guy Hawkins", "role": "CEO at Global Bank", "image": "/images/avatar1.png" },
-    { "name": "Brooklyn Simmons", "role": "CFO at Global Bank", "image": "/images/avatar2.png" },
-    { "name": "Floyd Miles", "role": "Head Marketer Global Bank", "image": "/images/avatar3.png" },
-    { "name": "Jenny Wilson", "role": "Support Lead Global Bank", "image": "/images/avatar4.png" },
-    { "name": "Esther Howard", "role": "Design at Global Bank", "image": "/images/avatar5.png" },
-    { "name": "Leslie Alexander", "role": "Engineer at Global Bank", "image": "/images/avatar6.png" }
+    { "name": "Victor Omenai", "role": "CEO & Founder", "image": "/images/team-victor.png" },
+    { "name": "Theophilus Adelekun", "role": "COO", "image": "/images/team-theophilus.png" },
+    { "name": "Stephanie Ukiwe", "role": "Product Designer", "image": "/images/team-stephanie.png" },
+    { "name": "McDaniells Albert", "role": "Fullstack Engineer", "image": "/images/team-mcdaniells.png" }
   ],
   "jobs": [
     { "position": "Product Manager, Instagram Camera", "department": "marketing", "commitment": "Full Time", "location": "Los Angeles", "category": "marketing" },

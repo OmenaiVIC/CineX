@@ -55,12 +55,18 @@
 ;; ========== CONSTANTS ==========
 (define-constant basic-verification-level u1)
 (define-constant standard-verification-level u2)
-(define-constant basic-verification-fee u2000000) ;; 2 STX
-(define-constant standard-verification-fee u3000000) ;; 3 STX
+(define-constant basic-verification-fee u1000000) ;; 1 STX — affordable for Global South creators
+(define-constant standard-verification-fee u5000000) ;; 5 STX — meaningful commitment signal
 (define-constant basic-verified-id-valid-period u52560) ;; ~1 year
 (define-constant standard-verified-id-valid-period (* u52560 u2)) ;; ~2 years
 (define-constant CONTRACT-OWNER tx-sender)
 (define-constant BURN-ADDRESS 'SP000000000000000000002Q6VF78)
+
+;; ========== TIERED FUNDING CAPS (in micro-STX) ==========
+(define-constant UNVERIFIED-FUNDING-CAP u1000000000)    ;; 1,000 STX — bootstrapping, zero barrier
+(define-constant BASIC-FUNDING-CAP u10000000000)         ;; 10,000 STX
+(define-constant PREMIUM-FUNDING-CAP u100000000000)      ;; 100,000 STX
+(define-constant PLATFORM-MAX u1000000000000)            ;; 1,000,000 STX — outer circuit breaker
 
 ;; Valid project verticals
 (define-constant VERTICAL-FILM "film")
@@ -464,6 +470,19 @@
 
 (define-read-only (is-creator-currently-verified (creator principal))
     (is-verification-current creator)
+)
+
+(define-read-only (get-verification-funding-cap (creator principal))
+    (match (map-get? creator-identities creator)
+        data (let ((verified (get verified data))
+                   (level (get choice-verification-level data)))
+              (if verified
+                  (if (is-eq level basic-verification-level)
+                      (ok BASIC-FUNDING-CAP)
+                      (ok PREMIUM-FUNDING-CAP))
+                  (ok UNVERIFIED-FUNDING-CAP)))
+        (ok UNVERIFIED-FUNDING-CAP) ;; unregistered = unverified cap
+    )
 )
 
 ;; Backward-compat alias for is-creator-currently-verified
