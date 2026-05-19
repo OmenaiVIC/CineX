@@ -1,1 +1,0 @@
-import{j as t}from"./index-CVKCL0Ox.js";import{P as e}from"./page-layout-CAWQI4p7.js";import{A as r}from"./auth-section-Cy5L7Riv.js";import"./input-CC8pwIy0.js";function m(){return t.jsx(e,{title:"Register - CineX",children:t.jsx(r,{type:"register"})})}export{m as default};
