@@ -128,6 +128,16 @@ plan:
             path: contracts/asset-registry.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: bitflow-strategy-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/bitflow-strategy-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: bitflow-strategy
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/bitflow-strategy.clar
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: timelock-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/timelock-trait.clar
@@ -182,6 +192,9 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/oracle-proxy.clar
             clarity-version: 2
+      epoch: "2.5"
+    - id: 2
+      transactions:
         - emulated-contract-publish:
             contract-name: project-verification-module-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -192,13 +205,20 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/project-verification-module.clar
             clarity-version: 2
-      epoch: "2.5"
-    - id: 2
-      transactions:
         - emulated-contract-publish:
             contract-name: milestone-escrow
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/milestone-escrow.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: milestone-verification
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/milestone-verification.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: mock-strategy
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/mock-strategy.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: module-base
@@ -224,5 +244,15 @@ plan:
             contract-name: verification-mgt-extension
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/verification-mgt-extension.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: yield-escrow-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/yield-escrow-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: yield-escrow
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/yield-escrow.clar
             clarity-version: 2
       epoch: "2.5"
