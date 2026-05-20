@@ -1114,7 +1114,7 @@
       ;; Ensure is not paused for normal operations
       (asserts! (is-eq (var-get emergency-pause) false) ERR-SYSTEM-PAUSED)
 
-      (contract-call? crowdfunding-contract contribute-to-campaign campaign-id amount escrow-contract-address)
+      (contract-call? crowdfunding-contract contribute-to-campaign campaign-id amount escrow-contract-address verification-contract)
   )
 ) 
 

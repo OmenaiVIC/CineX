@@ -272,7 +272,7 @@
       (current-identities (unwrap! (contract-call? verification-address get-filmmaker-identity tx-sender) ERR-NO-VERIFICATION))
       (current-verification-level (get choice-verification-level current-identities))
       
-      ;; Get tiered funding cap — replaces old binary verification gate
+      ;; Get tiered funding cap - replaces old binary verification gate
       (funding-cap (unwrap! (contract-call? verification-address get-verification-funding-cap tx-sender) ERR-NO-VERIFICATION))
 
       ;; Determine is-verified status from identity data
@@ -418,7 +418,7 @@
       ;; Ensure current total raised funds is <= funding-goal
       (asserts! (<= new-total-raised current-funding-goal) ERR-FUNDING-GOAL-EXCEEDED)
 
-      ;; Live cap check — owner may have expired or been revoked mid-campaign
+      ;; Live cap check - owner may have expired or been revoked mid-campaign
       (let ((owner-cap (unwrap! (contract-call? verification-address get-verification-funding-cap (get owner campaign)) ERR-NO-VERIFICATION)))
         (asserts! (<= new-total-raised owner-cap) ERR-FUNDING-CAP-EXCEEDED)
       )
