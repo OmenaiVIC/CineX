@@ -1,0 +1,1 @@
+import{j as o}from"./index-BJQcqark.js";import{P as t}from"./page-layout-DxAO065X.js";import{A as i}from"./auth-section-ZDwj1a39.js";import"./input-B4nIpvK5.js";function m(){return o.jsx(t,{title:"Login - Global Bank",children:o.jsx(i,{type:"login"})})}export{m as default};

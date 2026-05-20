@@ -30,20 +30,45 @@ export function getNetwork(): StacksNetwork {
 /**
  * Get contract deployment address from environment
  */
-export function getContractAddress(contractType: 'coep' | 'crowdfunding' | 'core' | 'verification' | 'escrow'): string {
-  const envMap = {
-    coep: 'VITE_CO_EP_CONTRACT_ADDRESS',
-    crowdfunding: 'VITE_CROWDFUNDING_CONTRACT_ADDRESS',
-    core: 'VITE_MAIN_HUB_CONTRACT_ADDRESS',
-    verification: 'VITE_VERIFICATION_CONTRACT_ADDRESS',
-    escrow: 'VITE_ESCROW_CONTRACT_ADDRESS',
-  };
-  
-  const envKey = envMap[contractType];
+type ContractType = 'coep' | 'crowdfunding' | 'core' | 'verification' | 'escrow' | 'milestone_escrow' | 'yield_escrow' | 'milestone_verification' | 'bitflow_strategy';
+
+const CONTRACT_ENV_MAP: Record<string, string> = {
+  coep: 'VITE_CO_EP_CONTRACT_ADDRESS',
+  crowdfunding: 'VITE_CROWDFUNDING_CONTRACT_ADDRESS',
+  core: 'VITE_MAIN_HUB_CONTRACT_ADDRESS',
+  verification: 'VITE_VERIFICATION_CONTRACT_ADDRESS',
+  escrow: 'VITE_ESCROW_CONTRACT_ADDRESS',
+  milestone_escrow: 'VITE_MILESTONE_ESCROW_CONTRACT_ADDRESS',
+  yield_escrow: 'VITE_YIELD_ESCROW_CONTRACT_ADDRESS',
+  milestone_verification: 'VITE_MILESTONE_VERIFICATION_CONTRACT_ADDRESS',
+  bitflow_strategy: 'VITE_BITFLOW_STRATEGY_CONTRACT_ADDRESS',
+};
+
+const CONTRACT_NAME_MAP: Record<string, string> = {
+  coep: 'Co-EP-rotating-fundings',
+  crowdfunding: 'crowdfunding-module',
+  core: 'CineX-project',
+  verification: 'film-verification-module',
+  escrow: 'escrow-module',
+  milestone_escrow: 'milestone-escrow',
+  yield_escrow: 'yield-escrow',
+  milestone_verification: 'milestone-verification',
+  bitflow_strategy: 'bitflow-strategy',
+};
+
+function isValidContractType(t: string): t is ContractType {
+  return t in CONTRACT_ENV_MAP;
+}
+
+export function getContractAddress(contractType: string): string {
+  if (!isValidContractType(contractType)) {
+    console.warn(`[CONFIG] Unknown contract type "${contractType}". Falling back to default.`);
+    return DEFAULT_TESTNET_ADDRESS;
+  }
+  const envKey = CONTRACT_ENV_MAP[contractType];
   const address = import.meta.env[envKey];
 
   if (!address) {
-    // Soft warning instead of throwing Error to prevent app crash
     console.warn(`[CONFIG] ${envKey} missing in Vercel. Falling back to default.`);
     return DEFAULT_TESTNET_ADDRESS;
   }
@@ -51,41 +76,31 @@ export function getContractAddress(contractType: 'coep' | 'crowdfunding' | 'core
   return address;
 }
 
-/**
- * Get contract name from environment
- */
-export function getContractName(contractType: 'coep' | 'crowdfunding' | 'core' | 'verification' | 'escrow'): string {
-  const envMap = {
+export function getContractName(contractType: string): string {
+  if (!isValidContractType(contractType)) {
+    console.warn(`[CONFIG] Unknown contract type "${contractType}".`);
+    return CONTRACT_NAME_MAP[contractType] || 'unknown-contract';
+  }
+
+  const envMap: Record<string, string> = {
     coep: 'VITE_CO_EP_CONTRACT_NAME',
     crowdfunding: 'VITE_CROWDFUNDING_CONTRACT_NAME',
     core: 'VITE_MAIN_HUB_CONTRACT_NAME',
     verification: 'VITE_VERIFICATION_CONTRACT_NAME',
     escrow: 'VITE_ESCROW_CONTRACT_NAME',
+    milestone_escrow: 'VITE_MILESTONE_ESCROW_CONTRACT_NAME',
+    yield_escrow: 'VITE_YIELD_ESCROW_CONTRACT_NAME',
+    milestone_verification: 'VITE_MILESTONE_VERIFICATION_CONTRACT_NAME',
+    bitflow_strategy: 'VITE_BITFLOW_STRATEGY_CONTRACT_NAME',
   };
 
-  const nameMap = {
-    coep: 'Co-EP-rotating-fundings',
-    crowdfunding: 'crowdfunding-module',
-    core: 'CineX-project',
-    verification: 'film-verification-module',
-    escrow: 'escrow-module',
-  };
-  
   const envKey = envMap[contractType];
   const contractName = import.meta.env[envKey];
 
-  if (!contractName) {
-    console.warn(`[CONFIG] ${envKey} missing. Using fallback name.`);
-    return nameMap[contractType];
-  }
-  
-  return contractName;
+  return contractName || CONTRACT_NAME_MAP[contractType];
 }
 
-/**
- * Build full contract identifier (address.contract-name)
- */
-export function getContractIdentifier(contractType: 'coep' | 'crowdfunding' | 'core' | 'verification' | 'escrow'): string {
+export function getContractIdentifier(contractType: string): string {
   const address = getContractAddress(contractType);
   const name = getContractName(contractType);
   return `${address}.${name}`;
