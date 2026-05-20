@@ -161,6 +161,46 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['project-verification-module-trait', 'film-verification-module-trait', 'emergency-module-trait', 'module-base-trait', 'cinex-multisig']
 
+# === Day 8: Milestone Verification (Creator Bonus Eligibility) ===
+
+[contracts.milestone-verification]
+path = 'contracts/milestone-verification.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['emergency-module-trait', 'module-base-trait', 'crowdfunding-module']
+
+# === Day 6: Yield Escrow ===
+
+[contracts.yield-escrow-trait]
+path = 'contracts/yield-escrow-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.yield-escrow]
+path = 'contracts/yield-escrow.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['yield-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'bitflow-strategy-trait', 'bitflow-strategy', 'crowdfunding-module', 'milestone-verification']
+
+# === Day 7: Bitflow Strategy ===
+
+[contracts.bitflow-strategy-trait]
+path = 'contracts/bitflow-strategy-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.bitflow-strategy]
+path = 'contracts/bitflow-strategy.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['bitflow-strategy-trait', 'emergency-module-trait', 'module-base-trait']
+
+[contracts.mock-strategy]
+path = 'contracts/mock-strategy.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['bitflow-strategy-trait']
+
 # === Day 4-5: Milestone Escrow ===
 
 [contracts.milestone-escrow-trait]
