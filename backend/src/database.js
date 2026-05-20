@@ -97,6 +97,37 @@ function initSchema() {
       generated_at INTEGER DEFAULT (unixepoch())
     );
 
+    CREATE TABLE IF NOT EXISTS pools (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      creator TEXT NOT NULL,
+      target_amount TEXT NOT NULL,
+      current_amount TEXT DEFAULT '0',
+      min_commitment TEXT DEFAULT '0',
+      max_members INTEGER DEFAULT 10,
+      deadline INTEGER DEFAULT 0,
+      category TEXT DEFAULT 'short-film',
+      status TEXT DEFAULT 'open' CHECK(status IN ('open','active','funded','closed')),
+      return_rate TEXT,
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch())
+    );
+
+    CREATE TABLE IF NOT EXISTS pool_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pool_id INTEGER NOT NULL REFERENCES pools(id) ON DELETE CASCADE,
+      address TEXT NOT NULL,
+      committed TEXT NOT NULL DEFAULT '0',
+      role TEXT DEFAULT 'member' CHECK(role IN ('creator','member')),
+      joined_at INTEGER DEFAULT (unixepoch()),
+      UNIQUE(pool_id, address)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_pools_status ON pools(status);
+    CREATE INDEX IF NOT EXISTS idx_pools_category ON pools(category);
+    CREATE INDEX IF NOT EXISTS idx_pool_members_pool ON pool_members(pool_id);
+
     CREATE INDEX IF NOT EXISTS idx_ratings_target ON ratings(target_address);
     CREATE INDEX IF NOT EXISTS idx_portfolio_address ON portfolio_items(address);
   `);

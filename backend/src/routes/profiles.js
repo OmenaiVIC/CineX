@@ -55,6 +55,10 @@ router.post('/:address/ratings', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(raterAddress, req.params.address, score, comment, commentHash, txId, projectId);
     const created = db.prepare('SELECT * FROM ratings WHERE id = ?').get(Number(result.lastInsertRowid));
+    db.prepare(`
+      INSERT INTO feed_events (event_type, event_data, actor, pool_id, tx_id)
+      VALUES ('rating_received', ?, ?, NULL, ?)
+    `).run(JSON.stringify({ score, summary: `${raterAddress.slice(0, 6)}… rated you ${score}/5` }), req.params.address, txId || null);
     res.status(201).json(created);
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE')) {
