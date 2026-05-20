@@ -552,8 +552,8 @@
             ;; Check that pool-status of rotating-funding-pools is actively "forming", else, trigger error
         (asserts! (is-eq current-pool-status "forming") ERR-POOL-INACTIVE)
             
-            ;; Check that current-pool-members number is lesser than max-members of rotatng-funding-pools, else pool is full
-        (asserts! (> pool-members pool-max-members) ERR-POOL-FULL)
+            ;; Check that current-pool-members number is less than max-members, else pool is full
+        (asserts! (< pool-members pool-max-members) ERR-POOL-FULL)
 
             ;; Check that is-referrer address is a member of pool-individual-members
         (asserts! member-is-referrer ERR-NOT-AUTHORIZED)
