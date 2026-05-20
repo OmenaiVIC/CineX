@@ -1,5 +1,7 @@
 # CineX Frontend & AI Implementation Plan — 12-Day Sprint
 
+> **Changelog (v3):** Added Phase 0 (Frontend Infrastructure Pre-Work) inserted before Day 1 — LoadingSkeleton, ContractErrorMap, transactionRetry, NetworkDowntimeBanner, BonusEligibilityBadge, enhanced ErrorBoundary, updated contractAddresses/network.ts/provider. Build verified, committed to `feature/pivot-infrastructure`. v2 changelog preserved below.
+> 
 > **Changelog (v2):** Extended from 10 to 12 days. Added Day 2.5 (Onboarding & Role Selection), Day 3.5 (Role-Based Dashboards), Day 9 (Demo Mode, Transaction Feedback & Network Detection). Original Day 9 → Day 10, Day 10 → Day 11. Added Day 12 (Production Deployment with demo flag). All original content preserved.
 
 > **Scope:** User Profile page, Rating UI, Tribe (Pool) Homepage, Activity Feed, AI Credibility Summary, Onboarding, Role-Based Dashboards, Demo Mode
@@ -32,6 +34,43 @@ This frontend/AI sprint runs **in parallel** with the contract sprint defined in
 
 ---
 
+## 0.5. Phase 0 — Frontend Infrastructure Pre-Work (Complete ✓)
+
+> **Status:** Built, build-verified (`npm run build` succeeds), committed to `feature/pivot-infrastructure`.
+
+These files were identified as cross-cutting infrastructure needs that Days 6–9 would import. Building them upfront avoids retrofitting.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/utils/ContractErrorMap.ts` | Maps 120+ error codes (u200–u8106) across all 14 contracts to `[Prefix] Human message` strings. Exports `contractErrorToHuman(error)` and `getContractPrefix(code)`. |
+| `src/utils/transactionRetry.ts` | `withTransactionRetry(fn, config?)` — 3 attempts, 2/4/8s exponential backoff; classifies transient vs permanent errors by pattern matching. |
+| `src/components/common/LoadingSkeleton.tsx` | 5 variants: `card`, `row`, `modal-content`, `avatar`, `text` with `count` prop and `animate-pulse bg-gray-800`. |
+| `src/components/common/NetworkDowntimeBanner.tsx` | Polls `api.testnet.hiro.so/v2/info` every 60s, shows red banner with retry button when API unreachable. |
+| `src/components/dashboard/BonusEligibilityBadge.tsx` | Displays ★ "Bonus Eligible" (green) / ☆ "Not Bonus Eligible" (gray) / loading state. |
+
+### Files Enhanced
+
+| File | Changes |
+|------|---------|
+| `src/components/common/error-boundary.jsx` | Added `handleReset` (Try Again), `fallback` prop, `onError` callback, error message display. |
+| `src/config/contractAddresses.ts` | Added 4 new `ContractKey` types (`milestone_escrow`, `yield_escrow`, `milestone_verification`, `bitflow_strategy`) with `TESTNET_DEFAULTS` and `CONTRACT_NAMES`. |
+| `src/utils/network.ts` | Refactored `getContractAddress`/`getContractName`/`getContractIdentifier` to accept any `ContractType` string with dynamic env-key lookup. |
+| `src/app/provider.jsx` | Added `<NetworkDowntimeBanner />` above `<RouterProvider>`. |
+| `src/services/index.ts` | Re-exports `contractErrorToHuman`, `getContractPrefix`, `withTransactionRetry`, `isPermanentTxError`, `isTransientTxError`. |
+| `frontend-v2-legacy/.env` | Added 8 new `VITE_*` env vars for milestone-escrow, yield-escrow, milestone-verification, bitflow-strategy (address + name). |
+
+### Key Decisions
+
+- Built as a separate layer so Day 6–9 prompt content stays clean; infra files are imported when pages are built.
+- Enhanced existing `ErrorBoundary` instead of replacing it — `handleReset` lets child recover without full page reload.
+- `ContractErrorMap.ts` handles both numeric error codes and stringified error objects from Stacks.js.
+- `transactionRetry.ts` uses pattern matching on error strings (transient vs permanent) — more flexible than a fixed list of contract error codes.
+- `BonusEligibilityBadge.tsx` reads from `milestone-verification` — will be wired to real contract call in Day 7.
+
+---
+
 ## 1. File Structure
 
 The plan extends the existing `frontend-v2-legacy` codebase. All new files are noted with `**NEW**`.
@@ -52,7 +91,8 @@ frontend-v2/
 │   │   │   ├── CampaignOverview.tsx       # **NEW** — campaign list widget
 │   │   │   ├── PoolOverview.tsx           # **NEW** — pool list widget
 │   │   │   ├── YieldPanel.tsx             # **NEW** — yield display widget
-│   │   │   └── RecommendationCard.tsx     # **NEW** — recommended pool/campaign card
+│   │   │   ├── RecommendationCard.tsx     # **NEW** — recommended pool/campaign card
+│   │   │   └── BonusEligibilityBadge.tsx  # **DONE** — milestone verification status indicator
 │   │   ├── demo/
 │   │   │   ├── DemoModeBanner.tsx         # **NEW** — top banner indicating demo mode
 │   │   │   ├── TransactionModal.tsx       # **NEW** — tx status modal (loading/success/error)
@@ -73,6 +113,7 @@ frontend-v2/
 │   │   │   ├── PoolHeader.tsx            # **NEW** — pool name, target, status, reputation gate
 │   │   │   ├── MemberList.tsx            # **NEW** — list of pool members (linked to profiles)
 │   │   │   ├── MilestoneProgress.tsx     # **NEW** — milestone completion bars
+│   │   │   ├── BonusEligibilityBadge.tsx # **DONE** — milestone verification status indicator
 │   │   │   └── ProposalCard.tsx          # **NEW** — allocation proposal card with vote buttons
 │   │   ├── feed/
 │   │   │   ├── ActivityFeed.tsx          # **NEW** — per-pool feed component
@@ -81,7 +122,9 @@ frontend-v2/
 │   │   └── common/
 │   │       ├── CommentHashInput.tsx       # **NEW** — text area -> SHA256 -> optional buff 32
 │   │       ├── ContractCallButton.tsx     # **MODIFY** — integrate TransactionModal in real mode
-│   │       └── ErrorBoundary.tsx          # **MODIFY** — already exists, extend for new pages
+│   │       ├── ErrorBoundary.tsx          # **MODIFY** — enhanced with reset, fallback, onError
+│   │       ├── LoadingSkeleton.tsx        # **DONE** — 5 skeleton variants (card, row, modal, avatar, text)
+│   │       └── NetworkDowntimeBanner.tsx  # **DONE** — polls Hiro API, red banner on downtime
 │   ├── pages/
 │   │   ├── OnboardingPage.tsx             # **NEW** — /onboarding wallet connect + role selection
 │   │   ├── CreatorDashboardPage.tsx       # **NEW** — /dashboard/creator
@@ -122,7 +165,9 @@ frontend-v2/
 │   └── utils/
 │       ├── commentHash.ts                 # **NEW** — SHA256 of comment string -> buff 32
 │       ├── demoAddresses.ts               # **NEW** — pre-configured mock addresses for demo mode
-│       └── contractAddresses.ts           # **MODIFY** — add new contract address env vars
+│       ├── contractAddresses.ts           # **MODIFY** — add new contract address env vars
+│       ├── ContractErrorMap.ts            # **DONE** — 120+ error codes to human messages
+│       └── transactionRetry.ts            # **DONE** — 3-attempt retry with exponential backoff
 
 backend/
 ├── package.json                           # **NEW** — express, pg, openai, cors, helmet, morgan, dotenv
@@ -1450,11 +1495,11 @@ These items were identified as gaps during sprint review and should be integrate
 
 | Gap | Priority | Resolution |
 |-----|----------|------------|
-| Error boundaries per page | Medium | Wrap each new page in `<ErrorBoundary>` with fallback UI ("Something went wrong") and "Retry" button |
-| Contract error code → user message | Medium | Map `ERR_*` codes to human-readable strings in `useTransaction.ts` (e.g., `ERR_NOT_AUTHORIZED` → "You are not authorized to perform this action") |
-| Loading skeletons | Low | Add skeleton/placeholder components for PoolPage, ProfilePage, Dashboard pages while data fetches |
-| Network downtime banner | Low | Add "Cannot connect to Stacks network" toast when Hiro API returns 5xx |
-| Transaction retry | Medium | Add max 3 retries with exponential backoff in `useTransaction.ts` for transient failures |
+| Error boundaries per page | Medium | `ErrorBoundary` enhanced with `handleReset` + fallback prop — per-page boundaries built when each page is created |
+| Contract error code → user message | Medium | `ContractErrorMap.ts` **DONE** — 120+ codes mapped; `contractErrorToHuman(error)` ready to import in `useTransaction.ts` |
+| Loading skeletons | Low | `LoadingSkeleton.tsx` **DONE** — 5 variants; import into PoolPage, ProfilePage, Dashboard pages when built |
+| Network downtime banner | Low | `NetworkDowntimeBanner.tsx` **DONE** — polls Hiro API every 60s, wired in `provider.jsx` |
+| Transaction retry | Medium | `transactionRetry.ts` **DONE** — 3 attempts with 2/4/8s backoff; ready to wire into `useTransaction.ts` |
 | Fallback when no AI key | Low | Already handled in Day 8.3 — fallback message when API key missing |
 
 These are not tracked as separate days — they should be **embedded in their respective component tasks** above. For example, `PoolPage.tsx` (Day 6) should be wrapped in an ErrorBoundary as part of its implementation, not as a separate task.
@@ -1465,6 +1510,7 @@ These are not tracked as separate days — they should be **embedded in their re
 
 | Day | Focus | Key Deliverables |
 |-----|-------|-----------------|
+| 0 | Frontend infra pre-work (COMPLETE) | LoadingSkeleton, ContractErrorMap, transactionRetry, NetworkDowntimeBanner, BonusEligibilityBadge, enhanced ErrorBoundary, contractAddresses/network.ts updates |
 | 1 | Project setup, wallet, service scaffolding, types | Services with mock data, wallet connection functional |
 | 2 | Backend API, profile page shell, common components | Express server + DB schema, ProfilePage route, StarRating |
 | 2.5 | Onboarding & Role Selection | /onboarding page, role select, user_settings table, RoleGuard |
@@ -1572,7 +1618,7 @@ frontend-v2/src/ (29 new files)
 +-- utils/commentHash.ts
 +-- utils/demoAddresses.ts
 
-**Total: 71 files** (46 source, 18 test, 7 config/scripts — +3 from original 68: yieldService, BonusEligibilityBadge, milestoneVerificationService planned but might be merged into existing milestoneService)
+**Total: 76 files** (51 source, 18 test, 7 config/scripts — +5 from original 71: LoadingSkeleton, ContractErrorMap, transactionRetry, NetworkDowntimeBanner, BonusEligibilityBadge completed as Phase 0 infrastructure)
 
 ---
 
