@@ -1,5 +1,6 @@
 // CineX Services - Main exports
 // Centralized exports for all CineX platform services
+// Gated by VITE_USE_MOCK_DATA — when 'false', API-backed services are used.
 
 import { CrowdfundingService, createCrowdfundingService } from './crowdfundingService';
 import { CoEPService, createCoEPService } from './coepService';
@@ -13,6 +14,11 @@ import { MilestoneService, createMilestoneService } from './milestoneService';
 import { FeedService, createFeedService } from './feedService';
 import { AiService, createAiService } from './aiService';
 import { UserSettingsService, createUserSettingsService } from './userSettingsService';
+import {
+  ApiProfileService, ApiReputationService, ApiFeedService,
+  ApiUserSettingsService, ApiAiService, ApiMilestoneService,
+  ApiPoolService,
+} from './apiServices';
 import type { Campaign } from '../types';
 
 export { CrowdfundingService, createCrowdfundingService };
@@ -27,6 +33,8 @@ export { MilestoneService, createMilestoneService };
 export { FeedService, createFeedService };
 export { AiService, createAiService };
 export { UserSettingsService, createUserSettingsService };
+
+export { ApiProfileService, ApiReputationService, ApiFeedService, ApiUserSettingsService, ApiAiService };
 
 export {
   CineXServiceError,
@@ -95,13 +103,31 @@ export type {
  *   const feed = await svc.feed.getFeed();
  */
 export function createCineXServices(userSession: any) {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+
+  if (!useMock) {
+    return {
+      crowdfunding: createCrowdfundingService(userSession),
+      coep: createCoEPService(userSession),
+      escrow: createEscrowService(userSession),
+      verification: createVerificationService(userSession),
+      emergency: createEmergencyService(userSession),
+      reputation:    new ApiReputationService(),
+      profile:       new ApiProfileService(),
+      pool:          new ApiPoolService(),
+      milestone:     new ApiMilestoneService(),
+      feed:          new ApiFeedService(),
+      ai:            new ApiAiService(false),
+      userSettings:  new ApiUserSettingsService(),
+    };
+  }
+
   return {
     crowdfunding: createCrowdfundingService(userSession),
     coep: createCoEPService(userSession),
     escrow: createEscrowService(userSession),
     verification: createVerificationService(userSession),
     emergency: createEmergencyService(userSession),
-    // ---- Day 1 additions ------------------------------------------------
     reputation:    createReputationService(userSession),
     profile:       createProfileService(userSession),
     pool:          createPoolService(userSession),

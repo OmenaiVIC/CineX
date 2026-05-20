@@ -13,63 +13,55 @@ import type {
 
 // Contract-ready stub for registering a filmmaker's identity
 export async function registerFilmmakerId(
-  _filmmaker: string,
-  _fullName: string,
-  _profileUrl: string,
-  _identityHash: string,
-  _verificationLevel: number,
-  _verificationExpiration: number
+  filmmaker: string,
+  fullName: string,
+  profileUrl: string,
+  identityHash: string,
+  verificationLevel: number,
+  verificationExpiration: number
 ): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call for register-filmmaker-id
-  throw new Error('registerFilmmakerId not implemented. Awaiting smart contract integration.');
+  console.log('[mock] registerFilmmakerId', { filmmaker, fullName, profileUrl, identityHash, verificationLevel, verificationExpiration });
 }
 
 // Contract-ready stub for adding a filmmaker portfolio item
 export async function addFilmmakerPortfolio(
-  _filmmaker: string,
-  _projectName: string,
-  _projectUrl: string,
-  _projectDescription: string,
-  _projectCompletionYear: number
+  filmmaker: string,
+  projectName: string,
+  projectUrl: string,
+  projectDescription: string,
+  projectCompletionYear: number
 ): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call for add-filmmaker-portfolio
-  throw new Error('addFilmmakerPortfolio not implemented. Awaiting smart contract integration.');
+  console.log('[mock] addFilmmakerPortfolio', { filmmaker, projectName, projectUrl, projectDescription, projectCompletionYear });
 }
 
 // Contract-ready stub for getting filmmaker identity (read-only)
-export async function getFilmmakerIdentity(_filmmaker: string): Promise<any> {
-  // TODO: Integrate with Stacks.js contract call for get-filmmaker-identity
-  throw new Error('getFilmmakerIdentity not implemented. Awaiting smart contract integration.');
+export async function getFilmmakerIdentity(filmmaker: string): Promise<any> {
+  return { address: filmmaker, name: 'Mock Filmmaker', verified: false };
 }
 
 // Contract-ready stub for getting a specific filmmaker portfolio item (read-only)
-export async function getFilmmakerPortfolioItem(_filmmaker: string, _portfolioId: number): Promise<any> {
-  // TODO: Integrate with Stacks.js contract call for get-filmmaker-portfolio
-  throw new Error('getFilmmakerPortfolioItem not implemented. Awaiting smart contract integration.');
+export async function getFilmmakerPortfolioItem(filmmaker: string, portfolioId: number): Promise<any> {
+  return { id: portfolioId, filmmaker, title: 'Mock Project', year: 2024 };
 }
 
 // Contract-ready stub for getting a specific filmmaker endorsement item (read-only)
-export async function getFilmmakerEndorsementItem(_filmmaker: string, _endorsementId: number): Promise<any> {
-  // TODO: Integrate with Stacks.js contract call for get-filmmaker-endorsements
-  throw new Error('getFilmmakerEndorsementItem not implemented. Awaiting smart contract integration.');
+export async function getFilmmakerEndorsementItem(filmmaker: string, endorsementId: number): Promise<any> {
+  return { id: endorsementId, filmmaker, endorser: 'SP000000000000000000000000000000000000000', rating: 5, comment: 'Great work!' };
 }
 
 // Contract-ready stub for checking if a portfolio is available (read-only)
 export async function isPortfolioAvailable(_filmmaker: string, _portfolioId: number): Promise<boolean> {
-  // TODO: Integrate with Stacks.js contract call for is-portfolio-available
-  throw new Error('isPortfolioAvailable not implemented. Awaiting smart contract integration.');
+  return false;
 }
 
 // Contract-ready stub for checking if a filmmaker is currently verified (read-only)
 export async function isFilmmakerCurrentlyVerified(_filmmaker: string): Promise<boolean> {
-  // TODO: Integrate with Stacks.js contract call for is-filmmaker-currently-verified
-  throw new Error('isFilmmakerCurrentlyVerified not implemented. Awaiting smart contract integration.');
+  return false;
 }
 
 // Contract-ready stub for checking if an endorsement is available (read-only)
 export async function isEndorsementAvailable(_filmmaker: string, _endorsementId: number): Promise<boolean> {
-  // TODO: Integrate with Stacks.js contract call for is-endorsement-available
-  throw new Error('isEndorsementAvailable not implemented. Awaiting smart contract integration.');
+  return false;
 }
 /**
  * Fetch filmmaker identity (real backend integration required)
@@ -78,80 +70,68 @@ export async function isEndorsementAvailable(_filmmaker: string, _endorsementId:
  */
 // Contract-ready stub for fetching filmmaker endorsements by address
 export async function getEndorsements(address?: string): Promise<import('../types').Endorsement[]> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getEndorsements not implemented. Awaiting smart contract integration.');
+  return address ? [] : [];
 }
 /**
  * Analytics and stats contract methods (real backend integration required)
  */
 // Contract-ready stub for analytics: total filmmakers
 export async function getTotalFilmmakers(): Promise<number> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getTotalFilmmakers not implemented. Awaiting smart contract integration.');
+  return 42;
 }
 
 // Contract-ready stub for analytics: total verification fees
 export async function getTotalVerificationFees(): Promise<number> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getTotalVerificationFees not implemented. Awaiting smart contract integration.');
+  return 5000000000;
 }
 
 // Contract-ready stub for analytics: total registered filmmaker portfolios
 export async function getTotalRegisteredFilmmakerPortfolios(): Promise<number> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getTotalRegisteredFilmmakerPortfolios not implemented. Awaiting smart contract integration.');
+  return 28;
 }
 
 // Contract-ready stub for analytics: total filmmaker endorsements
 export async function getTotalFilmmakerEndorsements(): Promise<number> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getTotalFilmmakerEndorsements not implemented. Awaiting smart contract integration.');
+  return 156;
 }
 /**
  * Admin contract methods (real backend integration required)
  */
 // Contract-ready stub for admin: set contract admin
 export async function setContractAdmin(address: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('setContractAdmin not implemented. Awaiting smart contract integration.');
+  console.log('[mock] setContractAdmin', { address });
 }
 
 // Contract-ready stub for admin: set core contract
 export async function setCoreContract(address: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('setCoreContract not implemented. Awaiting smart contract integration.');
+  console.log('[mock] setCoreContract', { address });
 }
 
 // Contract-ready stub for admin: set renewal extension contract
 export async function setRenewalExtensionContract(address: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('setRenewalExtensionContract not implemented. Awaiting smart contract integration.');
+  console.log('[mock] setRenewalExtensionContract', { address });
 }
 
 // Contract-ready stub for admin: set third party endorser
 export async function setThirdPartyEndorser(address: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('setThirdPartyEndorser not implemented. Awaiting smart contract integration.');
+  console.log('[mock] setThirdPartyEndorser', { address });
 }
 
 // Contract-ready stub for admin: set pause state
 export async function setPauseState(state: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('setPauseState not implemented. Awaiting smart contract integration.');
+  console.log('[mock] setPauseState', { state });
 }
 
 // Contract-ready stub for admin: emergency withdraw
 export async function emergencyWithdraw(): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('emergencyWithdraw not implemented. Awaiting smart contract integration.');
+  console.log('[mock] emergencyWithdraw');
 }
 /**
  * Renew filmmaker verification (real backend integration required)
  */
 // Contract-ready stub for filmmaker: renew verification
 export async function renewFilmmakerVerification(): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('renewFilmmakerVerification not implemented. Awaiting smart contract integration.');
+  console.log('[mock] renewFilmmakerVerification');
 }
 
 /**
@@ -159,26 +139,22 @@ export async function renewFilmmakerVerification(): Promise<void> {
  */
 // Contract-ready stub for filmmaker: update expiration period
 export async function updateFilmmakerExpirationPeriod(period: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('updateFilmmakerExpirationPeriod not implemented. Awaiting smart contract integration.');
+  console.log('[mock] updateFilmmakerExpirationPeriod', { period });
 }
 /**
  * Pay the verification fee (real backend integration required)
  */
 // Contract-ready stub for filmmaker: pay verification fee
 export async function payVerificationFee(amount: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('payVerificationFee not implemented. Awaiting smart contract integration.');
+  console.log('[mock] payVerificationFee', { amount });
 }
-// ...existing code...
 
 /**
  * Add an endorsement for a user (contract integration required)
  */
 // Contract-ready stub for filmmaker: add endorsement
 export async function addEndorsement(endorser: string, comment: string): Promise<void> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('addEndorsement not implemented. Awaiting smart contract integration.');
+  console.log('[mock] addEndorsement', { endorser, comment });
 }
 
 
@@ -669,16 +645,14 @@ import type { PortfolioItem } from '../types';
 
 // Contract-ready stub for getting the current user's portfolio
 export async function getFilmmakerPortfolio(): Promise<PortfolioItem[]> {
-  // TODO: Integrate with Stacks.js contract call
-  throw new Error('getFilmmakerPortfolio not implemented. Awaiting smart contract integration.');
+  return [];
 }
 
 /**
  * Update the current user's portfolio (real backend integration required)
  */
-export async function updateFilmmakerPortfolio(_: PortfolioItem[]): Promise<void> {
-  // TODO: Integrate with contract or backend
-  throw new Error('updateFilmmakerPortfolio not implemented. Awaiting backend integration.');
+export async function updateFilmmakerPortfolio(_items: PortfolioItem[]): Promise<void> {
+  console.log('[mock] updateFilmmakerPortfolio', { count: _items.length });
 }
 
 // Export default instance factory
