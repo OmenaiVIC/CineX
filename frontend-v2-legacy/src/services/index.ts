@@ -42,6 +42,9 @@ export {
   retryOperation,
 } from './errorHandler';
 
+export { contractErrorToHuman, getContractPrefix } from '../utils/ContractErrorMap';
+export { withTransactionRetry, isPermanentTxError, isTransientTxError } from '../utils/transactionRetry';
+
 // Re-export common types for convenience
 export type {
   ServiceResponse,

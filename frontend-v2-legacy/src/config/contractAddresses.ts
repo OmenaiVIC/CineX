@@ -16,7 +16,11 @@ export type ContractKey =
   | "coep"
   | "core"
   | "verification"
-  | "escrow";
+  | "escrow"
+  | "milestone_escrow"
+  | "yield_escrow"
+  | "milestone_verification"
+  | "bitflow_strategy";
 
 /** Address + name pair that together make a contract identifier */
 export interface ContractEntry {
@@ -65,6 +69,10 @@ export const TESTNET_DEFAULTS: Record<ContractKey, ContractEntry> = {
   core:         { address: "", name: "CineX-project" },
   verification: { address: "", name: "film-verification-module" },
   escrow:       { address: "", name: "escrow-module" },
+  milestone_escrow: { address: "", name: "milestone-escrow" },
+  yield_escrow: { address: "", name: "yield-escrow" },
+  milestone_verification: { address: "", name: "milestone-verification" },
+  bitflow_strategy: { address: "", name: "bitflow-strategy" },
 };
 
 /**
@@ -79,4 +87,8 @@ export const CONTRACT_NAMES: Record<ContractKey, string> = {
   core:         "CineX-project",
   verification: "film-verification-module",
   escrow:       "escrow-module",
+  milestone_escrow: "milestone-escrow",
+  yield_escrow: "yield-escrow",
+  milestone_verification: "milestone-verification",
+  bitflow_strategy: "bitflow-strategy",
 };
