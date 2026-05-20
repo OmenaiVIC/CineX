@@ -80,15 +80,27 @@ export class ApiReputationService {
   }
 }
 
+function mapDbEvent(e: Record<string, unknown>): FeedEvent {
+  return {
+    id: String(e.id),
+    type: (e.event_type as FeedEvent['type']) || 'system',
+    actor: (e.actor as string) || '',
+    targetId: (e.pool_id as string) || (e.campaign_id as string) || '',
+    summary: typeof e.event_data === 'string' ? ((() => { try { return JSON.parse(e.event_data as string).summary || ''; } catch { return ''; } })()) : '',
+    metadata: typeof e.event_data === 'string' ? ((() => { try { return JSON.parse(e.event_data as string); } catch { return {}; } })()) : {},
+    createdAt: ((e.created_at as number) || 0) * 1000,
+  };
+}
+
 export class ApiFeedService {
   async getFeed(params?: { type?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<FeedEvent>>> {
     try {
       const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
       const limit = params?.limit || 20;
       const q = `?offset=${offset}&limit=${limit}${params?.type ? `&type=${params.type}` : ''}`;
-      const data = await api.get<{ events: FeedEvent[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/global${q}`);
+      const data = await api.get<{ events: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/global${q}`);
       return toServiceResponse({
-        items: data.events,
+        items: data.events.map(mapDbEvent),
         totalItems: data.pagination.total,
         totalPages: Math.ceil(data.pagination.total / limit),
         currentPage: params?.page || 1,
@@ -102,9 +114,9 @@ export class ApiFeedService {
     try {
       const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
       const limit = params?.limit || 20;
-      const data = await api.get<{ events: FeedEvent[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/user/${address}?offset=${offset}&limit=${limit}`);
+      const data = await api.get<{ events: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/user/${address}?offset=${offset}&limit=${limit}`);
       return toServiceResponse({
-        items: data.events,
+        items: data.events.map(mapDbEvent),
         totalItems: data.pagination.total,
         totalPages: Math.ceil(data.pagination.total / limit),
         currentPage: params?.page || 1,
@@ -114,8 +126,17 @@ export class ApiFeedService {
     } catch (err) { return toError(err); }
   }
 
-  async publishEvent(_event: Omit<FeedEvent, 'id'>): Promise<ServiceResponse<FeedEvent>> {
-    return { success: false, error: 'Not implemented via API' };
+  async publishEvent(event: Omit<FeedEvent, 'id'>): Promise<ServiceResponse<FeedEvent>> {
+    try {
+      const data = await api.post<Record<string, unknown>>('/api/feed/event', {
+        event_type: event.type,
+        event_data: JSON.stringify({ ...event.metadata, summary: event.summary }),
+        actor: event.actor,
+        pool_id: event.targetId || null,
+        campaign_id: null,
+      });
+      return toServiceResponse(mapDbEvent(data));
+    } catch (err) { return toError(err); }
   }
 }
 

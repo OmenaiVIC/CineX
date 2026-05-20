@@ -18,6 +18,7 @@ const LoginPage = lazy(() => import('@routes/login'));
 const RegisterPage = lazy(() => import('@routes/register'));
 const ProfilePage = lazy(() => import('@routes/profile'));
 const RatePage = lazy(() => import('@routes/rate'));
+const FeedPage = lazy(() => import('@routes/feed'));
 const OnboardingPage = lazy(() => import('@routes/onboarding'));
 const CreatorDashboardPage = lazy(() => import('@routes/dashboard-creator'));
 const BackerDashboardPage = lazy(() => import('@routes/dashboard-backer'));
@@ -58,6 +59,7 @@ const routes = [
   createRoute('/contact', ContactPage, 'contact', 'Contact', true),
   createRoute('/profile/:address', ProfilePage, 'profile'),
   createRoute('/rate/:address', RatePage, 'rate'),
+  createRoute('/feed', FeedPage, 'feed', 'Feed', true),
   createRoute('/login', LoginPage, 'login', 'Login'),
   createRoute('/register', RegisterPage, 'register', 'Register'),
 ];
