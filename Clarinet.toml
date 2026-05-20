@@ -167,7 +167,7 @@ depends_on = ['project-verification-module-trait', 'film-verification-module-tra
 path = 'contracts/milestone-verification.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['emergency-module-trait', 'module-base-trait', 'crowdfunding-module']
+depends_on = ['emergency-module-trait', 'module-base-trait', 'crowdfunding-module', 'milestone-escrow']
 
 # === Day 6: Yield Escrow ===
 

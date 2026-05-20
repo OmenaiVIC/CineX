@@ -278,3 +278,104 @@ export class ApiCoEPService { /* keep mock-only — on-chain contract calls */ }
 export class ApiEscrowService { /* keep mock-only — on-chain contract calls */ }
 export class ApiEmergencyService { /* keep mock-only — on-chain contract calls */ }
 export class ApiVerificationService { /* keep mock-only awaiting smart contract integration */ }
+
+interface WalletInfo {
+  id: string;
+  address: string;
+  btcAddress: string;
+  userId: string;
+  displayName: string;
+  nairaBalance: number;
+  sbtcBalance: number;
+  status: 'active' | 'pending' | 'locked';
+  createdAt: string;
+}
+
+interface WalletTransaction {
+  id: string;
+  walletId: string;
+  type: 'deposit' | 'send' | 'receive' | 'fee';
+  amountNgn: number;
+  amountSats: number;
+  status: 'pending' | 'confirmed' | 'failed';
+  counterparty?: string;
+  description?: string;
+  createdAt: string;
+  confirmedAt?: string;
+}
+
+export class ApiWalletService {
+  async create(displayName: string): Promise<ServiceResponse<WalletInfo>> {
+    try {
+      const data = await api.post<WalletInfo>('/api/wallets', { displayName });
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async get(walletId: string): Promise<ServiceResponse<WalletInfo>> {
+    try {
+      const data = await api.get<WalletInfo>(`/api/wallets/${walletId}`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async getBalance(walletId: string): Promise<ServiceResponse<{ nairaBalance: number; sbtcBalance: number }>> {
+    try {
+      const data = await api.get<{ nairaBalance: number; sbtcBalance: number }>(`/api/wallets/${walletId}/balance`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async recordDeposit(walletId: string, amountNgn: number, reference: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/deposit`, { amountNgn, reference });
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async confirmDeposit(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/deposit/${txId}/confirm`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async recordSend(walletId: string, recipientId: string, amountNgn: number): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/send`, { recipientId, amountNgn });
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async confirmSend(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/send/${txId}/confirm`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async failTransaction(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/transactions/${txId}/fail`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
+  }
+
+  async getTransactions(walletId: string, params?: { page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<WalletTransaction>>> {
+    try {
+      const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
+      const limit = params?.limit || 20;
+      const data = await api.get<{ transactions: WalletTransaction[]; pagination: { offset: number; limit: number; total: number } }>(
+        `/api/wallets/${walletId}/transactions?offset=${offset}&limit=${limit}`
+      );
+      return toServiceResponse({
+        items: data.transactions,
+        totalItems: data.pagination.total,
+        totalPages: Math.ceil(data.pagination.total / limit),
+        currentPage: params?.page || 1,
+        hasNext: data.pagination.offset + limit < data.pagination.total,
+        hasPrevious: (params?.page || 1) > 1,
+      });
+    } catch (err) { return toError(err); }
+  }
+}

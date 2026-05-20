@@ -130,5 +130,44 @@ function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_ratings_target ON ratings(target_address);
     CREATE INDEX IF NOT EXISTS idx_portfolio_address ON portfolio_items(address);
+
+    CREATE TABLE IF NOT EXISTS wallets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL UNIQUE,
+      email TEXT,
+      phone TEXT,
+      pillar_wallet_address TEXT,
+      bns_name TEXT,
+      stx_address TEXT,
+      btc_address TEXT,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending','active','suspended')),
+      naira_balance INTEGER DEFAULT 0,
+      sbtc_balance TEXT DEFAULT '0',
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch())
+    );
+
+    CREATE TABLE IF NOT EXISTS wallet_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      wallet_id INTEGER NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
+      type TEXT NOT NULL CHECK(type IN ('deposit','withdrawal','send','receive','fee','swap')),
+      amount_naira INTEGER DEFAULT 0,
+      amount_sbtc TEXT DEFAULT '0',
+      asset TEXT DEFAULT 'STX',
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending','confirmed','failed','cancelled')),
+      reference TEXT,
+      tx_id TEXT,
+      counterparty TEXT,
+      description TEXT,
+      metadata TEXT DEFAULT '{}',
+      created_at INTEGER DEFAULT (unixepoch()),
+      confirmed_at INTEGER
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_wallets_user ON wallets(user_id);
+    CREATE INDEX IF NOT EXISTS idx_wallets_pillar ON wallets(pillar_wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_wallet_tx_wallet ON wallet_transactions(wallet_id);
+    CREATE INDEX IF NOT EXISTS idx_wallet_tx_status ON wallet_transactions(status);
+    CREATE INDEX IF NOT EXISTS idx_wallet_tx_created ON wallet_transactions(created_at DESC);
   `);
 }
