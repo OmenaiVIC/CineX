@@ -514,3 +514,17 @@ export interface Pool {
   targetAmount: string;
   currentAmount: string;
 }
+
+/**
+ * CredibilitySummary
+ * ------------------
+ * AI-generated credibility assessment for a user profile.
+ * Returned by POST /api/ai/summary on the backend.
+ */
+export interface CredibilitySummary {
+  address: string;
+  summary: string;
+  generatedAt: string;
+  model: string;
+  disclaimer: string;
+}
