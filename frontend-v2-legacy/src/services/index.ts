@@ -17,7 +17,7 @@ import { UserSettingsService, createUserSettingsService } from './userSettingsSe
 import {
   ApiProfileService, ApiReputationService, ApiFeedService,
   ApiUserSettingsService, ApiAiService, ApiMilestoneService,
-  ApiPoolService,
+  ApiPoolService, ApiWalletService,
 } from './apiServices';
 import type { Campaign } from '../types';
 
@@ -34,7 +34,7 @@ export { FeedService, createFeedService };
 export { AiService, createAiService };
 export { UserSettingsService, createUserSettingsService };
 
-export { ApiProfileService, ApiReputationService, ApiFeedService, ApiUserSettingsService, ApiAiService };
+export { ApiProfileService, ApiReputationService, ApiFeedService, ApiUserSettingsService, ApiAiService, ApiWalletService };
 
 export {
   CineXServiceError,
@@ -119,6 +119,7 @@ export function createCineXServices(userSession: any) {
       feed:          new ApiFeedService(),
       ai:            new ApiAiService(false),
       userSettings:  new ApiUserSettingsService(),
+      wallet:        new ApiWalletService(),
     };
   }
 

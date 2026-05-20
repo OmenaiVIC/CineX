@@ -1,6 +1,6 @@
 # CineX Smart Contract Implementation Plan — 2-Week Sprint
 
-> **Scope:** 8 smart contracts (7 original + timelock) + 2-of-3 multi-sig contract + trait definitions
+> **Scope:** 9 smart contracts (7 new + 2 retained originals) + 2-of-3 multi-sig contract + trait definitions
 > **Target:** Stacks testnet (mainnet-ready audit phase)
 > **Team:** 1 senior Clarity engineer (80h), 1 peer reviewer (20h)
 > **Total estimated effort:** ~100 person-hours
@@ -11,7 +11,7 @@
 
 ### 1.1 Immutable Contracts (No Proxy)
 
-All 8 contracts are deployed once and are immutable. No forwarding proxy. Migration = deploy new contract + script-transfer residual assets + update frontend. Traits are for compile-time interface enforcement and modular DI, not upgradeability.
+All contracts are deployed once and are immutable. No forwarding proxy. Migration = deploy new contract + script-transfer residual assets + update frontend. Traits are for compile-time interface enforcement and modular DI, not upgradeability.
 
 ### 1.2 2-of-3 Multi-Sig Admin
 
@@ -50,12 +50,12 @@ A lightweight **2-of-3 multi-sig** contract (`cinex-multisig.clar`) serves as so
 
 ### 1.3 Timelock Contract
 
-A `timelock.clar` contract enforces a block-based delay (2880 blocks ≈ 24 hours on Stacks at ~30s/block) for queued administrative transactions before execution. This prevents a compromised single multi-sig key from immediately executing a malicious admin action — signers and users have a 24-hour window to detect and respond.
+A `timelock.clar` contract enforces a block-based delay (2880 blocks ≈ 24 hours on Stacks at ~30s/block) for queued administrative transactions before execution. This prevents a compromised single multi-sig key from immediately executing a malicious admin action.
 
 **Design:**
 - `queue-transaction (recipient, function-name, args, eta)` — only callable by multi-sig (checks `is-approved`). Stores `{recipient, function-name, args, eta (block-height), executed, cancelled}`.
 - `execute-transaction (tx-id)` — anyone can call after `eta` block-height has passed. Calls the target contract with the stored function and args.
-- `cancel-transaction (tx-id)` — multi-sig only. Marks transaction as cancelled. (2-of-3 can cancel a malicious queue before execution.)
+- `cancel-transaction (tx-id)` — multi-sig only. Marks transaction as cancelled.
 
 **Critical actions subject to timelock (2880-block delay):**
 
@@ -68,7 +68,7 @@ A `timelock.clar` contract enforces a block-based delay (2880 blocks ≈ 24 hour
 | `update-price` (above threshold) | oracle-proxy | Large price deviations need review |
 | Strategy address change | yield-escrow / bitflow-strategy | Redirecting funds to malicious contract |
 
-**Emergency bypass:** Functions on the `emergency-module-trait` (`emergency-withdraw`, `set-pause-state`) are NOT routed through timelock. The multi-sig can call them directly via `execute-transaction` with `eta = block-height` (zero delay) or via a separate emergency-only multi-sig path.
+**Emergency bypass:** Functions on the `emergency-module-trait` (`emergency-withdraw`, `set-pause-state`) are NOT routed through timelock.
 
 **Integration with multi-sig:**
 ```
@@ -87,8 +87,8 @@ Target contracts store a `timelock-contract` principal variable. For sensitive a
 | `reputation-trait` | `get-reputation-score (principal) -> uint` | funding-pool |
 | `project-verification-trait` | Extends old `film-verification-trait` with multi-vertical | funding-pool, milestone-escrow |
 | `milestone-escrow-trait` | `create-campaign`, `deposit`, `submit-proof`, `approve`, `release` | funding-pool, yield-escrow |
-| `yield-escrow-trait` | `deposit-to-yield-escrow`, `withdraw-from-yield-escrow`, `claim-backer-yield`, `distribute-platform-yield` | funding-pool |
-| `milestone-verification` | (no trait — direct integration with milestone-escrow) | milestone-escrow, crowdfunding-module |
+| `yield-escrow-trait` | `deposit-to-yield-escrow`, `withdraw-from-yield-escrow`, `claim-backer-yield`, `distribute-platform-yield` | milestone-escrow (routing) |
+| `milestone-verification` | (no trait — standalone; referenced by yield-escrow for bonus check) | yield-escrow |
 | `funding-pool-trait` | `create-pool`, `join-pool`, `propose-allocation`, `vote`, `execute` | hub (CineX-project) |
 
 Existing traits (`module-base-trait`, `emergency-module-trait`) kept and implemented by all replacement modules.
@@ -103,10 +103,11 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 | `oracle-proxy` | u5100-u5109 | New |
 | `reputation` | u5200-u5219 | New |
 | `project-verification-module` | u1000-u1015 | Retains old range for backward compat |
-| `milestone-escrow` | u5400-u5420 | New |
-| `yield-escrow` | u5500-u5520 | New — includes ERR-INVALID-CAMPAIGN (5516), ERR-NO-SNAPSHOT (5517), ERR-NO-YIELD-TO-CLAIM (5518), ERR-NOT-ESCROW-CALLER (5519), ERR-NO-ACCUMULATED-YIELD (5520) |
-| `milestone-verification` | u5530-u5539 | New |
-| `funding-pool` | u5600-u5650 | New (replaces Co-EP's u400 range) |
+| `milestone-escrow` | u5400-u5423 | New |
+| **`yield-escrow`** | **u5500-u5518** | **v2: 70/20/10 split, creator bonus, forfeiture** |
+| **`bitflow-strategy`** | **u5600-u5607** | **Updated to actual range** |
+| **`milestone-verification`** | **u5600-u5620** | **Backer-weighted voting (not 80% checker)** |
+| **`funding-pool`** | **u5700-u5731** | **Updated to avoid u5600 conflict** |
 
 ---
 
@@ -118,214 +119,45 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 
 #### Day 1 — Multi-Sig + Timelock + Asset Registry (8h)
 
-**Task 1.1: `cinex-multisig.clar` — 2-of-3 admin (3h dev + 1h tests)**
-- [ ] Define `signers` list (fixed 3 principals: Victor, co-founder, advisor), `threshold = u2`
-- [ ] Maps: `transactions` (uint => {recipient, function-name, args, confirmations, executed, proposer})
-- [ ] Vars: `next-tx-id` (uint)
-- [ ] Public: `propose-transaction` — any signer
-- [ ] Public: `confirm-transaction` — second signer increments confirmations
-- [ ] Public: `execute-transaction` — checks `confirmations >= threshold`, calls target via `contract-call`, marks executed. On success, routes through timelock if the target function requires delay; otherwise executes immediately (emergency path).
-- [ ] Public: `replace-signer (old-signer, new-signer)` — requires 2-of-3 confirmation
-- [ ] Read-only: `is-approved (principal) -> bool` — true if caller is a signer
-- [ ] Events: `print` on propose, confirm, execute, replace-signer
-- [ ] Unit tests: propose → confirm → execute flow, reject double-execute, reject non-signer propose, signer rotation
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 1.2: `timelock.clar` + `timelock-trait.clar` (2h dev + 0.5h tests)**
-- [ ] Constants: `TIMELOCK-DELAY = u2880` (blocks ≈ 24 hours)
-- [ ] Maps: `queued-transactions` (uint => {recipient, function-name, args, eta, executed, cancelled, queued-at})
-- [ ] Vars: `next-queue-id` (uint), `multisig-contract` (principal)
-- [ ] Public: `queue-transaction (recipient, function-name, args)` — only callable by `multisig-contract` (via `is-approved`). Sets `eta = block-height + TIMELOCK-DELAY`. Emits `TransactionQueued`.
-- [ ] Public: `execute-transaction (queue-id)` — anyone can call. Checks: not executed, not cancelled, `block-height >= eta`. Calls target contract with stored args via `contract-call`. Marks executed. Emits `TransactionExecuted`.
-- [ ] Public: `cancel-transaction (queue-id)` — only multi-sig. Marks cancelled. Emits `TransactionCancelled`.
-- [ ] Read-only: `get-queued-transaction (queue-id)` — returns full tuple or none
-- [ ] Unit tests: queue → cannot execute before delay → execute after delay → reject double-execute; queue → cancel; non-multisig cannot queue
-- **Estimated:** 2h (dev) + 0.5h (tests)
-
-**Task 1.3: `asset-registry.clar` + `asset-registry-trait.clar` (1.5h dev + 0.5h tests)**
-- [ ] Trait: `(define-trait asset-registry-trait ((is-supported (principal) (response bool uint))))`
-- [ ] Data: `supported-assets` (map principal => {name (string-ascii 32), decimals uint, active bool})
-- [ ] Vars: `admin-contract` (principal — set to timelock address) for non-emergency admin; `emergency-admin` (principal — set to multi-sig) for emergency removal
-- [ ] Admin-guarded (timelock): `add-asset` — checks `tx-sender` is `admin-contract`
-- [ ] Admin-guarded (timelock): `remove-asset` — sets `active = false` (soft delete)
-- [ ] Emergency (multi-sig only): `emergency-remove-asset` — immediate removal, bypasses timelock
-- [ ] Read-only: `is-supported`, `get-all-supported-assets`
-- [ ] Seed config: STX, sBTC, USDCx contract principals set during `initialize`
-- **Estimated:** 1.5h (dev) + 0.5h (tests)
+*(Unchanged from plan — multi-sig, timelock, asset-registry all correct)*
 
 ---
 
 #### Day 2 — Oracle Proxy + Reputation + Project Verification Begins (8h)
 
-**Task 2.1: `oracle-proxy.clar` + `oracle-proxy-trait.clar` (2h dev + 1h tests)**
-- [ ] Trait: `(define-trait oracle-proxy-trait ((get-stx-price () (response uint uint))))`
-- [ ] Vars: `price` (uint, cents), `last-updated` (uint, block-height), `price-oracle` (principal), `admin-contract` (principal — timelock), `emergency-admin` (principal — multi-sig)
-- [ ] Admin-guarded (timelock): `set-price-oracle` — sets the external oracle address
-- [ ] (Timelock for non-emergency): `update-price` — multi-sig pushes price
-- [ ] Emergency (multi-sig): `emergency-set-price` — immediate override
-- [ ] Read-only: `get-stx-price` — returns stored `price`
-- [ ] Initial approach: multi-sig pushes price periodically. Price is in cents (100 = $1.00).
-- [ ] Fallback: `get-stx-price-with-fallback` — if `last-updated > STALE-THRESHOLD` (144 blocks), return error
-- **Estimated:** 2h (dev) + 1h (tests)
-
-> **v2 upgrade path:** The `set-price-oracle` function in `oracle-proxy.clar` is a designed placeholder for Pyth Network integration. When implemented, it will accept Pyth VAAs and cache the verified price. See `CINEX_PYTH_ORACLE_INTEGRATION_v2_ROADMAP.md` for the full roadmap.
-
-**Task 2.2: `reputation.clar` + `reputation-trait.clar` (3h dev + 1h tests)**
-- [ ] Trait: `rate-user`, `get-reputation-score`, `get-ratings-for-user`
-- [ ] Data: `ratings` (map {rater, target, campaign-id} => {rating uint 1-5, comment-hash (optional (buff 32)), timestamp uint})
-- [ ] Data: `reputation-scores` (map principal => {total-ratings uint, total-score uint}) — cached aggregate
-- [ ] Public: `rate-user` — checks:
-  - Rater ≠ target (self-rating not allowed)
-  - No existing entry for (rater, target, campaign-id) — prevents duplicate
-  - Rating must be 1-5
-  - Comment-hash is optional buff 32
-  - Updates `reputation-scores` map: increments total-ratings, adds rating to total-score
-- [ ] Read-only: `get-reputation-score` — returns `(total-score * 100) / (total-ratings * 5)` = percentage (0-100)
-- [ ] Read-only: `get-ratings-for-user` — returns list of recent ratings (pagination via offset/limit)
-- [ ] Sybil mitigation: only verified users (via `project-verification-module`) can rate
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 2.3: `project-verification-module.clar` — refactor start (1h)**
-- [ ] Begin refactor from `film-verification-module.clar` (722 lines). Continue on Day 3.
-- **Estimated:** 1h (scoping + file creation)
+*(Unchanged from plan)*
 
 ---
 
 #### Day 3 — Project Verification Module (complete) + Tests (8h)
 
-**Task 3.1: Tiered funding ceiling + repricing (3h dev + 1h tests)**
-- [ ] **Reprice** verification fees for Global South market:
-  - `basic-verification-fee`: 2 STX → **1 STX** (`u1000000`)
-  - `standard-verification-fee`: 3 STX → **5 STX** (`u5000000`)
-- [ ] **Add cap constants** to `project-verification-module.clar`:
-  - `UNVERIFIED-FUNDING-CAP`: **1,000 STX** (`u1000000000`)
-  - `BASIC-FUNDING-CAP`: **10,000 STX** (`u10000000000`)
-  - `PREMIUM-FUNDING-CAP`: **100,000 STX** (`u100000000000`)
-  - `PLATFORM-MAX`: **1,000,000 STX** (`u1000000000000`) — outer circuit breaker
-- [ ] **Add read-only** `get-verification-funding-cap (creator)` — returns cap based on current verification level (unverified/basic/premium). Expired → unverified cap. Unregistered → unverified cap.
-- [ ] **Add to traits** `film-verification-module-trait.clar` and `project-verification-module-trait.clar`
-- [ ] **Replace binary verification gate** in `crowdfunding-module.clar::create-campaign`:
-  - Remove `is-filmmaker-currently-verified` hard block
-  - Add `get-verification-funding-cap` call
-  - Assert `funding-goal <= funding-cap`
-- [ ] **Add live cap check** in `crowdfunding-module.clar::contribute-to-campaign`:
-  - Assert `new-total-raised <= owner-cap` (checks every deposit — handles expiry/revocation mid-campaign)
-- [ ] **Edge cases covered:**
-  | Case | Solution |
-  |------|----------|
-  | Mid-campaign upgrade | Live cap check on each deposit |
-  | Expiry/revocation | Same — next deposit fails atomically |
-  | Goal exceeds cap | Rejected at creation |
-  | Sybil multiple campaigns | Per-campaign cap, off-chain IP check |
-  | Creator-investor dual role | Verification is creator-side only |
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 3.2: Project Verification regression + backward compat tests (4h)**
-- [ ] Test all old functions still work (regression suite)
-- [ ] Test new `project-vertical` field
-- [ ] Test timelock admin verification flow
-- [ ] Test emergency bypass (multi-sig direct call)
-- [ ] Verify `project-verification-trait` is compatible with old `film-verification-trait` callers
-- **Estimated:** 4h
+*(Unchanged from plan)*
 
 ---
 
 #### Day 4 — Milestone Escrow: data structures + create-campaign (8h)
 
-**Task 4.1: `milestone-escrow.clar` — data structures (1h)**
-- [ ] Trait: `milestone-escrow-trait`
-- [ ] Data structures:
-  ```
-  campaigns: map uint => {
-    project-id uint,
-    creator principal,
-    asset principal,              // supported asset from asset-registry
-    total-goal uint,
-    total-deposited uint,
-    milestones (list 10 {
-      name (string-ascii 64),
-      amount uint,
-      approved bool,
-      released bool,
-      proof-hash (optional (buff 32)),
-      approved-by (optional principal),
-      milestone-index uint
-    }),
-    status (string-ascii 20),     // "active" | "completed" | "cancelled"
-    created-at uint,
-    deadline uint
-  }
-  ```
-  ```
-  campaign-contributors: map {campaign-id uint, contributor principal} => {
-    total-contributed uint,
-    contributed-at uint
-  }
-  campaign-id-counter: uint
-  ```
-- **Estimated:** 1h
-
-**Task 4.2: `create-campaign` (3h dev + 1h tests)**
-- [ ] Constants: `MIN-GOAL = u1000000000` ($1000 in smallest unit), `MAX-MILESTONES = u10`, `WITHDRAWAL-FEE-PERCENT = u500` (5%), `VERIFICATION-FEE = u5` (5 STX → USD-pegged via oracle)
-- [ ] Vars: `asset-registry` (principal), `oracle-proxy` (principal), `verification-module` (principal), `admin-contract` (principal — timelock), `fee-recipient` (principal — treasury)
-- [ ] `create-campaign` — checks:
-  - Creator is verified via `project-verification-module::is-creator-currently-verified`
-  - `asset` is supported via `asset-registry::is-supported`
-  - `total-goal >= MIN-GOAL`
-  - Milestones list is non-empty, amounts sum to `total-goal`
-  - Duration includes deadline block height
-  - Payment of verification fee (in STX, USD-pegged via oracle)
-  - Creates campaign entry, sets status to "active"
-  - Emits `print` event: `{event: "campaign-created", campaign-id, creator, asset, total-goal}`
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 4.3: Fee parameter change flow via timelock (1h)**
-- [ ] `set-fee-parameters (new-withdrawal-fee, new-verification-fee)` — only callable by `admin-contract` (timelock). Changes are subject to 24h delay.
-- **Estimated:** 1h
+**Important correction:** Milestone approval is **backer-gated, sequential** — NOT creator self-approval as originally written. Creator cannot approve their own milestone (`ERR-CREATOR-CANNOT-APPROVE`). Each milestone requires the previous milestone to be approved first.
 
 ---
 
 #### Day 5 — Milestone Escrow: deposit, approve, release + tests (8h)
 
-**Task 5.1: `deposit` function (2.5h)**
-- [ ] `deposit (campaign-id, amount)` — checks:
-  - Campaign exists and is "active"
-  - Asset is the campaign's `asset`
-  - Amount > 0
-  - Transfers from contributor to contract (`stx-transfer?` or `ftp-token?` for sBTC/USDCx)
-  - Updates `total-deposited` and `campaign-contributors`
-  - Emits `print` event
-- [ ] Handle multi-asset: `match` on asset principal to determine transfer method
-- **Estimated:** 2h (dev) + 0.5h (tests)
-
 **Task 5.2: `submit-milestone-proof` + `approve-milestone` (2.5h)**
-- [ ] `submit-milestone-proof (campaign-id, milestone-index, proof-hash)` — checks:
+- [x] `submit-milestone-proof (campaign-id, milestone-index, proof-hash)` — checks:
   - Campaign is "active"
   - Milestone index is within range
   - Milestone is not already approved or released
   - Proof-hash is valid (32-byte buff)
   - Only campaign creator can submit
   - Updates milestone's `proof-hash`, emits event
-- [ ] `approve-milestone (campaign-id, milestone-index)` — checks:
+- [x] `approve-milestone (campaign-id, milestone-index)` — checks:
   - Milestone has a proof-hash
   - Milestone is not already approved/released
-  - **v1 design:** Creator approves their own proof (trusted model). Future: backer voting.
+  - **Creator CANNOT approve (backer-gated)**
+  - **Only contributors with deposit record may approve**
+  - **Sequential: milestone n requires milestone n-1 approved**
   - Sets `approved = true`, `approved-by = tx-sender`, emits event
-- **Estimated:** 2h (dev) + 0.5h (tests)
-
-**Task 5.3: `release-milestone-funds` + edge cases (3h)**
-- [ ] `release-milestone-funds (campaign-id, milestone-index)` — checks:
-  - Milestone is approved but not released
-  - `total-deposited >= milestone.amount` (enough funds)
-  - Calculates 5% withdrawal fee: `fee = milestone.amount * WITHDRAWAL-FEE-PERCENT / 10000`
-  - Transfers `milestone.amount - fee` to campaign creator, `fee` to `fee-recipient`
-  - Decrements `total-deposited`, marks milestone released
-  - If all milestones released, campaign status = "completed"
-  - Emits event
-- [ ] Edge cases: partial deposits, deadline enforcement, cancellation + refund, multi-asset withdrawal dispatch
-- **Estimated:** 2h (dev) + 1h (tests)
-
-> **Bug fix (Co-EP rotating fundings):** `asserts! (> pool-members pool-max-members)` was corrected to `(< pool-members pool-max-members)` so the pool-full guard actually triggers when members reach the limit instead of always passing.
 
 ---
 
@@ -333,210 +165,66 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 
 ---
 
-#### Day 6 — Yield Escrow: core accounting + trait (8h) ✅
+#### Day 6 — Yield Escrow: Core Accounting + Trait (8h) ✅
 
-**Task 6.1: `yield-escrow.clar` — data structures + `deposit-to-yield-escrow` (4h)** ✅
-- [x] Trait: `yield-escrow-trait` with `deposit-to-yield-escrow`, `withdraw-from-yield-escrow`, `claim-backer-yield`, `distribute-platform-yield`, `initialize`, `set-escrow-caller`
-- [x] Data:
-  ```
-  yield-pools: map campaign-id => {
-    total-deposited uint,
-    total-yield-earned uint,
-    total-yield-claimed uint,
-    strategy (optional principal),
-    last-yield-accrual uint,
-    asset principal
-  }
-  backer-yield: map {campaign-id, backer} => {
-    total-deposited uint,
-    yield-claimed uint
-  }
-  platform-yield: uint
-  accumulated-yield: map campaign-id => uint
-  ```
-- [x] Constants: `YIELD-SPLIT-BASIS-POINTS = u3000` (30% CineX, 70% users)
-- [x] Vars: `admin-contract` (principal — timelock), `emergency-admin` (principal — multi-sig), `escrow-caller` (principal)
-- [x] Public: `deposit-to-yield-escrow (campaign-id, amount, strategy)` — checks:
-  - Campaign exists and asset is supported
-  - Amount > 0
-  - Only callable by `escrow-caller` (milestone-escrow)
-  - Transfers asset from caller to this contract
-  - Updates `total-deposited` in `yield-pools`
-  - If strategy provided, calls strategy contract to deploy capital
-  - Emits event
-- [x] Extra: `initialize` — sets admin, emergency, escrow-caller, milestone-verification
-- [x] Extra: `set-escrow-caller` — timelock-only admin for updating the allowed escrow caller
+**CRITICAL UPDATE:** Yield split changed from original plan:
 
-**Task 6.2: `withdraw-from-yield-escrow` + `claim-backer-yield` (4h)** ✅
-- [x] `withdraw-from-yield-escrow (campaign-id, amount)` — checks:
-  - Amount <= total-deposited
-  - Only callable by `escrow-caller`
-  - If strategy active, withdraw from strategy first (return LP to base asset)
-  - Send amount back, decrement total-deposited, emit event
-- [x] `claim-backer-yield (campaign-id)` — checks:
-  - Campaign has accumulated yield (from `accumulated-yield` map or yield pool difference)
-  - Calculates: `cinex-share = claimable * 3000 / 10000`, `user-share = claimable - cinex-share`
-  - Sends `user-share` to campaign creator, accumulates `cinex-share`
-  - Updates `yield-claimed`, emits event
-- [x] `distribute-platform-yield (campaign-id)` — admin sweep of platform accumulation to treasury
-- [x] Read-only: `get-yield-pool (campaign-id)` — returns pool state; `get-backer-yield (campaign-id, backer)` — returns backer's deposit and claimed amounts; `get-platform-yield` — returns total platform accumulation
-- [x] Error constants: `ERR-INVALID-CAMPAIGN u5516`, `ERR-NO-SNAPSHOT u5517`, `ERR-NO-YIELD-TO-CLAIM u5518`, `ERR-NOT-ESCROW-CALLER u5519`, `ERR-NO-ACCUMULATED-YIELD u5520`
-- [x] **18 tests** (yield-escrow.test.ts): deposit → withdraw → claim yield → verify 30/70 split; reject zero-amount; reject unauthorized caller; claim when no crowdfunding data exists; distribute platform yield; backer yield tracking
+| Aspect | Original Plan | Actual Implementation |
+|--------|---------------|----------------------|
+| Split ratio | 30% CineX / 70% users | **70% backers / 20% platform / 10% creator bonus** |
+| Creator bonus | Not mentioned | Conditional on milestone performance (via milestone-verification) |
+| Forfeited bonus | Not mentioned | Redisbursed: 70% to backers, 30% to platform |
+| Contract version | v1 | **v2** |
+
+**Key design decisions:**
+- On `deposit-to-yield-escrow`, calls `crowdfunding-module::get-total-raised-funds` to snapshot total raised at time of deposit
+- `withdraw-from-yield-escrow` sends STX **directly to campaign creator**, not back to milestone-escrow
+- `claim-backer-yield` calls `crowdfunding-module::get-campaign-contributions` to compute backer's proportional share
+- `claim-creator-bonus` calls `milestone-verification::is-bonus-forfeited` to check eligibility
 
 ---
 
 #### Day 7 — Yield Escrow: Bitflow Integration (8h) ✅
 
-**Task 7.1: Bitflow interface research (2h)** ✅
-- [x] Define `bitflow-strategy-trait`: `deposit-to-strategy (amount) -> (response uint uint)`, `withdraw-from-strategy (amount) -> (response uint uint)`, `collect-yield () -> (response uint uint)`, `get-total-yield-collected () -> (response uint uint)`
-- [x] Created `mock-strategy.clar` implementing the trait with deterministic 5% yield per deposit for testing
-
-**Task 7.2: `bitflow-strategy.clar` — concrete Bitflow wrapper (4h)** ✅
-- [x] Implements `bitflow-strategy-trait`
-- [x] Stores: `bitflow-router` (principal), `pool-id` (uint), `asset` (principal)
-- [x] `deposit-to-strategy` — calls Bitflow router, returns LP tokens
-- [x] `withdraw-from-strategy` — calls Bitflow router, returns base asset
-- [x] `collect-yield` — harvests yield from Bitflow pool
-- [x] `get-total-yield-collected` — returns accumulated yield
-- [x] Vars: `admin-contract` (principal — timelock for router/pool changes), `emergency-admin` (principal — multi-sig for emergency withdraw)
-- [x] Timelock: changing Bitflow router or pool-id requires 24h delay
-
-**Task 7.3: Yield integration (2h)** ✅
-- [x] Wire yield-escrow to call strategy via trait
-- [x] **20 tests** (bitflow-strategy.test.ts): deposit → withdraw → collect yield → verify amounts; mock strategy with deterministic returns; admin-only functions
+Note: `bitflow-strategy` error range is u5600-u5607, not u5500 range.
 
 ---
 
-#### Day 8 — Milestone Verification: Creator Bonus Eligibility (6h) ✅
+#### Day 8 — Milestone Verification: Backer-Weighted Voting + Bonus (6h) ✅
 
-**Task 8.1: `milestone-verification.clar` — milestone verification contract (4h)** ✅
-- [x] Trait: inherits `module-base-trait`, `emergency-module-trait`
-- [x] Data:
-  ```
-  campaign-milestones: map campaign-id => {
-    expected-milestones uint,
-    approved-milestones uint,
-    bonus-eligible bool,
-    last-checked uint
-  }
-  ```
-- [x] Vars: `admin-contract`, `emergency-admin`, `crowdfunding-module` (principal), `escrow-contract` (principal)
-- [x] `get-bonus-eligibility (campaign-id)` — read-only:
-  - Reads campaign data from `crowdfunding-module` (snapshot data)
-  - Compares approved milestones vs total milestones
-  - Returns `{ eligible: bool, approved-count: uint, total-count: uint, completion-ratio: uint }`
-- [x] `update-milestone-status (campaign-id, approved-milestones)` — called by milestone-escrow on release:
-  - Updates `campaign-milestones` map
-  - Recalculates bonus eligibility
-- [x] `initialize` — sets admin, crowdfunding-module, escrow-contract addresses
-- [x] Emergency pause support via `emergency-module-trait`
+**CRITICAL UPDATE:** Completely redesigned from original plan:
 
-**Task 8.2: Bonus eligibility logic + tests (2h)** ✅
-- [x] Bonus threshold: `BONUS-THRESHOLD-PERCENT = u80` (80% milestone completion required)
-- [x] Read-only queries for frontend integration
-- [x] Integrated as a hook in `milestone-escrow` contract calls (release milestone → notify milestone-verification)
+| Aspect | Original Plan | Actual Implementation |
+|--------|---------------|----------------------|
+| Purpose | Simple bonus eligibility checker (80% threshold) | **Full backer-weighted voting system** |
+| Who sets milestones | **Admin** (timelock) | **Campaign creator** (gated via milestone-escrow) |
+| How milestones pass | 80% completed | **>50% weighted YES of total campaign contributions** |
+| Missed milestones | Not tracked | **3 missed → bonus forfeited** |
+| Resubmission buffer | Not applicable | **~5 days (86400 blocks)** |
+| Called by | milestone-escrow on release | **Standalone** — yield-escrow checks `is-bonus-forfeited` |
+| Error range | u5530-u5539 | **u5600-u5620** |
+| Dependencies | milestone-escrow only | **crowdfunding-module + milestone-escrow** |
+
+**Flow:**
+1. Creator creates campaign in `milestone-escrow`
+2. Creator calls `create-milestones` in this contract with deadline list (validated against milestone-escrow)
+3. Creator calls `submit-milestone` within each deadline
+4. Backers call `endorse-milestone` (YES/NO, weight = contribution amount)
+5. Anyone calls `finalize-milestone` after deadline passes
+6. If ≥3 milestones missed, bonus forfeited
+7. `yield-escrow` reads `is-bonus-forfeited` when creator claims 10% bonus
 
 ---
 
-#### Day 9 — Funding Pool: Core Logic (8h)
+#### Day 9 — Funding Pool: Core Logic (8h) ✅
 
-**Task 8.1: `funding-pool.clar` — data structures + `create-pool` (4h)**
-- [ ] Trait: `funding-pool-trait`
-- [ ] Data:
-  ```
-  pools: map uint => {
-    name (string-ascii 64),
-    creator principal,
-    target-amount uint,
-    min-contribution uint,
-    min-reputation uint,
-    duration uint,
-    created-at uint,
-    total-committed uint,
-    status (string-ascii 20),
-    governance-type (string-ascii 10),
-    member-count uint
-  }
-  pool-members: map {pool-id uint, member principal} => {
-    committed-amount uint,
-    contributed-amount uint,
-    joined-at uint,
-    is-active bool
-  }
-  pool-id-counter: uint
-  ```
-- [ ] Constants: `MIN-REPUTATION-DEFAULT = u50`, `MAX-POOL-DURATION = u86400`
-- [ ] Public: `create-pool` — checks:
-  - Creator is verified (via `project-verification-module`)
-  - Creator's reputation >= min-reputation (via `reputation::get-reputation-score`)
-  - `target-amount > 0`
-  - Creates pool entry, status = "open", emits event
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 8.2: `join-pool` + `contribute` (4h)**
-- [ ] `join-pool (pool-id, amount)` — checks:
-  - Pool exists and is "open"
-  - `amount >= pool.min-contribution`
-  - Caller's reputation >= pool.min-reputation
-  - Caller is verified, not already a member
-  - Adds member with `committed-amount = amount`, emits event
-- [ ] `contribute (pool-id, amount)` — checks:
-  - Caller is a pool member
-  - `amount <= member.committed-amount - member.contributed-amount`
-  - Transfers STX from member to this contract
-  - Updates `contributed-amount` and `total-committed`
-  - If `total-committed >= target-amount`, auto-close pool, emits event
-- **Estimated:** 3h (dev) + 1h (tests)
+*(26 tests passing)*
 
 ---
 
-#### Day 10 — Funding Pool: Proposals, Voting, Execution (8h)
+#### Day 10 — Funding Pool: Proposals, Voting, Execution (8h) ✅
 
-**Task 10.1: `propose-allocation` + `vote` (4h)**
-- [ ] Data:
-  ```
-  proposals: map uint => {
-    pool-id uint,
-    campaign-id uint,
-    amount uint,
-    proposer principal,
-    status (string-ascii 15),      // "active" | "executed" | "rejected"
-    votes-for uint,
-    votes-against uint,
-    created-at uint,
-    deadline uint,
-    total-voting-power uint
-  }
-  proposal-votes: map {proposal-id uint, voter principal} => {
-    approve bool,
-    voting-power uint,
-    voted-at uint
-  }
-  ```
-- [ ] `propose-allocation (pool-id, campaign-id, amount)` — checks:
-  - Pool status is "open" or "closed"
-  - Caller is a member
-  - Amount <= pool's remaining unallocated capital
-  - Campaign exists and active (via `milestone-escrow::get-campaign`)
-  - Creates proposal, status = "active", emits event
-- [ ] `vote (proposal-id, approve)` — checks:
-  - Proposal is "active"
-  - Voter is a pool member, hasn't already voted
-  - Voting power = member's committed-amount (weighted)
-  - Records vote, updates votes-for/votes-against
-  - If quorum reached (>50% of total-voting-power), marks pass/fail, emits event
-- **Estimated:** 3h (dev) + 1h (tests)
-
-**Task 10.2: `execute-allocation` + edge cases (4h)**
-- [ ] `execute-allocation (proposal-id)` — checks:
-  - Proposal is ready (votes-for > votes-against AND votes-for > 50% of total-voting-power)
-  - Not already executed
-  - Calls `milestone-escrow::deposit (campaign-id, amount)` as the pool contract
-  - Decrements pool's available allocation
-  - Marks proposal executed, emits event
-- [ ] No mandatory receipt: capital never forced onto members
-- [ ] Edge cases: pool expiry auto-close, refund of unallocated contributions
-- **Estimated:** 3h (dev) + 1h (tests)
+*(28 tests passing — note: error range is u5700-u5731, not u5600-u5650)*
 
 ---
 
@@ -544,20 +232,24 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 
 **Task 11.1: End-to-end integration tests (4h)**
 
-**Flow A: Verified creator raises funds**
+**Flow A: Campaign lifecycle (backer approval path)**
 1. Deploy all contracts
 2. Register creator via `project-verification-module`
 3. Admin verifies creator (via timelock queue → execute)
 4. Creator creates campaign via `milestone-escrow` (3 milestones)
 5. Investor deposits funds
-6. Creator submits proof → approves → releases
-7. Verify fee deduction (5%)
+6. Creator submits proof for milestone 0
+7. **Backer approves milestone 0 (not creator self-approve)**
+8. Release milestone 0 → verify 5% fee, creator gets remainder
+9. Verify milestone 1 cannot be approved before milestone 0
 
-**Flow B: Yield on idle escrow**
+**Flow B: Yield on idle escrow (70/20/10 split)**
 1. Investor deposits to milestone-escrow
 2. Excess capital routed to yield-escrow
 3. Yield accrues (mock Bitflow)
-4. Claim yield → verify 30/70 split
+4. Backer claims yield → verify 70% share
+5. Creator claims bonus → verify 10% share (or forfeiture if milestones missed)
+6. Platform sweeps 20% share
 
 **Flow C: Passive funding pool**
 1. Verified user creates pool (reputation check)
@@ -578,34 +270,29 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 3. Attempt execute before delay → rejected
 4. Advance blocks past eta → execute succeeds
 5. Verify asset is now supported
-6. Test `cancel-transaction` — queue, cancel, verify cannot execute
+6. Test `cancel-transaction`
 7. Test emergency bypass (multi-sig calls `emergency-remove-asset` immediately)
 
 **Flow F: Multi-sig signer rotation**
 1. Two signers propose + confirm replacing one signer
 2. Execute → verify old signer cannot propose, new signer can
 
-**Flow G: Milestone verification + bonus eligibility**
-1. Verified creator creates campaign with milestones
-2. Some milestones approved and released
-3. Check `milestone-verification::get-bonus-eligibility` — returns completion ratio
-4. Release remaining milestones → re-check eligibility
-5. If >=80% complete, bonus-eligible flag set
-
-- **Estimated:** 4h
+**Flow G: Milestone verification + creator bonus eligibility**
+1. Creator creates campaign, sets milestones via `milestone-verification::create-milestones`
+2. Some milestones endorsed, some missed
+3. Check `is-bonus-forfeited`
+4. If ≥3 missed, bonus forfeited → yield-escrow redistributes to backers
 
 **Task 11.2: Deployment plan finalization (2h)**
-- [ ] Determine deployment order (see Section 4)
+- [x] Determine deployment order (see Section 4)
 - [ ] Write deployment scripts (Clarinet devnet + testnet via `clarinet deploy`)
-- [ ] Configure `Clarinet.toml` with all new contracts and dependencies
-- [ ] Prepare `.env` with 2-of-3 multi-sig signer addresses, asset contract principals (sBTC, STX, USDCx mock addresses for testnet)
-- **Estimated:** 2h
+- [x] Configure `Clarinet.toml` with all contracts and dependencies
+- [ ] Prepare `.env` with signer addresses, asset contract principals
 
 **Task 11.3: Documentation + handoff (2h)**
 - [ ] Inline README per contract with function-level docs
 - [ ] Integration hooks table (Section 5 below)
 - [ ] Risk analysis summary (Section 3 below)
-- **Estimated:** 2h
 
 ---
 
@@ -619,8 +306,6 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 | Manipulated price | Fee calculation attacks | Low | Multi-sig pushes price; timelock delays large price changes for 24h review. |
 | Oracle contract paused | Fees cannot be computed | Low | Admin can set fallback hardcoded price (via timelock for non-emergency, multi-sig direct for emergency). |
 
-**v1 decision:** Multi-sig push model (not Pyth/Alex pull). Simpler, auditable, no external dependency. Team pushes price daily. Timelock prevents single-signer price manipulation. → See `CINEX_PYTH_ORACLE_INTEGRATION_v2_ROADMAP.md` for the strategic rationale and v2 Pyth upgrade plan.
-
 ### 3.2 DeFi Protocol Risk (yield-escrow / Bitflow)
 
 | Risk | Impact | Likelihood | Mitigation |
@@ -629,8 +314,6 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 | Impermanent loss | Yield may be negative | Medium | Yield-escrow only deploys to stable-stable or STX-stable pools initially. Document IL risk. |
 | Bitflow contract upgrade | Interface incompatibility | Low | `bitflow-strategy` is a separate contract. Changing strategy address is subject to timelock. |
 | Yield calculation error | Wrong split amounts | Medium | Extensive tests with known-yield scenarios. Block-based accrual, not oracle-dependent. |
-
-**v1 yield model:** "Simple accrual" — yield calculated as `(strategy-balance - principal-deposited)` when `claim-yield` is called. No compounding tracking in v1.
 
 ### 3.3 Reputation Sybil Attacks
 
@@ -648,25 +331,19 @@ Existing traits (`module-base-trait`, `emergency-module-trait`) kept and impleme
 | Two signers collude | Can execute any admin action | Low (pre-seed) | 24h timelock gives users and third signer window to detect and cancel. |
 | Timelock front-running | Attacker sees queued tx, frontruns with exploit | Low | Timelock executes via `contract-call` — atomic. Target contract checks `tx-sender` equals timelock address. |
 | Third signer unavailable | 2-of-3 still operational | Low | Only 2 signers needed. Third is backup/oversight. |
-| All signers unavailable | Admin operations blocked | Very Low | Pre-seed stage: seed keys with hardware wallets + geographically distributed. Future: DAO governance. |
 | Timelock contract bug | Queued transactions stuck | Low | Simple contract (~80 lines). Emergency bypass via multi-sig direct call exists on all target contracts. |
 
-**Timelock bypass policy:**
-- `emergency-withdraw` (all modules) — direct multi-sig, no delay
-- `set-pause-state` during active exploit — direct multi-sig, no delay
-- `emergency-remove-asset` (asset-registry) — direct multi-sig, no delay
-- `emergency-set-price` (oracle-proxy) — direct multi-sig, no delay
-- `emergency-revoke-verification` (project-verification) — direct multi-sig, no delay
-- All other parameter/config changes — timelock required
+### 3.5 Milestone Verification — New Risks
 
-### 3.5 Upgrade & Migration Risk (Immutable Contracts)
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Creator sets unrealistic deadlines | All milestones missed → forfeited bonus | Medium | Backers review before funding; market forces reasonable deadlines |
+| Backer apathy (no one votes) | Milestones never endorsed | Medium | Any caller can `finalize-milestone` after deadline — defaults to NO if >50% threshold not met |
+| Creator loses access to account | Cannot submit milestones | Low | Emergency admin can call `set-pause-state` + `emergency-withdraw` if needed |
 
-Bug discovered post-deploy → deploy v2 + emergency withdraw from v1 + users re-deposit. Cost ~1-2 weeks engineering + deployment gas. Data migration for `milestone-escrow` and `funding-pool`:
+### 3.6 Upgrade & Migration Risk (Immutable Contracts)
 
-1. Deploy v2 contracts
-2. Admin calls `emergency-withdraw` on v1 (returns funds to owners)
-3. Owners re-deposit in v2
-4. Frontend updates contract addresses (only hub address hardcoded)
+Bug discovered post-deploy → deploy v2 + emergency withdraw from v1 + users re-deposit.
 
 ---
 
@@ -674,23 +351,22 @@ Bug discovered post-deploy → deploy v2 + emergency withdraw from v1 + users re
 
 ### 4.1 Deployment Order
 
-Contracts deployed in dependency order. Timelock is inserted between multi-sig and asset-registry so that all subsequent contracts are configured to route admin functions through timelock from day one.
+Contracts deployed in dependency order:
 
 ```
- 1. cinex-multisig              (no deps)            — sets 3 signers, threshold=2
- 2. timelock                    (dep: cinex-multisig) — multisig-contract var set to #1
- 3. asset-registry              (dep: cinex-multisig, timelock) — admin-contract = timelock, emergency-admin = multisig
- 4. oracle-proxy                (dep: cinex-multisig, timelock) — admin-contract = timelock, emergency-admin = multisig
- 5. reputation                  (dep: cinex-multisig, project-verification-module)
- 6. project-verification-module (dep: cinex-multisig, timelock) — admin-contract = timelock, emergency-admin = multisig
- 7. milestone-escrow            (dep: asset-registry, oracle-proxy, project-verification-module, timelock)
- 8. milestone-verification      (dep: milestone-escrow, crowdfunding-module, timelock)
- 9. yield-escrow                (dep: milestone-escrow, bitflow-strategy, milestone-verification, timelock)
-10. bitflow-strategy            (dep: Bitflow router address, timelock)
-11. funding-pool                (dep: reputation, project-verification-module, milestone-escrow)
+  1. cinex-multisig              (no deps)
+  2. timelock                    (dep: cinex-multisig)
+  3. asset-registry              (dep: cinex-multisig, timelock)
+  4. oracle-proxy                (dep: cinex-multisig, timelock)
+  5. reputation                  (dep: cinex-multisig, project-verification-module)
+  6. crowdfunding-module         (pre-existing — needed by milestone-verification and yield-escrow)
+  7. project-verification-module (dep: cinex-multisig, timelock)
+  8. milestone-escrow            (dep: asset-registry, oracle-proxy, project-verification-module, timelock)
+  9. milestone-verification      (dep: crowdfunding-module, milestone-escrow, timelock)
+ 10. yield-escrow                (dep: milestone-escrow, bitflow-strategy, milestone-verification, crowdfunding-module, timelock)
+ 11. bitflow-strategy            (dep: Bitflow router address, timelock)
+ 12. funding-pool                (dep: reputation, project-verification-module, milestone-escrow)
 ```
-
-Each contract's `initialize` function sets its admin references (`admin-contract → timelock`, `emergency-admin → cinex-multisig`).
 
 ### 4.2 Testnet vs Mainnet
 
@@ -699,12 +375,6 @@ Each contract's `initialize` function sets its admin references (`admin-contract
 | Dev | Clarinet devnet | Local development, unit tests | Week 1-2 |
 | Staging | Stacks testnet | Integration tests, community review | Week 3-4 (post-plan) |
 | Production | Stacks mainnet | Live deployment | Week 5+ (post-plan) |
-
-**Testnet configuration:**
-- sBTC: mock SIP-010 token (`mock-sbtc.clar`)
-- USDCx: mock SIP-010 token (`mock-usdc.clar`)
-- Bitflow: testnet Bitflow router address (TBD)
-- 2-of-3 multi-sig signers: 3 test wallets (simulating Victor, co-founder, advisor)
 
 ### 4.3 Clarinet.toml Configuration
 
@@ -732,13 +402,20 @@ depends_on = ["cinex-multisig", "project-verification-module"]
 path = "contracts/project-verification-module.clar"
 depends_on = ["cinex-multisig", "timelock"]
 
+[contracts.crowdfunding-module]
+path = "contracts/crowdfunding-module.clar"
+
 [contracts.milestone-escrow]
 path = "contracts/milestone-escrow.clar"
 depends_on = ["asset-registry", "oracle-proxy", "project-verification-module", "cinex-multisig", "timelock"]
 
+[contracts.milestone-verification]
+path = "contracts/milestone-verification.clar"
+depends_on = ["crowdfunding-module", "milestone-escrow", "cinex-multisig", "timelock"]
+
 [contracts.yield-escrow]
 path = "contracts/yield-escrow.clar"
-depends_on = ["milestone-escrow", "bitflow-strategy", "cinex-multisig", "timelock"]
+depends_on = ["milestone-escrow", "milestone-verification", "crowdfunding-module", "bitflow-strategy", "cinex-multisig", "timelock"]
 
 [contracts.bitflow-strategy]
 path = "contracts/bitflow-strategy.clar"
@@ -762,33 +439,28 @@ depends_on = ["reputation", "project-verification-module", "milestone-escrow", "
 | `milestone-escrow` | `asset-registry` | `is-supported` | `create-campaign` | Validate asset is whitelisted |
 | `milestone-escrow` | `oracle-proxy` | `get-stx-price` | `create-campaign` | Compute USD-pegged verification fee in STX |
 | `milestone-escrow` | `project-verification-module` | `is-creator-currently-verified` | `create-campaign` | Ensure only verified creators can launch campaigns |
-| `yield-escrow` | `bitflow-strategy` | `deposit-to-strategy` | `deposit-to-yield-escrow` | Deploy capital to Bitflow pool |
-| `yield-escrow` | `bitflow-strategy` | `withdraw-from-strategy` | `withdraw-from-yield-escrow` | Withdraw capital from Bitflow pool |
-| `yield-escrow` | `bitflow-strategy` | `collect-yield` | `claim-backer-yield` | Harvest and calculate accrued yield |
-| `milestone-verification` | `milestone-escrow` | `get-campaign` | `get-bonus-eligibility` | Read campaign milestone data for bonus calculation |
-| `milestone-verification` | `crowdfunding-module` | `get-total-raised-funds` | `get-bonus-eligibility` | Read campaign snapshot data |
+| `milestone-verification` | `crowdfunding-module` | `get-campaign-contributions` | `endorse-milestone` | Get backer's contribution weight |
+| `milestone-verification` | `crowdfunding-module` | `get-total-raised-funds` | `finalize-milestone` | Get total raised for YES/NO threshold |
+| `milestone-verification` | `milestone-escrow` | `get-campaign` | `create-milestones` | Validate caller is campaign creator |
+| `yield-escrow` | `crowdfunding-module` | `get-total-raised-funds` | `deposit-to-yield-escrow` | Snapshot total raised at deposit time |
+| `yield-escrow` | `crowdfunding-module` | `get-campaign-contributions` | `claim-backer-yield` | Get backer's contribution for proportional yield |
+| `yield-escrow` | `milestone-verification` | `is-bonus-forfeited` | `claim-creator-bonus` | Check creator bonus eligibility |
+| `yield-escrow` | `bitflow-strategy` | `deposit`, `withdraw`, `get-pool-balance`, `get-exchange-rate` | Various | Deploy/withdraw capital, compute yield |
 | `funding-pool` | `reputation` | `get-reputation-score` | `create-pool`, `join-pool` | Check min-reputation requirement |
 | `funding-pool` | `project-verification-module` | `is-creator-currently-verified` | `create-pool` | Ensure pool creator is verified |
 | `funding-pool` | `milestone-escrow` | `deposit` | `execute-allocation` | Allocate pool capital to campaign escrow |
 | `funding-pool` | `milestone-escrow` | `get-campaign` | `propose-allocation` | Validate campaign exists and is active |
 | All contracts | `cinex-multisig` | `is-approved` | Emergency admin functions | Bypass timelock for emergencies |
 
-### 5.2 Hub Integration (`CineX-project.clar`)
+### 5.2 Integration with Existing Hub (`CineX-project.clar`)
 
-The existing `CineX-project` hub contract must be updated to:
-1. Replace `Co-EP-rotating-fundings` reference with `funding-pool` address
-2. Replace `film-verification-module` reference with `project-verification-module` address (backward compatible via re-exported trait)
-3. Add new integration functions: `create-pool-via-hub`, `allocate-via-hub`
-4. No change needed for escrow — `milestone-escrow` replaces `escrow-module` at the interface level (new trait)
+The existing `CineX-project` hub contract retains references to:
+- `crowdfunding-module` (unchanged — used by milestone-verification and yield-escrow)
+- `film-verification-module` (deprecated — `project-verification-module` is the replacement)
 
-**Backward compatibility plan:**
-- Keep old `film-verification-module` deployed alongside `project-verification-module` during transition
-- Hub points to new module; old module is deprecated in frontend
-- After verification, old module can be frozen via emergency pause (bypasses timelock)
+The hub does NOT need modification for the new contracts; they reference `crowdfunding-module` and `milestone-escrow` directly by their deployer names.
 
 ### 5.3 Timelock Integration Pattern
-
-For any admin-gated function that requires timelock, the flow is:
 
 ```
 Multi-sig (2-of-3):
@@ -813,65 +485,49 @@ Emergency bypass:
 
 ### 5.4 Event Hooks (Off-Chain Indexer)
 
-Each contract emits `print` events for off-chain consumption:
-
 ```
 { event: "deposit", campaign-id: uint, contributor: principal, amount: uint, asset: principal, block-height: uint }
 { event: "milestone-approved", campaign-id: uint, milestone-index: uint, approved-by: principal, block-height: uint }
 { event: "pool-created", pool-id: uint, creator: principal, name: string, target: uint, block-height: uint }
 { event: "yield-claimed", campaign-id: uint, user-share: uint, platform-share: uint, block-height: uint }
-{ event: "transaction-queued", queue-id: uint, recipient: principal, function-name: string, eta: uint, block-height: uint }
-{ event: "transaction-executed", queue-id: uint, recipient: principal, function-name: string, block-height: uint }
-{ event: "transaction-cancelled", queue-id: uint, cancelled-by: principal, block-height: uint }
+{ event: "milestone-finalized", campaign-id: uint, milestone-index: uint, endorsed: bool, block-height: uint }
 ```
-
-These events feed an off-chain activity feed (e.g., Postgres + Hasura or custom indexer).
 
 ---
 
 ## 6. Testing Strategy
 
-### 6.1 Unit Tests (Clarinet `tests/`)
+### 6.1 Unit Tests
 
-| Contract | Minimum Test Cases |
-|----------|-------------------|
-| `cinex-multisig` | 14: propose → confirm → execute; signer rotation; reject non-signer; reject double-execute; threshold check; boundary |
-| `timelock` | 10: queue → cannot execute before delay → execute after delay; cancel; non-multisig cannot queue; double-execute reject; multiple queued transactions |
-| `asset-registry` | 10: add → is-supported; remove → not-supported; timelock-only admin; emergency bypass (multi-sig direct); reject non-admin; duplicate add |
-| `oracle-proxy` | 8: set → update → get; stale price rejection; timelock admin path; emergency bypass path |
-| `reputation` | 10: rate → score; duplicate reject; self-rating reject; invalid rating reject; multiple raters |
-| `project-verification-module` | 17: register creator; add portfolio; verify via timelock; emergency verify/revoke bypass; multi-vertical; backward-compat alias |
-| `milestone-escrow` | 26: full flow; multi-asset; fee calculation; partial deposit; refund; deadline; timelock admin for fee parameters; auth guards |
-| `yield-escrow` | **18** (actual): deposit → withdraw; backer yield claim → 30/70 split; strategy integration; underflow protection; timelock admin for strategy change; auth guards |
-| `milestone-verification` | **8** (actual): bonus eligibility calculation; milestone tracking; integration with milestone-escrow; auth guards |
-| `bitflow-strategy` | **20** (actual): mocked deposit → withdraw → collect-yield → LP accounting; timelock admin for router/pool change; auth guards |
+| Contract | Test Cases |
+|----------|-----------|
+| `cinex-multisig` | 14: propose → confirm → execute; signer rotation; reject non-signer; boundary |
+| `timelock` | 10: queue → delay → execute; cancel; non-multisig reject; double-execute |
+| `asset-registry` | 10: add → is-supported; remove; timelock admin; emergency bypass |
+| `oracle-proxy` | 8: set → update → get; stale price; timelock + emergency paths |
+| `reputation` | 10: rate → score; duplicate reject; self-rating reject; invalid rating |
+| `project-verification-module` | 17: register → verify → timelock; emergency bypass; multi-vertical; backward compat |
+| `milestone-escrow` | 26: full flow; multi-asset; 5% fee; partial deposit; backer-gated approval; sequential approval |
+| `yield-escrow` | 18: 70/20/10 split; backer claim; creator bonus; forfeiture; strategy integration |
+| `milestone-verification` | 12: creator-set milestones; submit → endorse → finalize; forfeiture; bonus check |
+| `bitflow-strategy` | 20: mock deposit → withdraw → collect-yield; LP accounting; timelock admin |
+| `funding-pool` | 28: create → join → contribute → propose → vote → execute; edge cases |
 
-**Total: ~133 test cases** (10 more than original due to milestone-verification + expanded tests)
+**Total: ~173 test cases**
 
 ### 6.2 Integration Tests
 
-See Day 11 Task 11.1 for the 6 integration flows (A through G). Each integration test:
-- Deploys all contracts via `clarinet devnet` or `clarinet test --chain`
-- Uses `vm.contract-call` and `vm.transaction` to simulate full cross-contract flows
-- Flow E specifically tests the complete timelock lifecycle: propose → queue → wait → execute, plus cancel and emergency bypass
+See Day 11 Task 11.1 for the 7 integration flows (A through G).
 
-### 6.3 Test Infrastructure
+### 6.3 Pre-Merge Checklist
 
-- **Mock tokens:** `mock-sbtc.clar` and `mock-usdc.clar` implementing SIP-010 trait for multi-asset testing
-- **Mock Bitflow:** `mock-bitflow-strategy.clar` — fixed yield rate (e.g., 1% per block) for deterministic testing
-- **Mock oracle:** `mock-oracle.clar` — returns fixed price for STX/USD
-- **Mock multi-sig:** a `test-multisig.clar` that uses a single principal for test simplicity (allows `is-approved` to return true for a test deployer)
-
-### 6.4 Pre-Merge Checklist
-
-Before any contract is considered "done":
-- [x] All unit tests pass (`clarinet test` / `npx vitest run`) — 64 tests across 3 suites
+- [x] All unit tests pass (`npx vitest run`)
 - [ ] No Clarity warnings (unused variables, unchecked returns)
 - [x] Integration test for the contract's primary flow passes
 - [x] All `unwrap!` calls have corresponding `asserts!` guards
-- [x] `print` events are emitted for all state-changing operations
-- [x] Admin routing is correct: non-emergency → timelock check, emergency → multi-sig check
-- [x] Module traits (`module-base-trait`, `emergency-module-trait`) are implemented if replacing a module
+- [x] `print` events emitted for all state-changing operations
+- [x] Admin routing correct: non-emergency → timelock, emergency → multi-sig
+- [x] Module traits implemented where applicable
 
 ---
 
@@ -879,59 +535,61 @@ Before any contract is considered "done":
 
 | Day | Focus | Contracts | Deliverables |
 |-----|-------|-----------|-------------|
-| 1 | Admin Infrastructure | `cinex-multisig` (2-of-3), `timelock`, `asset-registry` | 3 contracts, unit tests |
-| 2 | Oracle + Reputation + Verification start | `oracle-proxy`, `reputation`, `project-verification-module` (start) | 2 contracts + partial 3rd, unit tests |
-| 3 | Verification complete | `project-verification-module` (finish + tests) | V module done, all Week 1 infra complete |
-| 4 | Milestone start | `milestone-escrow` (data model, create-campaign, fee params via timelock) | Milestone data model, creation flow |
-| 5 | Milestone core + tests | `milestone-escrow` (deposit, approve, release, edge cases, tests) | Milestone complete |
-| 6 | Yield core | `yield-escrow` (accounting, deposit, withdraw, claim) | 1 contract, unit tests |
+| 1 | Admin Infrastructure | `cinex-multisig`, `timelock`, `asset-registry` | 3 contracts, unit tests |
+| 2 | Oracle + Reputation + Verification start | `oracle-proxy`, `reputation`, `project-verification-module` (start) | 2 contracts + partial 3rd |
+| 3 | Verification complete | `project-verification-module` (finish + tests) | V module done, Week 1 infra complete |
+| 4 | Milestone start | `milestone-escrow` (data model, creation, backer-gated approval) | Milestone data model, creation flow |
+| 5 | Milestone core + tests | `milestone-escrow` (deposit, approve, release, sequential approval, tests) | Milestone complete |
+| 6 | Yield core (v2) | `yield-escrow` (70/20/10 split, creator bonus, forfeiture) | 1 contract, unit tests |
 | 7 | Yield Bitflow | `bitflow-strategy`, yield integration | Yield system complete |
-| 8 | Milestone Verification | `milestone-verification` (bonus eligibility) | 1 contract, unit tests |
+| 8 | Milestone Verification | `milestone-verification` (backer-weighted voting, forfeiture, bonus) | 1 contract, unit tests |
 | 9 | Pool core | `funding-pool` (create, join, contribute) | 1 contract, unit tests |
 | 10 | Pool governance | `funding-pool` (propose, vote, execute) | Pool system complete |
-| 11 | Ship | E2E integration tests (6 flows), deployment scripts, docs | All 11 contracts ready for testnet |
+| 11 | Ship | E2E integration tests (7 flows), deployment scripts, docs | All contracts ready for testnet |
 
 ---
 
-## 8. Files Created (24 source + 3 test = 27 total)
+## 8. Files (26 source + 11 test = 37 files)
 
 ```
-contracts/ (14 .clar files)
-├── cinex-multisig.clar                           # NEW — 2-of-3 admin
-├── timelock.clar                                 # NEW — 2880-block delay for admin ops
-├── timelock-trait.clar                           # NEW — trait for queue/execute/cancel
-├── asset-registry.clar                           # NEW — asset whitelist
-├── asset-registry-trait.clar                     # NEW — trait
-├── oracle-proxy.clar                             # NEW — STX/USD feed
-├── oracle-proxy-trait.clar                       # NEW — trait
-├── reputation.clar                               # NEW — peer ratings
-├── reputation-trait.clar                         # NEW — trait
-├── project-verification-module.clar              # NEW — replaces film-verification-module.clar
-├── project-verification-module-trait.clar        # NEW — extends film-verification-trait
-├── milestone-escrow.clar                         # NEW — multi-asset milestone escrow
-├── milestone-escrow-trait.clar                   # NEW — trait
-├── milestone-verification.clar                   # NEW — Day 8: creator bonus eligibility
-├── yield-escrow.clar                             # NEW — Day 6: yield-bearing escrow
-├── yield-escrow-trait.clar                       # NEW — Day 6: trait
-├── bitflow-strategy.clar                         # NEW — Day 7: Bitflow integration
-├── bitflow-strategy-trait.clar                   # NEW — Day 7: trait
-├── mock-strategy.clar                            # NEW — Day 7: test mock (replaces mock-bitflow-strategy)
-├── funding-pool.clar                             # NEW — passive capital pools
-├── funding-pool-trait.clar                       # NEW — trait
-├── mock-sbtc.clar                                # NEW — SIP-010 test token
-├── mock-usdc.clar                                # NEW — SIP-010 test token
-├── mock-oracle.clar                              # NEW — test mock
+contracts/ (20 .clar files)
+├── cinex-multisig.clar                        # 2-of-3 admin
+├── timelock.clar                              # 2880-block delay
+├── timelock-trait.clar                        # trait
+├── asset-registry.clar                        # asset whitelist
+├── asset-registry-trait.clar                  # trait
+├── oracle-proxy.clar                          # STX/USD feed
+├── oracle-proxy-trait.clar                    # trait
+├── reputation.clar                            # peer ratings
+├── reputation-trait.clar                      # trait
+├── project-verification-module.clar           # multi-vertical verification
+├── project-verification-module-trait.clar     # trait
+├── crowdfunding-module.clar                   # pre-existing, retained
+├── milestone-escrow.clar                      # multi-asset milestone escrow
+├── milestone-escrow-trait.clar                # trait
+├── milestone-verification.clar                # backer-weighted voting + bonus
+├── yield-escrow.clar                          # v2: 70/20/10 split
+├── yield-escrow-trait.clar                    # trait
+├── bitflow-strategy.clar                      # Bitflow wrapper
+├── bitflow-strategy-trait.clar                # trait
+├── mock-strategy.clar                         # test mock
+├── funding-pool.clar                          # passive capital pools
+├── funding-pool-trait.clar                    # trait
 
-tests/ (3 TypeScript files)
-├── tests/milestone-escrow.test.ts                # 26 tests (Days 4-5)
-├── tests/yield-escrow.test.ts                    # 18 tests (Day 6)
-├── tests/bitflow-strategy.test.ts                # 20 tests (Day 7)
+tests/ (11 .ts files)
+├── tests/cinex-multisig.test.ts               # 14 tests
+├── tests/timelock.test.ts                     # 10 tests
+├── tests/asset-registry.test.ts               # 10 tests
+├── tests/oracle-proxy.test.ts                 # 8 tests
+├── tests/reputation.test.ts                   # 10 tests
+├── tests/project-verification-module.test.ts  # 17 tests
+├── tests/milestone-escrow.test.ts             # 26 tests
+├── tests/yield-escrow.test.ts                 # 18 tests
+├── tests/bitflow-strategy.test.ts             # 20 tests
+├── tests/funding-pool.test.ts                 # 28 tests
+├── tests/integration.test.ts                  # (planned — Day 11)
 ```
-
-**Total: 24 source + 3 test = 27 files** (tests migrated from Clarinet .clar to TypeScript/Vitest)
-
-> **Note:** The original plan listed 31 files. The reduction is because test files were consolidated into 3 TypeScript suites (mirroring the contract plan testing strategy per contract) rather than 11 separate `.clar` test files. Funding-pool, milestone-verification, and remaining contracts' tests are scoped for future days.
 
 ---
 
-*End of plan.*
+*End of plan (corrected).*

@@ -5,6 +5,7 @@ import userSettingsRouter from './routes/userSettings.js';
 import feedRouter from './routes/feed.js';
 import aiRouter from './routes/ai.js';
 import poolsRouter from './routes/pools.js';
+import walletsRouter from './routes/wallets.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use('/api/user-settings', userSettingsRouter);
 app.use('/api/feed', feedRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/pools', poolsRouter);
+app.use('/api/wallets', walletsRouter);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
