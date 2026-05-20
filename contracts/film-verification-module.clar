@@ -581,7 +581,10 @@
     (ok (var-get contract-admin))
 )
 
-
+;; Funding cap for the film verification trait (backward compat stub)
+(define-read-only (get-verification-funding-cap (creator principal))
+    (ok u1000000000)
+)
 
 ;; ========== EMERGENCY MODULE TRAIT IMPLEMENTATIONS ==========
 ;; Function to allow only core contract to set pause state
