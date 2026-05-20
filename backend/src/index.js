@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import profilesRouter from './routes/profiles.js';
+import userSettingsRouter from './routes/userSettings.js';
+import feedRouter from './routes/feed.js';
+import aiRouter from './routes/ai.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +16,9 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/profiles', profilesRouter);
+app.use('/api/user-settings', userSettingsRouter);
+app.use('/api/feed', feedRouter);
+app.use('/api/ai', aiRouter);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);

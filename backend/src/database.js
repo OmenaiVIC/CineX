@@ -66,6 +66,37 @@ function initSchema() {
       UNIQUE(rater_address, target_address, project_id)
     );
 
+    CREATE TABLE IF NOT EXISTS user_settings (
+      address TEXT PRIMARY KEY REFERENCES profiles(address) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK(role IN ('creative', 'backer')),
+      onboarding_completed INTEGER DEFAULT 0,
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch())
+    );
+
+    CREATE TABLE IF NOT EXISTS feed_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_type TEXT NOT NULL,
+      event_data TEXT NOT NULL DEFAULT '{}',
+      actor TEXT,
+      pool_id INTEGER,
+      campaign_id INTEGER,
+      block_height INTEGER,
+      tx_id TEXT,
+      created_at INTEGER DEFAULT (unixepoch())
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_feed_pool ON feed_events(pool_id);
+    CREATE INDEX IF NOT EXISTS idx_feed_actor ON feed_events(actor);
+    CREATE INDEX IF NOT EXISTS idx_feed_created ON feed_events(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS ai_summaries (
+      address TEXT PRIMARY KEY,
+      summary TEXT NOT NULL,
+      model TEXT NOT NULL DEFAULT 'gpt-4',
+      generated_at INTEGER DEFAULT (unixepoch())
+    );
+
     CREATE INDEX IF NOT EXISTS idx_ratings_target ON ratings(target_address);
     CREATE INDEX IF NOT EXISTS idx_portfolio_address ON portfolio_items(address);
   `);
