@@ -214,6 +214,19 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'asset-registry-trait', 'asset-registry', 'oracle-proxy-trait', 'oracle-proxy']
 
+# === Day 9-10: Funding Pool ===
+
+[contracts.funding-pool-trait]
+path = 'contracts/funding-pool-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.funding-pool]
+path = 'contracts/funding-pool.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['funding-pool-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'reputation', 'milestone-escrow']
+
 [repl.analysis]
 passes = ['check_checker']
 
