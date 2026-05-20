@@ -42,6 +42,7 @@
 (define-data-var admin-contract principal BURN-ADDRESS)
 (define-data-var emergency-admin principal BURN-ADDRESS)
 (define-data-var yield-escrow-contract principal BURN-ADDRESS)
+(define-data-var milestone-escrow-contract principal BURN-ADDRESS)
 (define-data-var initialized bool false)
 (define-data-var emergency-pause bool false)
 (define-data-var emergency-ops-counter uint u0)
@@ -107,7 +108,7 @@
 
 ;; ========== PUBLIC FUNCTIONS ==========
 
-(define-public (initialize (admin principal) (emergency principal) (yield-escrow principal))
+(define-public (initialize (admin principal) (emergency principal) (yield-escrow principal) (escrow principal))
   (begin
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
     (asserts! (not (var-get initialized)) ERR-ALREADY-INITIALIZED)
@@ -115,20 +116,34 @@
     (var-set admin-contract admin)
     (var-set emergency-admin emergency)
     (var-set yield-escrow-contract yield-escrow)
+    (var-set milestone-escrow-contract escrow)
     (print { event: "milestone-verification-initialized" })
     (ok true)
   )
 )
 
-;; Admin: create milestone deadlines for a campaign
-(define-public (create-milestones (campaign-id uint) (deadlines (list 10 uint)) (creator principal))
+;; Admin: update milestone-escrow contract reference
+(define-public (set-milestone-escrow (escrow principal))
+  (begin
+    (asserts! (is-eq contract-caller (var-get admin-contract)) ERR-NOT-AUTHORIZED)
+    (var-set milestone-escrow-contract escrow)
+    (print { event: "milestone-escrow-set", escrow: escrow })
+    (ok true)
+  )
+)
+
+;; Creator: set up milestone deadlines for their campaign
+;; Validates caller is the campaign creator via milestone-escrow::get-campaign
+;; Admin does NOT create milestones — creators know their own milestones
+(define-public (create-milestones (campaign-id uint) (deadlines (list 10 uint)))
   (let
     (
       (existing (map-get? campaign-milestone-state campaign-id))
+      (campaign (unwrap! (contract-call? .milestone-escrow get-campaign campaign-id) ERR-CAMPAIGN-NOT-FOUND))
     )
     (try! (check-not-paused))
     (asserts! (var-get initialized) ERR-NOT-INITIALIZED)
-    (asserts! (is-eq contract-caller (var-get admin-contract)) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq tx-sender (get creator campaign)) ERR-NOT-CREATOR)
     (asserts! (is-none existing) ERR-CAMPAIGN-ALREADY-SETUP)
     (asserts! (> (len deadlines) u0) ERR-EMPTY-MILESTONES)
 
@@ -139,7 +154,7 @@
       missed-milestones: u0,
       bonus-forfeited: false,
       forfeited-at: u0,
-      creator: creator
+      creator: (get creator campaign)
     })
 
     ;; Insert each milestone using fold with campaign-id accumulator
