@@ -15,8 +15,10 @@
 (impl-trait .milestone-escrow-trait.milestone-escrow-trait)
 (impl-trait .emergency-module-trait.emergency-module-trait)
 (impl-trait .module-base-trait.module-base-trait)
+(use-trait asset-registry-trait .asset-registry-trait.asset-registry-trait)
+(use-trait oracle-proxy-trait .oracle-proxy-trait.oracle-proxy-trait)
 
-;; ========== ERROR CONSTANTS (u5400-u5420) ==========
+;; ========== ERROR CONSTANTS (u5400-u5423) ==========
 (define-constant ERR-CAMPAIGN-NOT-FOUND (err u5400))
 (define-constant ERR-MILESTONE-NOT-FOUND (err u5401))
 (define-constant ERR-NOT-AUTHORIZED (err u5402))
@@ -38,12 +40,16 @@
 (define-constant ERR-SYSTEM-NOT-PAUSED (err u5418))
 (define-constant ERR-SYSTEM-PAUSED (err u5419))
 (define-constant ERR-SELF-NOT-INIT (err u5420))
+(define-constant ERR-ASSET-NOT-SUPPORTED (err u5421))
+(define-constant ERR-ORACLE-FETCH-FAILED (err u5422))
+(define-constant ERR-NOT-INITIALIZED (err u5423))
 
 ;; ========== CONSTANTS ==========
 (define-constant CONTRACT-OWNER tx-sender)
 (define-constant BURN-ADDRESS 'SP000000000000000000002Q6VF78)
 (define-constant MAX-MILESTONES u10)
 (define-constant INITIAL-FEE-BPS u500) ;; 5% platform fee in basis points
+(define-constant VERIFICATION-FEE-USD-CENTS u500) ;; $5.00 in USD cents (500c)
 
 ;; ========== DATA VARIABLES ==========
 
@@ -141,6 +147,8 @@
       (funding-cap (unwrap! (contract-call? .project-verification-module
                              get-verification-funding-cap tx-sender)
                    ERR-NOT-AUTHORIZED))
+      (stx-price-cents (unwrap! (contract-call? .oracle-proxy get-stx-price) ERR-ORACLE-FETCH-FAILED))
+      (verification-fee-ustx (/ (* VERIFICATION-FEE-USD-CENTS u1000000) stx-price-cents))
     )
     ;; Validate deadline is in the future
     (asserts! (> deadline block-height) ERR-INVALID-DEADLINE)
@@ -156,6 +164,14 @@
 
     ;; Validate total goal within creator's funding cap
     (asserts! (<= total-goal funding-cap) ERR-FUNDING-CAP-EXCEEDED)
+
+    ;; Validate asset is supported by the registry
+    (asserts! (unwrap! (contract-call? .asset-registry is-supported asset) ERR-ASSET-NOT-SUPPORTED)
+              ERR-ASSET-NOT-SUPPORTED)
+
+    ;; Transfer verification fee from creator (STX)
+    (unwrap! (stx-transfer? verification-fee-ustx tx-sender (as-contract tx-sender))
+             ERR-TRANSFER-FAILED)
 
     ;; Persist the campaign
     (map-set campaigns new-id {
@@ -435,6 +451,10 @@
 
 (define-read-only (get-fee-bps)
   (ok (var-get fee-bps))
+)
+
+(define-read-only (get-verification-fee-usd-cents)
+  (ok VERIFICATION-FEE-USD-CENTS)
 )
 
 ;; ========== EMERGENCY MODULE TRAIT ==========
