@@ -97,7 +97,7 @@
         }) uint))
 
     ;; Function to get the maximum funding cap for a creator based on their verification level
-        ;; Strategic Purpose: Enables tiered funding ceilings — unverified (1K STX), basic (10K STX), premium (100K STX)
+        ;; Strategic Purpose: Enables tiered funding ceilings - unverified (1K STX), basic (10K STX), premium (100K STX)
         ;;   Returns the creator's current funding cap. Unregistered creators return the unverified cap.
             ;; @params:
             ;;   creator - principal of the creator to check

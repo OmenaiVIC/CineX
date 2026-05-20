@@ -16,6 +16,8 @@ const CreateCampaign = lazy(() => import('@routes/create-campaign'));
 const ContactPage = lazy(() => import('@routes/contact'));
 const LoginPage = lazy(() => import('@routes/login'));
 const RegisterPage = lazy(() => import('@routes/register'));
+const ProfilePage = lazy(() => import('@routes/profile'));
+const RateUserPage = lazy(() => import('@routes/rate'));
 
 const SuspenseWrapper = ({ children }) => (
   <Suspense fallback={<Loading fullScreen message="Loading page..." />}>
@@ -50,6 +52,8 @@ const routes = [
   createRoute('/contact', ContactPage, 'contact', 'Contact', true),
   createRoute('/login', LoginPage, 'login', 'Login'),
   createRoute('/register', RegisterPage, 'register', 'Register'),
+  createRoute('/profile/:userAddress', ProfilePage, 'profile'),
+  createRoute('/rate/:userAddress', RateUserPage, 'rate'),
 ];
 
 export const router = createBrowserRouter(routes);

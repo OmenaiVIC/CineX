@@ -172,7 +172,7 @@ epoch = '2.5'
 path = 'contracts/milestone-escrow.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module']
+depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'asset-registry-trait', 'asset-registry', 'oracle-proxy-trait', 'oracle-proxy']
 
 [repl.analysis]
 passes = ['check_checker']
