@@ -9,7 +9,7 @@
  *   analyzeProjectDescription(text)  — extract tags, category, sentiment
  */
 
-import type { ServiceResponse, Campaign, CoEPPool } from "../types";
+import type { ServiceResponse, Campaign, CoEPPool, CredibilitySummary } from "../types";
 
 interface UserSession {
   isUserSignedIn(): boolean;
@@ -126,6 +126,27 @@ export class AiService {
         tags,
         summary: `Analysis complete: detected "${category}" project with ${tags.length} suggested tags.`,
         sentiment: "positive",
+      },
+    };
+  }
+
+  /**
+   * getCredibilitySummary
+   * ---------------------
+   * Return an AI-generated credibility assessment for a user.
+   * In mock mode, returns a simulated response after a short delay.
+   * @param address - Stacks address to assess
+   */
+  async getCredibilitySummary(address: string): Promise<ServiceResponse<CredibilitySummary>> {
+    await new Promise(r => setTimeout(r, 300));
+    return {
+      success: true,
+      data: {
+        address,
+        summary: 'Mock assessment: This creator has 3 completed projects and a strong on-chain reputation score of 42. Peers rate them highly for collaboration and timely delivery. Their portfolio shows consistent engagement in the short-film and documentary space.',
+        generatedAt: new Date().toISOString(),
+        model: 'mock',
+        disclaimer: 'This is a mock summary for development purposes.',
       },
     };
   }

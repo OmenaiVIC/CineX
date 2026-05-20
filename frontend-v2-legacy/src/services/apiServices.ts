@@ -1,7 +1,7 @@
 import { api, ApiClientError } from '../utils/apiClient';
 import type {
   ServiceResponse, Profile, Rating, FeedEvent, PaginatedResponse,
-  UserSettings, Milestone, Campaign
+  UserSettings, Milestone, Campaign, CredibilitySummary
 } from '../types';
 
 function toServiceResponse<T>(data: T): ServiceResponse<T> {
@@ -80,15 +80,27 @@ export class ApiReputationService {
   }
 }
 
+function mapDbEvent(e: Record<string, unknown>): FeedEvent {
+  return {
+    id: String(e.id),
+    type: (e.event_type as FeedEvent['type']) || 'system',
+    actor: (e.actor as string) || '',
+    targetId: (e.pool_id as string) || (e.campaign_id as string) || '',
+    summary: typeof e.event_data === 'string' ? ((() => { try { return JSON.parse(e.event_data as string).summary || ''; } catch { return ''; } })()) : '',
+    metadata: typeof e.event_data === 'string' ? ((() => { try { return JSON.parse(e.event_data as string); } catch { return {}; } })()) : {},
+    createdAt: ((e.created_at as number) || 0) * 1000,
+  };
+}
+
 export class ApiFeedService {
   async getFeed(params?: { type?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<FeedEvent>>> {
     try {
       const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
       const limit = params?.limit || 20;
       const q = `?offset=${offset}&limit=${limit}${params?.type ? `&type=${params.type}` : ''}`;
-      const data = await api.get<{ events: FeedEvent[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/global${q}`);
+      const data = await api.get<{ events: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/global${q}`);
       return toServiceResponse({
-        items: data.events,
+        items: data.events.map(mapDbEvent),
         totalItems: data.pagination.total,
         totalPages: Math.ceil(data.pagination.total / limit),
         currentPage: params?.page || 1,
@@ -102,9 +114,9 @@ export class ApiFeedService {
     try {
       const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
       const limit = params?.limit || 20;
-      const data = await api.get<{ events: FeedEvent[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/user/${address}?offset=${offset}&limit=${limit}`);
+      const data = await api.get<{ events: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/feed/user/${address}?offset=${offset}&limit=${limit}`);
       return toServiceResponse({
-        items: data.events,
+        items: data.events.map(mapDbEvent),
         totalItems: data.pagination.total,
         totalPages: Math.ceil(data.pagination.total / limit),
         currentPage: params?.page || 1,
@@ -114,8 +126,17 @@ export class ApiFeedService {
     } catch (err) { return toError(err); }
   }
 
-  async publishEvent(_event: Omit<FeedEvent, 'id'>): Promise<ServiceResponse<FeedEvent>> {
-    return { success: false, error: 'Not implemented via API' };
+  async publishEvent(event: Omit<FeedEvent, 'id'>): Promise<ServiceResponse<FeedEvent>> {
+    try {
+      const data = await api.post<Record<string, unknown>>('/api/feed/event', {
+        event_type: event.type,
+        event_data: JSON.stringify({ ...event.metadata, summary: event.summary }),
+        actor: event.actor,
+        pool_id: event.targetId || null,
+        campaign_id: null,
+      });
+      return toServiceResponse(mapDbEvent(data));
+    } catch (err) { return toError(err); }
   }
 }
 
@@ -170,6 +191,16 @@ export class ApiAiService {
   async analyzeProjectDescription(_text: string): Promise<ServiceResponse<{ category: string; tags: string[]; summary: string; sentiment: 'positive' | 'neutral' | 'negative' }>> {
     return toServiceResponse({ category: 'short-film', tags: [], summary: 'AI analysis will be available post-launch.', sentiment: 'neutral' });
   }
+
+  async getCredibilitySummary(address: string): Promise<ServiceResponse<CredibilitySummary>> {
+    try {
+      const data = await api.post<CredibilitySummary>('/api/ai/summary', { address });
+      return toServiceResponse(data);
+    } catch (err) {
+      const message = err instanceof ApiClientError ? err.message : 'Failed to generate AI summary';
+      return { success: false, error: message };
+    }
+  }
 }
 
 export class ApiMilestoneService {
@@ -193,24 +224,52 @@ export class ApiMilestoneService {
 }
 
 export class ApiPoolService {
-  async getPools(_params?: { category?: string; status?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<unknown>>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPools(params?: { category?: string; status?: string; search?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<Record<string, unknown>>>> {
+    try {
+      const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
+      const limit = params?.limit || 20;
+      const q = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+      if (params?.category) q.set('category', params.category);
+      if (params?.status) q.set('status', params.status);
+      if (params?.search) q.set('search', params.search);
+      const data = await api.get<{ pools: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/pools?${q}`);
+      return toServiceResponse({
+        items: data.pools,
+        totalItems: data.pagination.total,
+        totalPages: Math.ceil(data.pagination.total / limit),
+        currentPage: params?.page || 1,
+        hasNext: data.pagination.offset + limit < data.pagination.total,
+        hasPrevious: (params?.page || 1) > 1,
+      });
+    } catch (err) { return toError(err); }
   }
 
-  async getPoolDetails(_poolId: string): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPoolDetails(poolId: string): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.get<{ pool: Record<string, unknown>; members: Record<string, unknown>[] }>(`/api/pools/${poolId}`);
+      return toServiceResponse({ ...data.pool, members: data.members });
+    } catch (err) { return toError(err); }
   }
 
-  async createPool(_params: Partial<unknown>): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async createPool(params: { name: string; description?: string; creator: string; target_amount: string; min_commitment?: string; max_members?: number; deadline?: number; category?: string; return_rate?: string }): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.post<Record<string, unknown>>('/api/pools', params);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 
-  async joinPool(_poolId: string, _amount: string): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async joinPool(poolId: string, address: string, amount: string): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.post<Record<string, unknown>>(`/api/pools/${poolId}/join`, { address, amount });
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 
-  async getPoolMembers(_poolId: string): Promise<ServiceResponse<unknown[]>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPoolMembers(poolId: string): Promise<ServiceResponse<Record<string, unknown>[]>> {
+    try {
+      const data = await api.get<Record<string, unknown>[]>(`/api/pools/${poolId}/members`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 }
 

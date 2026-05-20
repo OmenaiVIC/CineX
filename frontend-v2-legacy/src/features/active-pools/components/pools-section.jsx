@@ -1,5 +1,6 @@
 import { createCrowdfundingService } from '../../../services/crowdfundingService';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
 import ContributionModal from './contribution-modal';
 
@@ -263,9 +264,9 @@ function PoolsSection() {
           </div>
 
           {/* Title */}
-          <h3 className={`mb-3 text-white font-bold hover:text-yellow-400 transition duration-200 line-clamp-2 ${featured ? 'text-3xl' : 'text-xl'}`}>
+          <Link to={`/active-pools/${pool.id}`} className={`block mb-3 text-white font-bold hover:text-yellow-400 transition duration-200 line-clamp-2 ${featured ? 'text-3xl' : 'text-xl'}`}>
             {pool.title}
-          </h3>
+          </Link>
 
           {/* Description */}
           <p className="mb-5 text-gray-300 text-sm line-clamp-2">
