@@ -57,4 +57,18 @@ router.get('/user/:address', (req, res) => {
   res.json({ events, pagination: { offset, limit, total } });
 });
 
+router.post('/event', (req, res) => {
+  const db = getDb();
+  const { event_type, event_data, actor, pool_id, campaign_id, block_height, tx_id } = req.body;
+  if (!event_type) {
+    return res.status(400).json({ error: 'event_type is required' });
+  }
+  const result = db.prepare(`
+    INSERT INTO feed_events (event_type, event_data, actor, pool_id, campaign_id, block_height, tx_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(event_type, event_data || '{}', actor || null, pool_id || null, campaign_id || null, block_height || null, tx_id || null);
+  const created = db.prepare('SELECT * FROM feed_events WHERE id = ?').get(Number(result.lastInsertRowid));
+  res.status(201).json(created);
+});
+
 export default router;
