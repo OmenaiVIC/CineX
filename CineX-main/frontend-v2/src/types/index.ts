@@ -195,6 +195,19 @@ export interface Collaboration {
   verified: boolean;
 }
 
+export interface Rating {
+  id: string;
+  raterAddress: string;
+  targetAddress: string;
+  score: number; // 1-5
+  comment: string;
+  commentHash?: string;
+  txId?: string;
+  projectId?: string;
+  timestamp: number;
+  raterUsername?: string;
+}
+
 export interface Endorsement {
   id: string;
   endorser: string; // Stacks address
