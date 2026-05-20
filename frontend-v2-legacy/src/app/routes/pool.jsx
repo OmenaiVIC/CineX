@@ -1,214 +1,143 @@
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import PageLayout from '@components/layout/page-layout';
-import blogData from '@data/blog.json';
+import { useAuth } from '@contexts/StacksAuthContext';
+import { createCineXServices } from '@services/index';
+import LoadingSkeleton from '@components/common/LoadingSkeleton';
 
-function BlogSinglePage() {
+export default function PoolDetailPage() {
   const { slug } = useParams();
+  const { isAuthenticated } = useAuth();
+  const [pool, setPool] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Find the blog post by slug
-  const post = [...blogData.blogPosts, blogData.featuredPost].find(p => p.slug === slug);
+  const svc = createCineXServices(null);
 
-  if (!post) {
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    setError('');
+    svc.pool.getPoolDetails(slug).then((res) => {
+      if (res.success && res.data) setPool(res.data);
+      else setError(res.error || 'Pool not found');
+    }).catch((err) => {
+      setError(err instanceof Error ? err.message : 'Failed to load pool');
+    }).finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
     return (
-      <PageLayout title="Blog Post Not Found - Global Bank" showBanner={false}>
-        <section className="pt-20 lg:pt-24 pb-24">
-          <div className="container px-4 mx-auto">
-            <div className="text-center">
-              <h1 className="font-heading text-7xl lg:text-8xl text-white tracking-tighter mb-8">
-                Post Not Found
-              </h1>
-              <p className="text-white text-lg mb-8">The blog post you're looking for doesn't exist.</p>
-              <Link
-                to="/blog"
-                className="inline-flex items-center gap-2 px-8 py-4 text-white hover:text-black font-medium tracking-tighter hover:bg-green-400 border-2 border-white focus:border-green-400/40 hover:border-green-400 focus:ring-4 focus:ring-green-400/40 rounded-full transition duration-300"
-              >
-                ← Back to Blog
-              </Link>
-            </div>
-          </div>
-        </section>
+      <PageLayout title="Pool Details">
+        <div className="max-w-3xl mx-auto px-4 py-12">
+          <LoadingSkeleton variant="profile" />
+        </div>
       </PageLayout>
     );
   }
 
+  if (error || !pool) {
+    return (
+      <PageLayout title="Pool Not Found">
+        <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+          <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h1 className="text-2xl font-bold text-white mb-2">Pool Not Found</h1>
+          <p className="text-gray-500">{error || 'No pool with this ID.'}</p>
+          <Link to="/active-pools" className="inline-block mt-6 text-green-400 hover:underline">← Back to Pools</Link>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  const target = parseInt(pool.target_amount || '0');
+  const current = parseInt(pool.current_amount || '0');
+  const progress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+
+  const formatStx = (v) => `${(parseInt(v) / 1_000_000).toLocaleString()} STX`;
+
   return (
-    <PageLayout title={`${post.title} - Global Bank`} showBanner={false}>
-      {/* Hero Section */}
-      <section className="pt-20 lg:pt-24 pb-16">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-4xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm text-white/60 mb-8">
-              <Link to="/" className="hover:text-white transition-colors">Home</Link>
-              <span>→</span>
-              <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-              <span>→</span>
-              <span className="text-white">{post.title}</span>
-            </nav>
+    <PageLayout title={`${pool.name || 'Pool'} - CineX`}>
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <Link to="/active-pools" className="text-green-400 hover:underline text-sm mb-6 inline-block">← Back to Pools</Link>
 
-            {/* Category Badge */}
-            <div className="inline-block px-4 py-2 bg-green-400/20 text-green-400 text-sm font-medium rounded-full mb-6">
-              {post.category}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">{pool.name}</h1>
+              <p className="text-sm text-gray-500">by {pool.creator?.slice(0, 6)}…{pool.creator?.slice(-4)}</p>
             </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${pool.status === 'open' ? 'bg-green-900/50 text-green-400' : pool.status === 'funded' ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
+              {pool.status}
+            </span>
+          </div>
 
-            {/* Title */}
-            <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl text-white tracking-tighter mb-6 leading-tight">
-              {post.title}
-            </h1>
+          <p className="text-gray-300 mb-6">{pool.description || 'No description provided.'}</p>
 
-            {/* Meta Info */}
-            <div className="flex items-center gap-6 text-white/60 mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                  {(post.author || 'G').charAt(0).toUpperCase()}
+          <div className="mb-4">
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-400">{formatStx(pool.current_amount)} raised</span>
+              <span className="text-green-400">{progress}%</span>
+            </div>
+            <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+              <div className="bg-green-500 h-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-xs text-gray-600 mt-1">Goal: {formatStx(pool.target_amount)}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-1">Members</p>
+            <p className="text-xl font-bold text-white">{pool.current_members || pool.members?.length || 0} / {pool.max_members || '—'}</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-1">Min Commitment</p>
+            <p className="text-xl font-bold text-white">{pool.min_commitment ? formatStx(pool.min_commitment) : '—'}</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-1">Category</p>
+            <p className="text-lg font-semibold text-white capitalize">{pool.category || '—'}</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-1">Deadline</p>
+            <p className="text-lg font-semibold text-white">{pool.deadline ? new Date(pool.deadline).toLocaleDateString() : '—'}</p>
+          </div>
+        </div>
+
+        {pool.members && pool.members.length > 0 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-white mb-4">Members ({pool.members.length})</h2>
+            <div className="space-y-2">
+              {pool.members.map((m, idx) => (
+                <div key={m.id || idx} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-xs text-gray-400">
+                      {(m.address || '?')[0]}
+                    </div>
+                    <div>
+                      <Link to={`/profile/${m.address}`} className="text-sm text-white hover:text-green-400">
+                        {m.address?.slice(0, 6)}…{m.address?.slice(-4)}
+                      </Link>
+                      <p className="text-xs text-gray-600">{m.role}</p>
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-300">{m.committed ? formatStx(m.committed) : '—'}</span>
                 </div>
-                <span>{post.author || 'CineX Team'}</span>
-              </div>
-              <span>•</span>
-              <span>{post.date}</span>
-              <span>•</span>
-              <span>{post.readTime}</span>
-            </div>
-
-            {/* Excerpt */}
-            <p className="text-white/80 text-xl leading-relaxed">
-              {post.excerpt}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Image */}
-      <section className="pb-16">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative rounded-2xl overflow-hidden">
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-96 md:h-[500px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Article Content */}
-      <section className="pb-20">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-3xl mx-auto">
-            <article className="prose prose-lg prose-invert max-w-none">
-              <div className="text-white/80 text-lg leading-relaxed space-y-6">
-                <p>
-                  {post.content?.intro || `Welcome to this comprehensive guide where we dive deep into the topic of ${post.title.toLowerCase()}. In today's fast-paced banking environment, understanding these concepts is crucial for success.`}
-                </p>
-
-                <p>
-                  {post.excerpt} This article will provide you with actionable insights and practical strategies
-                  that you can implement immediately in your financial management.
-                </p>
-
-                <h2 className="text-white text-3xl font-bold mt-12 mb-6">Key Takeaways</h2>
-
-                <ul className="space-y-3 text-white/80">
-                  {post.content?.keyTakeaways?.map((takeaway, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full mt-3 flex-shrink-0"></div>
-                      <span>{takeaway}</span>
-                    </li>
-                  )) || (
-                    <>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-400 rounded-full mt-3 flex-shrink-0"></div>
-                        <span>Understanding the fundamentals is essential for long-term success</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-400 rounded-full mt-3 flex-shrink-0"></div>
-                        <span>Implementation of best practices can significantly improve your outcomes</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-400 rounded-full mt-3 flex-shrink-0"></div>
-                        <span>Regular monitoring and adjustment are key to maintaining effectiveness</span>
-                      </li>
-                    </>
-                  )}
-                </ul>
-
-                {post.content?.sections?.map((section, index) => (
-                  <div key={index}>
-                    <h2 className="text-white text-3xl font-bold mt-12 mb-6">{section.title}</h2>
-                    <p>{section.content}</p>
-                  </div>
-                )) || (
-                  <>
-                    <h2 className="text-white text-3xl font-bold mt-12 mb-6">Getting Started</h2>
-                    <p>
-                      The first step in mastering any new concept is to understand its core principles.
-                      Whether you're dealing with financial planning, business strategy, or operational efficiency,
-                      the same fundamental approach applies: assess, plan, execute, and monitor.
-                    </p>
-                  </>
-                )}
-
-                {post.content?.proTip && (
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-8 my-8">
-                    <h3 className="text-green-400 text-xl font-semibold mb-4">💡 Pro Tip</h3>
-                    <p className="text-white/80 mb-0">
-                      {post.content.proTip}
-                    </p>
-                  </div>
-                )}
-
-                <h2 className="text-white text-3xl font-bold mt-12 mb-6">Conclusion</h2>
-
-                <p>
-                  {post.content?.conclusion || `Mastering ${post.title.toLowerCase()} requires dedication, proper planning, and consistent execution. By following the strategies outlined in this guide, you'll be well-equipped to achieve your goals and drive meaningful results for your financial future.`}
-                </p>
-
-                <p>
-                  Remember that success is a journey, not a destination. Continue learning, adapting, and refining
-                  your approach based on new insights and changing circumstances.
-                </p>
-              </div>
-            </article>
-
-            {/* Call to Action */}
-            <div className="bg-gradient-to-r from-green-400/10 to-blue-500/10 border border-green-400/20 rounded-2xl p-8 mt-16">
-              <div className="text-center">
-                <h3 className="text-white text-2xl font-bold mb-4">Ready to Get Started?</h3>
-                <p className="text-white/80 mb-6">
-                  Join thousands of customers who trust Global Bank for their financial management needs.
-                </p>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-2 bg-green-400 text-black px-8 py-4 rounded-full font-medium hover:bg-green-500 transition-colors duration-200"
-                >
-                  Open Your Account
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </Link>
-              </div>
-            </div>
-
-            {/* Back to Blog */}
-            <div className="text-center mt-16">
-              <Link
-                to="/blog"
-                className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 font-medium transition-colors duration-200"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Back to All Posts
-              </Link>
-            </div>
+        {pool.status === 'open' && isAuthenticated && (
+          <div className="mt-6 text-center">
+            <button className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-3 rounded-lg transition">
+              Join Pool
+            </button>
           </div>
-        </div>
-      </section>
+        )}
+      </div>
     </PageLayout>
   );
 }
-
-export default BlogSinglePage;
