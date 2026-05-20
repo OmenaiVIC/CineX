@@ -224,24 +224,52 @@ export class ApiMilestoneService {
 }
 
 export class ApiPoolService {
-  async getPools(_params?: { category?: string; status?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<unknown>>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPools(params?: { category?: string; status?: string; search?: string; page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<Record<string, unknown>>>> {
+    try {
+      const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
+      const limit = params?.limit || 20;
+      const q = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+      if (params?.category) q.set('category', params.category);
+      if (params?.status) q.set('status', params.status);
+      if (params?.search) q.set('search', params.search);
+      const data = await api.get<{ pools: Record<string, unknown>[]; pagination: { offset: number; limit: number; total: number } }>(`/api/pools?${q}`);
+      return toServiceResponse({
+        items: data.pools,
+        totalItems: data.pagination.total,
+        totalPages: Math.ceil(data.pagination.total / limit),
+        currentPage: params?.page || 1,
+        hasNext: data.pagination.offset + limit < data.pagination.total,
+        hasPrevious: (params?.page || 1) > 1,
+      });
+    } catch (err) { return toError(err); }
   }
 
-  async getPoolDetails(_poolId: string): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPoolDetails(poolId: string): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.get<{ pool: Record<string, unknown>; members: Record<string, unknown>[] }>(`/api/pools/${poolId}`);
+      return toServiceResponse({ ...data.pool, members: data.members });
+    } catch (err) { return toError(err); }
   }
 
-  async createPool(_params: Partial<unknown>): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async createPool(params: { name: string; description?: string; creator: string; target_amount: string; min_commitment?: string; max_members?: number; deadline?: number; category?: string; return_rate?: string }): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.post<Record<string, unknown>>('/api/pools', params);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 
-  async joinPool(_poolId: string, _amount: string): Promise<ServiceResponse<unknown>> {
-    return { success: false, error: 'Not implemented via API' };
+  async joinPool(poolId: string, address: string, amount: string): Promise<ServiceResponse<Record<string, unknown>>> {
+    try {
+      const data = await api.post<Record<string, unknown>>(`/api/pools/${poolId}/join`, { address, amount });
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 
-  async getPoolMembers(_poolId: string): Promise<ServiceResponse<unknown[]>> {
-    return { success: false, error: 'Not implemented via API' };
+  async getPoolMembers(poolId: string): Promise<ServiceResponse<Record<string, unknown>[]>> {
+    try {
+      const data = await api.get<Record<string, unknown>[]>(`/api/pools/${poolId}/members`);
+      return toServiceResponse(data);
+    } catch (err) { return toError(err); }
   }
 }
 
