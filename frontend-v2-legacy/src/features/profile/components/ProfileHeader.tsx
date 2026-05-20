@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Profile } from '../../../types';
 import EditProfileModal from './EditProfileModal';
+import AiCredibilityModal from './AiCredibilityModal';
 
 interface Props {
   profile: Profile;
@@ -49,6 +50,7 @@ export default function ProfileHeader({ profile, isOwnProfile, onUpdate }: Props
             {profile.reputationScore > 0 && (
               <ReputationBadge score={profile.reputationScore} count={profile.ratingCount} />
             )}
+            <AiCredibilityModal address={profile.address} displayName={profile.displayName || 'User'} />
           </div>
 
           {profile.bio && <p className="text-gray-400 text-sm mt-1">{profile.bio}</p>}

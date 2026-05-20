@@ -1,7 +1,7 @@
 import { api, ApiClientError } from '../utils/apiClient';
 import type {
   ServiceResponse, Profile, Rating, FeedEvent, PaginatedResponse,
-  UserSettings, Milestone, Campaign
+  UserSettings, Milestone, Campaign, CredibilitySummary
 } from '../types';
 
 function toServiceResponse<T>(data: T): ServiceResponse<T> {
@@ -169,6 +169,16 @@ export class ApiAiService {
 
   async analyzeProjectDescription(_text: string): Promise<ServiceResponse<{ category: string; tags: string[]; summary: string; sentiment: 'positive' | 'neutral' | 'negative' }>> {
     return toServiceResponse({ category: 'short-film', tags: [], summary: 'AI analysis will be available post-launch.', sentiment: 'neutral' });
+  }
+
+  async getCredibilitySummary(address: string): Promise<ServiceResponse<CredibilitySummary>> {
+    try {
+      const data = await api.post<CredibilitySummary>('/api/ai/summary', { address });
+      return toServiceResponse(data);
+    } catch (err) {
+      const message = err instanceof ApiClientError ? err.message : 'Failed to generate AI summary';
+      return { success: false, error: message };
+    }
   }
 }
 
