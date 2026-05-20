@@ -22,9 +22,11 @@ This frontend/AI sprint runs **in parallel** with the contract sprint defined in
 | Day 2 | reputation.clar `rate-user`, `get-reputation-score` | Day 2.5, 3-4 | Onboarding role check, Profile: reputation score |
 | Day 3 | project-verification-module | Day 3.5, 4-5 | Dashboard: verification badge, registration call-to-action |
 | Day 4-5 | milestone-escrow (create, deposit, approve, release) | Day 5-6 | Campaign data for rating; milestone display on dashboards |
-| Day 6-7 | yield-escrow, bitflow-strategy | Day 7 | Yield info panel (read-only, secondary) |
-| Day 8-9 | funding-pool (create, join, propose, vote, execute) | Day 7-8, 9 | Pool homepage + dashboards + demo mode transaction feedback |
-| Day 10 | Integration tests complete | Day 10-12 | End-to-end frontend/contract testing + deployment |
+| Day 6 | yield-escrow (deposit, withdraw, claim-backer-yield, distribute-platform-yield) | Day 7 | Yield info panel (read-only, real data), claim yield button |
+| Day 7 | bitflow-strategy (deposit-to-strategy, withdraw-from-strategy, collect-yield) | Day 7 | Strategy status display, APY/earnings read-only |
+| Day 8 | milestone-verification (get-bonus-eligibility) | Day 7-8 | Bonus eligibility badge on pool/campaign pages |
+| Day 9-10 | funding-pool (create, join, propose, vote, execute) | Day 7-8, 9 | Pool homepage + dashboards + demo mode transaction feedback |
+| Day 11 | Integration tests complete | Day 10-12 | End-to-end frontend/contract testing + deployment |
 
 **Mock-first strategy:** Each frontend service layer starts with a mock implementation. A `VITE_USE_MOCK_DATA` feature flag controls the switch.
 
@@ -170,11 +172,14 @@ scripts/
 
 **Task 1.1: Environment & routing setup (2h)**
 - [ ] Verify existing frontend-v2-legacy runs (`npm install && npm run dev`)
-- [ ] Add new `.env` vars to project:
+  - [ ] Add new `.env` vars to project:
   ```
   VITE_REPUTATION_CONTRACT=reputation
   VITE_FUNDING_POOL_CONTRACT=funding-pool
   VITE_MILESTONE_ESCROW_CONTRACT=milestone-escrow
+  VITE_YIELD_ESCROW_CONTRACT=yield-escrow
+  VITE_BITFLOW_STRATEGY_CONTRACT=bitflow-strategy
+  VITE_MILESTONE_VERIFICATION_CONTRACT=milestone-verification
   VITE_VERIFICATION_CONTRACT=project-verification-module
   VITE_BACKEND_API_URL=http://localhost:3001
   VITE_USE_MOCK_DATA=true
@@ -587,7 +592,24 @@ scripts/
     - Stub: shows hardcoded recommendations based on user's preferred vertical
     - "Recommended for you" heading
 - [ ] Create `src/components/dashboard/YieldPanel.tsx`:
-  - Stub component: displays "Active Strategies: 0", "Est. APR: —", "Yield tracking will be available when yield contracts are live"
+  - Displays from `yield-escrow::get-yield-pool(campaignId)`:
+    - Total deposited, total yield earned, total yield claimed
+  - Displays from `yield-escrow::get-backer-yield(campaignId, address)`:
+    - Backer's deposit and claimed yield amounts
+  - "Claim Yield" button calls `yield-escrow::claim-backer-yield(campaignId)` via `useTransaction`
+  - Shows strategy status (active/inactive) from `bitflow-strategy::get-total-yield-collected`
+  - Empty state: "No yield strategies active for this campaign"
+  - Estimated APR based on recent yield rate
+- [ ] Create `src/services/yieldService.ts`:
+  - `getYieldPool(campaignId)` — calls `contract-call? .yield-escrow get-yield-pool`
+  - `getBackerYield(campaignId, address)` — calls `contract-call? .yield-escrow get-backer-yield`
+  - `getPlatformYield()` — calls `contract-call? .yield-escrow get-platform-yield`
+  - Mock: returns sample yield data with deterministic values
+- [ ] Create `src/components/pool/BonusEligibilityBadge.tsx`:
+  - Displays bonus eligibility status from `milestone-verification::get-bonus-eligibility(campaignId)`
+  - Green checkmark: eligible; Grey: not eligible; Shows completion ratio (e.g., "3/4 milestones approved")
+  - Tooltip explaining the 80% threshold requirement
+- [ ] Update `useUserYield.ts` to call `yieldService` instead of returning stub data
 - [ ] Create `src/components/dashboard/RecommendationCard.tsx`:
   - Pool/creator thumbnail placeholder, name, vertical tag, match reason ("Popular in Film"), member count
   - Click → navigate to pool or profile
@@ -724,7 +746,7 @@ scripts/
 
 #### Day 6 — Tribe (Pool) Homepage (8h)
 
-**Parallel with Contract Day 6-7:** (yield-escrow, bitflow-strategy)
+**Parallel with Contract Day 6-8:** (yield-escrow, bitflow-strategy, milestone-verification)
 
 **Task 6.1: Pool page — data fetching (3h)**
 - [ ] Create `src/pages/PoolPage.tsx` — route `/pool/:poolId`:
@@ -772,7 +794,7 @@ scripts/
 
 #### Day 7 — Activity Feed Indexer + API (8h)
 
-**Parallel with Contract Day 8:** (funding-pool create/join/contribute)
+**Parallel with Contract Day 9:** (funding-pool create/join/contribute)
 
 **Task 7.1: Backend feed indexer — Hiro API event listener (3h)**
 - [ ] Create `backend/src/services/feedIndexer.js`:
@@ -831,7 +853,7 @@ scripts/
 
 #### Day 8 — AI Credibility Summary (8h)
 
-**Parallel with Contract Day 9:** (funding-pool propose/vote/execute)
+**Parallel with Contract Day 10:** (funding-pool propose/vote/execute)
 
 **Task 8.1: AI service (2h)**
 - [ ] Create `backend/src/services/aiService.js`:
@@ -915,7 +937,7 @@ scripts/
 
 #### Day 9 — Demo Mode & Transaction Feedback & Network Detection (8h)
 
-**Parallel with Contract Day 8-9:** (funding-pool propose/vote/execute complete)
+**Parallel with Contract Day 9-10:** (funding-pool propose/vote/execute complete)
 
 **Task 9.1: Demo mode environment variable & context (2h)**
 - [ ] Read `VITE_DEMO_MODE` env var on app init
@@ -980,7 +1002,7 @@ scripts/
 
 #### Day 10 — Integration Testing + Full Flow Validation (8h)
 
-**Parallel with Contract Day 10:** (contract E2E tests complete)
+**Parallel with Contract Day 11:** (contract E2E tests complete)
 
 **Task 10.1: Frontend unit tests (Vitest) (3h)**
 - [ ] `reputationService.test.ts` (6 tests):
@@ -1280,6 +1302,18 @@ const CONTRACT_ADDRESSES = {
     testnet: { address: 'ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51', name: 'milestone-escrow' },
     mainnet: { address: '', name: 'milestone-escrow' },
   },
+  yieldEscrow: {
+    testnet: { address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM', name: 'yield-escrow' },
+    mainnet: { address: '', name: 'yield-escrow' },
+  },
+  bitflowStrategy: {
+    testnet: { address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM', name: 'bitflow-strategy' },
+    mainnet: { address: '', name: 'bitflow-strategy' },
+  },
+  milestoneVerification: {
+    testnet: { address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM', name: 'milestone-verification' },
+    mainnet: { address: '', name: 'milestone-verification' },
+  },
   verification: {
     testnet: { address: 'ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51', name: 'project-verification-module' },
     mainnet: { address: '', name: 'project-verification-module' },
@@ -1313,7 +1347,7 @@ export function getContractAddress(type: keyof typeof CONTRACT_ADDRESSES) {
 | `NetworkDetector.test.tsx` | 2: wrong network shows banner; correct network null |
 | `DemoModeBanner.test.tsx` | 2: visible in demo; hidden when not |
 
-**Total frontend tests: ~46**
+**Total frontend tests: ~50** (46 original + 4 new: yieldService test, BonusEligibilityBadge test, milestoneVerificationService test, yield panel interaction test)
 
 ### 5.2 Backend Integration Tests (Jest)
 
@@ -1361,6 +1395,9 @@ VITE_MAIN_HUB_CONTRACT_NAME=CineX-project
 VITE_REPUTATION_CONTRACT_NAME=reputation
 VITE_FUNDING_POOL_CONTRACT_NAME=funding-pool
 VITE_MILESTONE_ESCROW_CONTRACT_NAME=milestone-escrow
+VITE_YIELD_ESCROW_CONTRACT_NAME=yield-escrow
+VITE_BITFLOW_STRATEGY_CONTRACT_NAME=bitflow-strategy
+VITE_MILESTONE_VERIFICATION_CONTRACT_NAME=milestone-verification
 VITE_VERIFICATION_CONTRACT_NAME=project-verification-module
 VITE_USE_MOCK_DATA=true
 VITE_DEMO_MODE=false
@@ -1407,6 +1444,21 @@ STACKS_API_URL=https://api.testnet.hiro.so
 - [ ] Network detector: prompts switch on wrong network
 - [ ] All API endpoints return expected formats
 
+### 6.5 Error Handling & UI Resilience Gaps
+
+These items were identified as gaps during sprint review and should be integrated into the above tasks:
+
+| Gap | Priority | Resolution |
+|-----|----------|------------|
+| Error boundaries per page | Medium | Wrap each new page in `<ErrorBoundary>` with fallback UI ("Something went wrong") and "Retry" button |
+| Contract error code → user message | Medium | Map `ERR_*` codes to human-readable strings in `useTransaction.ts` (e.g., `ERR_NOT_AUTHORIZED` → "You are not authorized to perform this action") |
+| Loading skeletons | Low | Add skeleton/placeholder components for PoolPage, ProfilePage, Dashboard pages while data fetches |
+| Network downtime banner | Low | Add "Cannot connect to Stacks network" toast when Hiro API returns 5xx |
+| Transaction retry | Medium | Add max 3 retries with exponential backoff in `useTransaction.ts` for transient failures |
+| Fallback when no AI key | Low | Already handled in Day 8.3 — fallback message when API key missing |
+
+These are not tracked as separate days — they should be **embedded in their respective component tasks** above. For example, `PoolPage.tsx` (Day 6) should be wrapped in an ErrorBoundary as part of its implementation, not as a separate task.
+
 ---
 
 ## 7. Summary Timeline (Gantt)
@@ -1421,8 +1473,8 @@ STACKS_API_URL=https://api.testnet.hiro.so
 | 4 | Profile editing + portfolio CRUD (off-chain) | Edit profile modal, portfolio CRUD, backend CRUD API complete |
 | 5 | Rating UI + contract call integration | RateUserPage, RatingForm, real `rate-user` `openContractCall` |
 | 6 | Tribe (pool) homepage + milestone display | PoolPage, MemberList, MilestoneProgress bar |
-| 7 | Activity feed indexer + API + UI | Feed indexer, 3 feed API routes, ActivityFeedPage + filters |
-| 8 | AI credibility summary | AI API route, AICredibilityModal, useAISummary hook, rate limiting |
+| 7 | Activity feed indexer + API + UI | Feed indexer, 3 feed API routes, ActivityFeedPage + filters, BonusEligibilityBadge component |
+| 8 | AI credibility summary | AI API route, AICredibilityModal, useAISummary hook, rate limiting, yieldService integration |
 | 9 | Demo Mode & Tx Feedback & Network Detection | DemoModeContext, TransactionModal, NetworkDetector, demoService |
 | 10 | Integration testing | ~69 tests (frontend + backend), 3 E2E flows verified |
 | 11 | Bug fixes, documentation, deployment | READMEs, Dockerfile, CI/CD configuration |
@@ -1454,7 +1506,7 @@ When the oracle-proxy contract is upgraded to accept Pyth VAAs (post-sprint v2 w
 ## 9. Files to Create (68 total)
 
 ```
-frontend-v2/src/ (27 new files)
+frontend-v2/src/ (29 new files)
 +-- components/onboarding/RoleSelector.tsx
 +-- components/onboarding/OnboardingWizard.tsx
 +-- components/onboarding/RoleGuard.tsx
@@ -1480,6 +1532,7 @@ frontend-v2/src/ (27 new files)
 +-- components/pool/PoolHeader.tsx
 +-- components/pool/MemberList.tsx
 +-- components/pool/MilestoneProgress.tsx
++-- components/pool/BonusEligibilityBadge.tsx     # NEW — reads milestone-verification
 +-- components/pool/ProposalCard.tsx
 +-- components/feed/ActivityFeed.tsx
 +-- components/feed/ActivityFeedItem.tsx
@@ -1497,6 +1550,7 @@ frontend-v2/src/ (27 new files)
 +-- services/profileService.ts
 +-- services/poolService.ts
 +-- services/milestoneService.ts
++-- services/yieldService.ts                    # NEW — yield-escrow read calls
 +-- services/feedService.ts
 +-- services/aiService.ts
 +-- services/demoService.ts
@@ -1518,50 +1572,7 @@ frontend-v2/src/ (27 new files)
 +-- utils/commentHash.ts
 +-- utils/demoAddresses.ts
 
-backend/ (17 new files)
-+-- package.json
-+-- Dockerfile
-+-- nodemon.json
-+-- src/index.js
-+-- src/config.js
-+-- src/db/schema.sql
-+-- src/db/connection.js
-+-- src/routes/userSettings.js
-+-- src/routes/profiles.js
-+-- src/routes/portfolio.js
-+-- src/routes/feed.js
-+-- src/routes/ai.js
-+-- src/routes/indexer.js
-+-- src/services/aiService.js
-+-- src/services/feedIndexer.js
-
-tests/ (14 new files)
-+-- reputationService.test.ts
-+-- profileService.test.ts
-+-- aiService.test.ts
-+-- poolService.test.ts
-+-- feedService.test.ts
-+-- StarRating.test.tsx
-+-- onboardingService.test.ts
-+-- RoleGuard.test.tsx
-+-- CreatorDashboard.test.tsx
-+-- BackerDashboard.test.tsx
-+-- TransactionModal.test.tsx
-+-- NetworkDetector.test.tsx
-+-- DemoModeBanner.test.tsx
-+-- backend/__tests__/profiles.test.js
-+-- backend/__tests__/ai.test.js
-+-- backend/__tests__/feed.test.js
-+-- backend/__tests__/onboarding.test.js
-+-- backend/__tests__/userSettings.test.js
-
-config/scripts/ (7 new files)
-+-- scripts/deploy-frontend.sh
-+-- scripts/deploy-backend.sh
-+-- scripts/seed-mock-data.sql
-```
-
-**Total: 68 files** (44 source, 18 test, 7 config/scripts)
+**Total: 71 files** (46 source, 18 test, 7 config/scripts — +3 from original 68: yieldService, BonusEligibilityBadge, milestoneVerificationService planned but might be merged into existing milestoneService)
 
 ---
 
