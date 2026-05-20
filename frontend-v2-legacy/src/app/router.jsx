@@ -16,6 +16,8 @@ const CreateCampaign = lazy(() => import('@routes/create-campaign'));
 const ContactPage = lazy(() => import('@routes/contact'));
 const LoginPage = lazy(() => import('@routes/login'));
 const RegisterPage = lazy(() => import('@routes/register'));
+const ProfilePage = lazy(() => import('@routes/profile'));
+const RatePage = lazy(() => import('@routes/rate'));
 const OnboardingPage = lazy(() => import('@routes/onboarding'));
 const CreatorDashboardPage = lazy(() => import('@routes/dashboard-creator'));
 const BackerDashboardPage = lazy(() => import('@routes/dashboard-backer'));
@@ -54,6 +56,8 @@ const routes = [
   createRoute('/dashboard/creator', CreatorDashboardPage, 'dashboard-creator'),
   createRoute('/dashboard/backer', BackerDashboardPage, 'dashboard-backer'),
   createRoute('/contact', ContactPage, 'contact', 'Contact', true),
+  createRoute('/profile/:address', ProfilePage, 'profile'),
+  createRoute('/rate/:address', RatePage, 'rate'),
   createRoute('/login', LoginPage, 'login', 'Login'),
   createRoute('/register', RegisterPage, 'register', 'Register'),
 ];
