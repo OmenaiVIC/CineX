@@ -592,4 +592,61 @@ tests/ (11 .ts files)
 
 ---
 
+## 9. Wallet Abstraction Layer (Off-Chain)
+
+### 9.1 Dual-Currency Architecture
+
+Every user gets a wallet with three balances backed by a single on-chain sBTC position:
+
+| Balance | Type | Purpose |
+|---------|------|---------|
+| `naira_balance` | INTEGER (kobo) | Nigerian creatives — receive/transact in NGN |
+| `usd_balance` | INTEGER (cents) | Global backers — receive/transact in USD |
+| `sbtc_balance` | TEXT (sats) | On-chain settlement layer for both currencies |
+
+### 9.2 Rate Service
+
+- **Primary**: Astrum API (free, multi-provider parallel market rate, ~₦1,400/$)
+- **Fallback**: Admin hardcoded rate (updated via `admin_settings` table)
+- **Cache**: 5-minute TTL; stale cache returned with warning flag
+- **Spread**: 0.75% on NGN↔USD conversions (CineX platform performance fee)
+- **Quotes**: 60-second locked quotes for conversions (prevents rate manipulation)
+
+### 9.3 Key Flows
+
+**US backer funds Nigerian creative ($100 → ₦)**:
+1. Backer selects creative, enters $100
+2. Backer USD balance debited $100
+3. Creative preferred currency is NGN → auto-convert at current rate + 0.75% spread
+4. Creative NGN balance credited ₦ equivalent
+5. sBTC settles on-chain via Pillar sponsored tx
+
+**NGN→USD conversion (creative buying equipment abroad)**:
+1. Creative requests quote for ₦100,000 → USD
+2. Rate locked for 60 seconds
+3. Creative confirms → NGN debited, USD credited
+4. 0.75% spread retained by platform
+
+### 9.4 Hold Periods
+
+| Deposit Method | Hold | Rationale |
+|------|------|-----------|
+| NGN bank transfer | 0 days | Irreversible in Nigeria — no chargeback risk |
+| USD bank wire | 0 days | Irreversible |
+| USD card (new user) | 14 days | Chargeback window |
+| USD card (verified) | 3 days | Trust-based reduction |
+
+### 9.5 Files
+
+| File | Type | Purpose |
+|------|------|---------|
+| `backend/src/services/rateService.js` | New | Rate fetching, caching, conversion math, quote locking |
+| `backend/src/services/walletService.js` | Updated | Dual-currency bookkeeping, cross-currency sends |
+| `backend/src/routes/wallets.js` | Updated | +16 endpoints for rates, quotes, conversion |
+| `backend/src/database.js` | Updated | Schema migration for dual-currency columns |
+| `frontend-v2-legacy/src/services/apiServices.ts` | Updated | Dual-currency types, ApiWalletService class |
+| `WALLET_ABSTRACTION_PLAN.md` | New | Full architecture document |
+
+---
+
 *End of plan (corrected).*

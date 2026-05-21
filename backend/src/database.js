@@ -169,5 +169,30 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_wallet_tx_wallet ON wallet_transactions(wallet_id);
     CREATE INDEX IF NOT EXISTS idx_wallet_tx_status ON wallet_transactions(status);
     CREATE INDEX IF NOT EXISTS idx_wallet_tx_created ON wallet_transactions(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS admin_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at INTEGER DEFAULT (unixepoch())
+    );
   `);
+
+  migrateSchema();
+}
+
+function migrateSchema() {
+  const cols = db.prepare("PRAGMA table_info('wallets')").all().map(r => r.name);
+  if (!cols.includes('usd_balance')) {
+    db.exec("ALTER TABLE wallets ADD COLUMN usd_balance INTEGER DEFAULT 0");
+  }
+  if (!cols.includes('preferred_currency')) {
+    db.exec("ALTER TABLE wallets ADD COLUMN preferred_currency TEXT DEFAULT 'NGN' CHECK(preferred_currency IN ('NGN', 'USD'))");
+  }
+  const txCols = db.prepare("PRAGMA table_info('wallet_transactions')").all().map(r => r.name);
+  if (!txCols.includes('amount_usd')) {
+    db.exec("ALTER TABLE wallet_transactions ADD COLUMN amount_usd INTEGER DEFAULT 0");
+  }
+  if (!txCols.includes('conversion_rate_ngn_usd')) {
+    db.exec("ALTER TABLE wallet_transactions ADD COLUMN conversion_rate_ngn_usd TEXT");
+  }
 }

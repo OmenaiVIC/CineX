@@ -1,27 +1,23 @@
 import { Router } from 'express';
-import {
-  createWallet,
-  getWallet,
-  activateWallet,
-  getBalance,
-  recordDeposit,
-  confirmDeposit,
-  recordSend,
-  confirmSend,
-  getTransactionHistory,
-  failTransaction
-} from '../services/walletService.js';
+import * as walletService from '../services/walletService.js';
+import * as rateService from '../services/rateService.js';
 
 const router = Router();
 
 router.post('/create', (req, res) => {
-  const { user_id, email, phone } = req.body;
+  const { user_id, email, phone, preferred_currency } = req.body;
   if (!user_id) {
     return res.status(400).json({ error: 'user_id is required' });
   }
   try {
-    const wallet = createWallet({ userId: user_id, email, phone });
-    res.status(201).json({ wallet, message: 'Wallet created. Activate via /api/wallets/activate after Pillar deployment.' });
+    const wallet = walletService.createWallet({
+      userId: user_id, email, phone,
+      preferredCurrency: preferred_currency || 'NGN',
+    });
+    res.status(201).json({
+      wallet,
+      message: 'Wallet created. Set preferred_currency (NGN or USD). Activate via /api/wallets/activate after Pillar deployment.',
+    });
   } catch (err) {
     console.error('Wallet create error:', err);
     res.status(500).json({ error: 'Failed to create wallet' });
@@ -34,15 +30,13 @@ router.post('/activate', (req, res) => {
     return res.status(400).json({ error: 'user_id and pillar_wallet_address are required' });
   }
   try {
-    const wallet = activateWallet(user_id, {
+    const wallet = walletService.activateWallet(user_id, {
       pillarWalletAddress: pillar_wallet_address,
       bnsName: bns_name,
       stxAddress: stx_address,
-      btcAddress: btc_address
+      btcAddress: btc_address,
     });
-    if (!wallet) {
-      return res.status(404).json({ error: 'Wallet not found for this user' });
-    }
+    if (!wallet) return res.status(404).json({ error: 'Wallet not found for this user' });
     res.json({ wallet, message: 'Wallet activated.' });
   } catch (err) {
     console.error('Wallet activate error:', err);
@@ -50,22 +44,10 @@ router.post('/activate', (req, res) => {
   }
 });
 
-router.get('/:userId/balance', (req, res) => {
-  try {
-    const balance = getBalance(req.params.userId);
-    res.json(balance);
-  } catch (err) {
-    console.error('Balance error:', err);
-    res.status(500).json({ error: 'Failed to get balance' });
-  }
-});
-
 router.get('/:userId', (req, res) => {
   try {
-    const wallet = getWallet(req.params.userId);
-    if (!wallet) {
-      return res.status(404).json({ error: 'Wallet not found' });
-    }
+    const wallet = walletService.getWallet(req.params.userId);
+    if (!wallet) return res.status(404).json({ error: 'Wallet not found' });
     res.json({ wallet });
   } catch (err) {
     console.error('Wallet get error:', err);
@@ -73,22 +55,50 @@ router.get('/:userId', (req, res) => {
   }
 });
 
-router.post('/deposit', (req, res) => {
-  const { user_id, amount_naira, amount_sbtc, tx_id, description } = req.body;
-  if (!user_id || (!amount_naira && !amount_sbtc)) {
-    return res.status(400).json({ error: 'user_id and at least one of amount_naira or amount_sbtc required' });
+router.get('/:userId/balance', async (req, res) => {
+  try {
+    const balance = await walletService.getBalance(req.params.userId);
+    res.json(balance);
+  } catch (err) {
+    console.error('Balance error:', err);
+    res.status(500).json({ error: 'Failed to get balance' });
+  }
+});
+
+router.post('/preferred-currency', (req, res) => {
+  const { user_id, currency } = req.body;
+  if (!user_id || !currency) {
+    return res.status(400).json({ error: 'user_id and currency (NGN/USD) required' });
   }
   try {
-    const deposit = recordDeposit(user_id, {
+    const wallet = walletService.setPreferredCurrency(user_id, currency);
+    if (!wallet) return res.status(404).json({ error: 'Wallet not found' });
+    res.json({ wallet, message: `Preferred currency set to ${currency}` });
+  } catch (err) {
+    console.error('Preferred currency error:', err);
+    res.status(500).json({ error: 'Failed to set preferred currency' });
+  }
+});
+
+router.post('/deposit', (req, res) => {
+  const { user_id, amount_naira, amount_usd, amount_sbtc, currency, tx_id, description } = req.body;
+  if (!user_id || (!amount_naira && !amount_usd && !amount_sbtc)) {
+    return res.status(400).json({ error: 'user_id and at least one amount field required' });
+  }
+  try {
+    const deposit = walletService.recordDeposit(user_id, {
       amountNaira: parseInt(amount_naira) || 0,
+      amountUsd: parseInt(amount_usd) || 0,
       amountSbtc: amount_sbtc || '0',
+      currency: currency || 'NGN',
       txId: tx_id,
-      description
+      description,
     });
-    if (!deposit) {
-      return res.status(404).json({ error: 'Wallet not found' });
-    }
-    res.status(201).json({ transaction: deposit, message: 'Deposit recorded. Confirm via /api/wallets/confirm-deposit after on-chain confirmation.' });
+    if (!deposit) return res.status(404).json({ error: 'Wallet not found' });
+    res.status(201).json({
+      transaction: deposit,
+      message: 'Deposit recorded. Confirm via /api/wallets/confirm-deposit after on-chain settlement.',
+    });
   } catch (err) {
     console.error('Deposit error:', err);
     res.status(500).json({ error: 'Failed to record deposit' });
@@ -101,10 +111,8 @@ router.post('/confirm-deposit', (req, res) => {
     return res.status(400).json({ error: 'tx_id or reference required' });
   }
   try {
-    const txn = confirmDeposit(tx_id, reference);
-    if (!txn) {
-      return res.status(404).json({ error: 'Pending transaction not found' });
-    }
+    const txn = walletService.confirmDeposit(reference, tx_id);
+    if (!txn) return res.status(404).json({ error: 'Pending transaction not found' });
     res.json({ transaction: txn, message: 'Deposit confirmed.' });
   } catch (err) {
     console.error('Confirm deposit error:', err);
@@ -112,22 +120,25 @@ router.post('/confirm-deposit', (req, res) => {
   }
 });
 
-router.post('/send', (req, res) => {
-  const { user_id, amount_naira, amount_sbtc, counterparty, description } = req.body;
-  if (!user_id || (!amount_naira && !amount_sbtc)) {
-    return res.status(400).json({ error: 'user_id and at least one of amount_naira or amount_sbtc required' });
+router.post('/send', async (req, res) => {
+  const { user_id, amount, currency, counterparty_user_id, description } = req.body;
+  if (!user_id || !amount || !counterparty_user_id) {
+    return res.status(400).json({ error: 'user_id, amount, and counterparty_user_id required' });
   }
   try {
-    const send = recordSend(user_id, {
-      amountNaira: parseInt(amount_naira) || 0,
-      amountSbtc: amount_sbtc || '0',
-      counterparty,
-      description
+    const send = await walletService.recordSend(user_id, {
+      amount: parseInt(amount),
+      currency: currency || 'NGN',
+      counterpartyUserId: counterparty_user_id,
+      description,
     });
     if (!send) {
-      return res.status(400).json({ error: 'Insufficient balance or wallet not active' });
+      return res.status(400).json({ error: 'Insufficient balance, wallet not active, or recipient not found' });
     }
-    res.status(201).json({ transaction: send, message: 'Send pending. Confirm via /api/wallets/confirm-send after on-chain confirmation.' });
+    res.status(201).json({
+      transaction: send,
+      message: 'Send pending. Confirm via /api/wallets/confirm-send after on-chain confirmation.',
+    });
   } catch (err) {
     console.error('Send error:', err);
     res.status(500).json({ error: 'Failed to process send' });
@@ -136,14 +147,10 @@ router.post('/send', (req, res) => {
 
 router.post('/confirm-send', (req, res) => {
   const { reference, tx_id } = req.body;
-  if (!reference) {
-    return res.status(400).json({ error: 'reference required' });
-  }
+  if (!reference) return res.status(400).json({ error: 'reference required' });
   try {
-    const txn = confirmSend(reference, tx_id);
-    if (!txn) {
-      return res.status(404).json({ error: 'Pending send not found' });
-    }
+    const txn = walletService.confirmSend(reference, tx_id);
+    if (!txn) return res.status(404).json({ error: 'Pending send not found' });
     res.json({ transaction: txn, message: 'Send confirmed.' });
   } catch (err) {
     console.error('Confirm send error:', err);
@@ -153,14 +160,10 @@ router.post('/confirm-send', (req, res) => {
 
 router.post('/fail', (req, res) => {
   const { reference } = req.body;
-  if (!reference) {
-    return res.status(400).json({ error: 'reference required' });
-  }
+  if (!reference) return res.status(400).json({ error: 'reference required' });
   try {
-    const txn = failTransaction(reference);
-    if (!txn) {
-      return res.status(404).json({ error: 'Pending transaction not found' });
-    }
+    const txn = walletService.failTransaction(reference);
+    if (!txn) return res.status(404).json({ error: 'Pending transaction not found' });
     res.json({ transaction: txn, message: 'Transaction marked as failed, balance reverted if applicable.' });
   } catch (err) {
     console.error('Fail transaction error:', err);
@@ -172,11 +175,87 @@ router.get('/:userId/transactions', (req, res) => {
   const offset = parseInt(req.query.offset) || 0;
   const limit = Math.min(parseInt(req.query.limit) || 20, 100);
   try {
-    const history = getTransactionHistory(req.params.userId, { offset, limit });
+    const history = walletService.getTransactionHistory(req.params.userId, { offset, limit });
     res.json(history);
   } catch (err) {
     console.error('Transaction history error:', err);
     res.status(500).json({ error: 'Failed to get transaction history' });
+  }
+});
+
+router.get('/:userId/summary', async (req, res) => {
+  try {
+    const summary = await walletService.getWalletSummary(req.params.userId);
+    if (!summary) return res.status(404).json({ error: 'Wallet not found' });
+    res.json(summary);
+  } catch (err) {
+    console.error('Wallet summary error:', err);
+    res.status(500).json({ error: 'Failed to get wallet summary' });
+  }
+});
+
+router.get('/rates/all', async (req, res) => {
+  try {
+    const rates = await rateService.getAllRates();
+    res.json(rates);
+  } catch (err) {
+    console.error('Rates error:', err);
+    res.status(500).json({ error: 'Failed to fetch rates' });
+  }
+});
+
+router.post('/rates/convert', async (req, res) => {
+  const { amount, from, to } = req.body;
+  if (!amount || !from || !to) {
+    return res.status(400).json({ error: 'amount, from, and to required' });
+  }
+  try {
+    const result = await rateService.convert(amount, from, to);
+    res.json({ input: { amount, from, to }, result });
+  } catch (err) {
+    console.error('Convert error:', err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/quote', async (req, res) => {
+  const { user_id, from, to, amount } = req.body;
+  if (!user_id || !from || !to || !amount) {
+    return res.status(400).json({ error: 'user_id, from, to, amount required' });
+  }
+  try {
+    const rates = await rateService.getAllRates();
+    const conversion = await rateService.convert(amount, from, to, rates);
+    const quote = rateService.createQuote(user_id, from, to, amount);
+    res.json({
+      quoteId: quote.quoteId,
+      expiresAt: quote.expiresAt,
+      from,
+      to,
+      inputAmount: amount,
+      outputAmount: conversion.amount,
+      rate: conversion.rate,
+      spread: rates.spread,
+      rates,
+    });
+  } catch (err) {
+    console.error('Quote error:', err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/convert', async (req, res) => {
+  const { user_id, quote_id } = req.body;
+  if (!user_id || !quote_id) {
+    return res.status(400).json({ error: 'user_id and quote_id required' });
+  }
+  try {
+    const txn = await walletService.convertCurrency(user_id, quote_id);
+    if (!txn) return res.status(400).json({ error: 'Quote expired, invalid, or insufficient balance' });
+    res.json({ transaction: txn, message: 'Currency conversion completed.' });
+  } catch (err) {
+    console.error('Convert execute error:', err);
+    res.status(500).json({ error: 'Failed to execute conversion' });
   }
 });
 
