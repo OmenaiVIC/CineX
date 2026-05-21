@@ -32,7 +32,7 @@ See `SMART_CONTRACT_IMPLEMENTATION_PLAN_2WEEKS.md` §2.1 Task 2.1 for the implem
 
 ### 2.2 Why Multi-Sig Was the Right Call for v1
 
-1. **No liquidation risk.** CineX is a crowdfunding platform, not a lending protocol. Stale or manipulated prices cause fee miscalculation, not cascading liquidations. The timelock (24h delay on large price changes) is sufficient defence.
+1. **No liquidation risk.** CineX is a milestone-based financing platform, not a lending protocol. Stale or manipulated prices cause fee miscalculation, not cascading liquidations. The timelock (24h delay on large price changes) is sufficient defence.
 
 2. **External oracle overhead is unjustified in v1.** Pyth's pull model requires every transaction needing a fresh price to first fetch a VAA (Verified Action Approval) from the Hermes API, then submit it as an 8192-byte buffer on-chain — costing ~1 µSTX per `verify-and-update-price-feeds` call. DIA is simpler but still introduces an external dependency with its own upgrade schedule.
 
