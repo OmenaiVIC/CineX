@@ -29,7 +29,7 @@
   transition: border 0.2s;
 }
 .filterInput:focus, .filterSelect:focus {
-  border: 1.5px solid #FFBF00;
+  border: 1.5px solid var(--cinex-gold);
 }
 .clearFiltersButton {
   background: #eee;
@@ -44,7 +44,7 @@
   transition: background 0.2s;
 }
 .clearFiltersButton:hover {
-  background: #FFD700;
+  background: var(--cinex-gold-light);
   color: #222;
 }
 
@@ -68,11 +68,11 @@
 }
 .emptyIcon {
   font-size: 2.5rem;
-  color: #FFBF00;
+  color: var(--cinex-gold);
   margin-bottom: 1rem;
 }
 .retryButton {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #222;
   border: none;
   border-radius: 8px;
@@ -84,11 +84,11 @@
   transition: background 0.2s;
 }
 .retryButton:hover {
-  background: #FFD700;
+  background: var(--cinex-gold-light);
 }
 .loading .spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #FFBF00;
+  border-top: 4px solid var(--cinex-gold);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -131,7 +131,7 @@
 .paginationButton {
   background: #fff;
   color: #222;
-  border: 1.5px solid #FFBF00;
+  border: 1.5px solid var(--cinex-gold);
   border-radius: 8px;
   padding: 0.5rem 1.5rem;
   font-weight: 700;
@@ -146,7 +146,7 @@
   cursor: not-allowed;
 }
 .paginationButton:hover:not(:disabled), .paginationButton:focus:not(:disabled) {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #222;
 }
 .pageNumbers {
@@ -165,9 +165,9 @@
   transition: background 0.2s, color 0.2s, border 0.2s;
 }
 .pageNumber.active, .pageNumber:focus {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #222;
-  border-color: #FFBF00;
+  border-color: var(--cinex-gold);
 }
 .socialTrust {
   background: #fff;
@@ -252,7 +252,7 @@
 }
 
 .actionBtn {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #222;
   border: none;
   border-radius: 8px;
@@ -269,7 +269,7 @@
   cursor: not-allowed;
 }
 .actionBtn:hover:not(:disabled), .actionBtn:focus:not(:disabled) {
-  background: #FFD700;
+  background: var(--cinex-gold-light);
   color: #222;
   box-shadow: 0 4px 16px rgba(255,191,0,0.15);
   transform: translateY(-2px) scale(1.03);

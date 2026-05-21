@@ -10,8 +10,8 @@
   margin-bottom: 2rem;
 }
 .pauseBtn {
-  background: #FFBF00;
-  color: #121212;
+  background: var(--cinex-gold);
+  color: var(--cinex-dark);
   font-weight: 700;
   border: none;
   border-radius: 8px;
@@ -22,7 +22,7 @@
   transition: background 0.2s;
 }
 .pauseBtn:hover {
-  background: #ffd700;
+  background: var(--cinex-gold-light);
 }
 .logTable {
   width: 100%;

@@ -9,8 +9,25 @@ export default defineConfig({
   root: './',
   build: {
     target: 'esnext',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      input: './index.html'
+      input: './index.html',
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/react-router')) {
+            return 'vendor-router';
+          }
+          if (id.includes('node_modules/@stacks')) {
+            return 'vendor-stacks';
+          }
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
     }
   },
   resolve: {

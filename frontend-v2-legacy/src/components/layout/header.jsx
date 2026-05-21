@@ -64,7 +64,7 @@ const Header = React.memo(function Header() {
                   className="relative z-10 inline-block"
                   to={getRouteByName('home')}
                 >
-                  <img src="/images/logo.png" alt="" />
+                  <img src="/images/logo.svg" alt="CineX" className="h-8 w-auto" />
                 </Link>
               </div>
             </div>

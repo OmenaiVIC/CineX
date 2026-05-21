@@ -41,7 +41,7 @@ function Footer() {
             <div className="flex flex-wrap justify-center -m-8 mb-28">
               <div className="w-full md:w-1/2 lg:w-4/12 p-8">
                 <div className="md:max-w-xs">
-                  <img className="mb-7" src="/images/logo-dark.png" alt="" />
+                  <img className="mb-7" src="/images/logo-dark.svg" alt="CineX" />
                   <p className="text-gray-400 font-medium">
                     Decentralized Crowdfunding and Collaborative Private Pools for the next generation of cinema, powered by Stacks.
                   </p>

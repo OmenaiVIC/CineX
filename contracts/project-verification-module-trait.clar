@@ -3,20 +3,19 @@
 ;; Trait for multi-vertical creator verification on CineX protocol
 
 ;; ========== Summary ==========
-;; Extends the film-verification concept to support multiple
-;; creative verticals: film, music, gaming, immersive-media,
-;; and other. New contracts implementing this trait should
-;; ALSO implement .film-verification-module-trait.film-verification-trait
-;; for backward compatibility with existing callers like
-;; crowdfunding-module.
+;; Trait for the multi-vertical creator verification module
+;; supporting film, music, gaming, immersive-media, and other
+;; creative verticals.
 ;;
-;; This trait adds:
+;; Functions:
 ;;   - register-creator (with project-vertical field)
+;;   - add-portfolio
+;;   - verify-creator
+;;   - is-creator-currently-verified
 ;;   - get-creator-identity (returns tuple including project-vertical)
-;;   - is-creator-currently-verified (alias for old function)
-;;
-;; Old function names from film-verification-trait are kept as
-;; thin wrappers in the implementing contract.
+;;   - emergency-verify-creator
+;;   - emergency-revoke-verification
+;;   - get-verification-funding-cap
 ;; =============================
 
 (define-trait project-verification-trait
@@ -51,6 +50,17 @@
 
         ;; Emergency revoke verification (bypasses timelock, multi-sig only)
         (emergency-revoke-verification (principal) (response bool uint))
+
+        ;; Backward-compat: get filmmaker identity (without project-vertical field)
+        (get-filmmaker-identity (principal) (response (optional {
+            full-name: (string-ascii 100),
+            profile-url: (string-ascii 255),
+            identity-hash: (buff 32),
+            choice-verification-level: uint,
+            choice-verification-expiration: uint,
+            verified: bool,
+            registration-time: uint
+        }) uint))
 
         ;; Get the maximum funding cap for a creator based on their verification level
         ;; Returns cap in micro-STX: unverified=1K, basic=10K, premium=100K

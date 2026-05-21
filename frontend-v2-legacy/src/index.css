@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-body: #0e0f11;
-  --color-green-400: #ccff00;
-  --color-green-500: #b2e600;
+  --color-body: #050505;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
   --color-blueGray-950: #2a2e35;
   --color-gray-50: #f6f6f6;
   --color-gray-100: #e7e7e7;
@@ -19,16 +19,16 @@
 }
 
 :root {
-  --color-green-50: #fdffe4;
-  --color-green-100: #f9ffc4;
-  --color-green-200: #f1ff90;
-  --color-green-300: #e2ff50;
-  --color-green-400: #ccff00;
-  --color-green-500: #b2e600;
-  --color-green-600: #8ab800;
-  --color-green-700: #688b00;
-  --color-green-800: #526d07;
-  --color-green-900: #455c0b;
+  --color-green-50: #eafef2;
+  --color-green-100: #c8fcd9;
+  --color-green-200: #94f9b5;
+  --color-green-300: #5aef8c;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
 
   --color-yellow-50: #fffaeb;
   --color-yellow-100: #fef3c7;
@@ -65,19 +65,51 @@
   --color-gray-900: #3d3d3d;
 
   /* Body colors */
-  --color-body-bg: #0e0f11;
+  --color-body-bg: #050505;
   --color-body-text: #fff;
 
-  --color-topbar: #FFBF00;
+  /* Brand accent palette */
+  --color-primary: #4ade80;
+  --color-neon: #00e5ff;
+  --color-warm: #f59e0b;
+  --color-topbar: var(--color-warm);
+
+  /* Glass effects */
+  --glass-bg: rgba(10, 10, 10, 0.72);
+  --glass-border: rgba(74, 222, 128, 0.12);
+  --glow: 0 0 40px rgba(74, 222, 128, 0.08);
 }
 
 /* Apply body styles to actual body element */
 body {
   background-color: var(--color-body-bg);
   color: var(--color-body-text);
-  font-family: 'poppins', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cypherpunk grid backdrop overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(74, 222, 128, 0.04) 1px, transparent 0);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* All interactive elements transition */
+a, button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+/* Consistent focus ring */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+  border-radius: 12px;
 }
 
 /* Custom utility classes */
@@ -116,19 +148,19 @@ body {
 .bg-gradient-radial-darker {
   background-image: linear-gradient(
     180deg,
-    #0e0f11 0%,
+    var(--color-body-bg) 0%,
     rgba(14, 15, 17, 0) 100%
   );
 }
 
 .bg-gradient-radial-darker3 {
-  background-image: linear-gradient(0deg, #0e0f11 0%, rgba(14, 15, 17, 0) 100%);
+  background-image: linear-gradient(0deg, var(--color-body-bg) 0%, rgba(14, 15, 17, 0) 100%);
 }
 
 .bg-gradient-radial-darker2 {
   background-image: linear-gradient(
     270deg,
-    #0e0f11 0%,
+    var(--color-body-bg) 0%,
     rgba(14, 15, 17, 0) 100%
   );
 }
@@ -186,5 +218,19 @@ body {
 
 .topbar {
   background-color: var(--color-topbar);
-  color: #000; /* ensure readable text on the new background */
+  color: #000;
 }
+
+/* Glass card utility — match landing page */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glow);
+  border-radius: 28px;
+}
+
+/* Consistent border radii */
+.card-radius { border-radius: 28px; }
+.input-radius { border-radius: 12px; }

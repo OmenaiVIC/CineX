@@ -3,12 +3,112 @@ name = "CineX-project"
 clarinet_project_path = "./"
 tests_path = "tests"
 
-# ---------------------
-# CONTRACT → TEST LINKS
-# ---------------------
+[[targets]]
+contract = "module-base-trait"
+path = "contracts/module-base-trait.clar"
+tests = ["contracts/module-base-trait.tests.clar"]
 
 [[targets]]
-contract = "escrow-module"
-path = "contracts/escrow-module.clar"
-tests = ["tests/escrow-module.tests.clar"]
+contract = "emergency-module-trait"
+path = "contracts/emergency-module-trait.clar"
+tests = ["contracts/emergency-module-trait.tests.clar"]
 
+[[targets]]
+contract = "timelock-trait"
+path = "contracts/timelock-trait.clar"
+
+[[targets]]
+contract = "asset-registry-trait"
+path = "contracts/asset-registry-trait.clar"
+
+[[targets]]
+contract = "cinex-multisig"
+path = "contracts/cinex-multisig.clar"
+
+[[targets]]
+contract = "timelock"
+path = "contracts/timelock.clar"
+
+[[targets]]
+contract = "asset-registry"
+path = "contracts/asset-registry.clar"
+
+[[targets]]
+contract = "oracle-proxy-trait"
+path = "contracts/oracle-proxy-trait.clar"
+
+[[targets]]
+contract = "oracle-proxy"
+path = "contracts/oracle-proxy.clar"
+
+[[targets]]
+contract = "reputation-trait"
+path = "contracts/reputation-trait.clar"
+
+[[targets]]
+contract = "reputation"
+path = "contracts/reputation.clar"
+
+[[targets]]
+contract = "project-verification-module-trait"
+path = "contracts/project-verification-module-trait.clar"
+
+[[targets]]
+contract = "project-verification-module"
+path = "contracts/project-verification-module.clar"
+
+[[targets]]
+contract = "campaign-module-traits"
+path = "contracts/campaign-module-traits.clar"
+
+[[targets]]
+contract = "campaign-module"
+path = "contracts/campaign-module.clar"
+
+[[targets]]
+contract = "milestone-escrow-trait"
+path = "contracts/milestone-escrow-trait.clar"
+
+[[targets]]
+contract = "milestone-escrow"
+path = "contracts/milestone-escrow.clar"
+
+[[targets]]
+contract = "yield-escrow-trait"
+path = "contracts/yield-escrow-trait.clar"
+
+[[targets]]
+contract = "yield-escrow"
+path = "contracts/yield-escrow.clar"
+
+[[targets]]
+contract = "bitflow-strategy-trait"
+path = "contracts/bitflow-strategy-trait.clar"
+
+[[targets]]
+contract = "bitflow-strategy"
+path = "contracts/bitflow-strategy.clar"
+
+[[targets]]
+contract = "mock-strategy"
+path = "contracts/mock-strategy.clar"
+
+[[targets]]
+contract = "milestone-verification"
+path = "contracts/milestone-verification.clar"
+
+[[targets]]
+contract = "funding-pool-trait"
+path = "contracts/funding-pool-trait.clar"
+
+[[targets]]
+contract = "funding-pool"
+path = "contracts/funding-pool.clar"
+
+[[targets]]
+contract = "emergency-module"
+path = "contracts/emergency-module.clar"
+
+[[targets]]
+contract = "module-base"
+path = "contracts/module-base.clar"

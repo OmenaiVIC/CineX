@@ -42,6 +42,7 @@ Remove these files (old film-only era, superseded by new contracts):
 All `.tests.clar` files that are empty or reference deleted contracts. Keep only:
 - `tests/funding-pool.test.ts` (existing vitest suite)
 - `tests/integration.test.ts` (to be created in Phase 2)
+- Regenerated `.tests.clar` files for surviving contracts (see Section 2.4)
 
 ### 1.3 Rename `crowdfunding-module` → `campaign-module`
 
@@ -59,6 +60,7 @@ Search every `.clar` file and `Clarinet.toml` for references to `crowdfunding-mo
 | `milestone-escrow.clar` | Update any references |
 | `milestone-verification.clar` | Update any references |
 | `yield-escrow.clar` | Update any references |
+| `deployments/default.testnet-plan.yaml` | Update contract name references |
 
 ### 1.4 Refactor `campaign-module` to Use New Traits
 
@@ -71,17 +73,18 @@ Search every `.clar` file and `Clarinet.toml` for references to `crowdfunding-mo
 - [ ] `contracts/film-verification-module-trait.clar` — no longer referenced
 - [ ] `contracts/escrow-module-trait.clar` — no longer referenced
 
-### 1.6 Update Clarinet.toml
+### 1.6 Update Clarinet.toml & Deployment Plan
 
 - [ ] Remove all deleted contracts from `[[contracts]]` sections
 - [ ] Update `campaign-module` name and dependencies
 - [ ] Update deployment order (section 5 of implementation plan)
+- [ ] Regenerate `deployments/default.testnet-plan.yaml` via `clarinet deployment generate --testnet`
 
 **Exit criteria**: `clarinet check` passes with zero errors. All 9 core + renamed contracts compile.
 
 ---
 
-## Phase 2: Smart Contract Day 11 — E2E Integration Tests (3-4 hrs)
+## Phase 2: Smart Contract Day 11 — E2E Integration Tests (4-5 hrs)
 
 ### 2.1 Create `tests/integration.test.ts`
 
@@ -90,7 +93,7 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 | Flow | Description | Key Assertions |
 |------|-------------|----------------|
 | **Flow 1** | Happy path: create campaign → fund → set milestones → vote approve → yield distribute (70/20/10) | Backers get 70%, platform 20%, creator 10% bonus |
-| **Flow 2** | Partial milestones + forfeiture: 2 of 3 milestones approved, bonus forfeits | Bonus redistributes 70% to backers, 30% to platform |
+| **Flow 2** | Partial milestones + forfeiture: 0 of 3 milestones approved (3 missed), bonus forfeits | For 100 STX yield: backers 77, platform 23, creator 0 |
 | **Flow 3** | Backer-weighted milestone rejection: fails >50% vote, no yield released | Escrow stays locked, no distribution |
 | **Flow 4** | Yield escrow: multiple campaigns, correct split per campaign | Each campaign's escrow calculated independently |
 | **Flow 5** | Funding pool: join → fund → close → distribute | Pool members get proportional returns |
@@ -104,8 +107,16 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 - Creator tries to self-approve milestone → rejected (backer-gated)
 - Backer votes after deadline → vote not counted
 
+**Flow 2 edge cases** (partial milestones + forfeiture):
+- 2 of 3 milestones approved (1 missed) → bonus **NOT** forfeited (requires ≥3 missed per `MAX-MISSED u3`)
+- 0 of 3 approved (3 missed) → `bonus-forfeited: true`, `forfeited-at` set, backers get 77% / platform 23%
+- Forfeited bonus amount is zero (no yield earned) → 0 distributed, no revert
+- Creator tries `claim-creator-bonus` after forfeiture → returns `(ok u0)`, marks as claimed+forfeited
+- Backers claim yield after forfeiture → `compute-backer-entitlement` includes redistributed bonus automatically (70% of forfeited 10%)
+- Platform sweep after forfeiture → `compute-platform-entitlement` includes 30% of forfeited bonus
+
 **Flow 3 edge cases**:
-- Tie vote (50/50) → rejected (requires >50%)
+- Tie vote (50/50) → rejected (requires >50% weighted YES)
 - Backer with 0 contribution tries to vote → rejected
 - Double vote → second vote ignored
 
@@ -135,14 +146,39 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 
 **Exit criteria**: All 7 flows pass with all edge cases asserted.
 
+### 2.4 Rendezvous Fuzzing Tests
+
+After deleting legacy `.tests.clar` files in Phase 1, regenerate and populate fuzzing stubs for the 9 surviving contracts:
+
+- [ ] Run `node scripts/move-and-create-tests.js --create-stubs` to regenerate stubs
+- [ ] Update `.rendezvous/manifest.toml` — replace old contract refs with surviving contracts
+- [ ] Populate each `.tests.clar` with fuzzing scenarios:
+
+| Contract | Fuzzing Scenarios |
+|----------|-------------------|
+| `campaign-module` | Random backer counts (1–50), varying fund amounts (10–100K STX), milestone vote permutations, refund edge cases |
+| `yield-escrow` | Random yield amounts (0–10K), forfeited/not-forfeited states, backer contribution ratios (1–99%), multiple campaigns in parallel |
+| `milestone-verification` | Random voter turnout (0–100%), tied votes (50/50 boundary), deadline edge cases, resubmission buffer, MAX_MISSED boundary (2 vs 3) |
+| `milestone-escrow` | Campaign creation with 0–10 milestones, sequential approval bypass attempts, fee boundary (0–2500 bps), funding cap enforcement |
+| `funding-pool` | Join/withdraw timing attacks, pool target over/under, proportional distribution math, early-withdrawal penalty |
+| `bitflow-strategy` | Swap amounts near LP balance, slippage extremes (0.1%–50%), LP token price fluctuations, empty pool edge |
+| `emergency-module` | Multi-sig threshold (1-of-3, 2-of-3, 3-of-3), non-admin calls, pause/unpause state transitions, emergency withdraw during active operations |
+| `timelock` | Queue/skip timing, unauthorized queue, duplicate proposals, expiry boundary |
+| `oracle-proxy` | Price feed boundaries (0, max uint), stale price detection, unauthorized update source |
+
+- [ ] Run: `npm run rv-all` → all fuzzing tests pass at ≥100 runs per contract
+- [ ] Fix any fuzzing-discovered edge cases in contract logic
+
+**Exit criteria**: `npm run rv-all` completes with zero failures across all 9 contracts.
+
 ---
 
-## Phase 3: Design Unification — Brand Colors + Landing Page (1.5 hrs)
+## Phase 3: Design Unification — Brand Colors + Landing Page (2.5 hrs)
 
 ### 3.1 Brand Color Audit
 
 The landing page (`index.html` — root, not React) uses a professional dark-green palette.
-The React app (`frontend-v2-legacy`) uses a fluorescent lime `#ccff00`.
+The React app (`frontend-v2-legacy`) uses fluorescent lime `#ccff00`.
 **These must be unified.**
 
 | Token | Landing Page (Keep) | React App (Change) |
@@ -160,31 +196,123 @@ The React app (`frontend-v2-legacy`) uses a fluorescent lime `#ccff00`.
 - [ ] Set `--color-body-bg` to `#050505` (match landing page)
 - [ ] Verify all components still look correct after color shift
 
+### 3.1b Color System — New Accent Architecture
+
+The current codebase has **3 competing brand colors** (`#4ade80` landing page / `#ccff00` v2 buttons / `#FFBF00` logo+topbar). Adopt a unified triad:
+
+| Token | Hex | Role | Usage |
+|-------|-----|------|-------|
+| `--color-primary` | `#4ade80` | Fintech green (trust/verification) | Primary buttons, links, active states |
+| `--color-neon` | `#00e5ff` | Cypherpunk cyan (blockchain/DeFi) | "Connect Wallet" CTAs, blockchain badges, loading animations |
+| `--color-warm` | `#f59e0b` | African gold (community/warmth) | Trust signals, achievement markers, secondary accents |
+| `--color-bg` | `#050505` | Deep black | Body background |
+
+- [ ] `src/index.css` — add `--color-neon: #00e5ff` and `--color-warm: #f59e0b` in `:root`
+- [ ] `src/index.css` — deprecate `--color-yellow-*` scale (replace all usages with `--color-warm`)
+- [ ] `src/index.css` — replace `--color-topbar: #FFBF00` → `--color-topbar: var(--color-warm)`
+- [ ] Audit all inline `#FFBF00`, `#fbbf24`, `bg-yellow-*` references → replace with `--color-warm` or `--color-primary`
+- [ ] Landing page (`index.html`): add `--color-neon` and `--color-warm` CSS vars (already has the rest ✓)
+
+### 3.1c Logo Asset Audit
+
+The current `logo.svg` is a yellow `#FFBF00` wordmark (163×40px) with no standalone icon mark.
+The user's new app icon (Google Drive) must replace this.
+
+- [ ] Download new CineX app icon from Google Drive link 1 → convert to clean SVG + PNG (1x, 2x)
+- [ ] Replace `public/images/logo.svg` with new SVG (icon + wordmark lockup)
+- [ ] Replace `public/images/logo.png` with new PNG fallback
+- [ ] Create `public/images/icon.svg` (icon-only variant, no wordmark — for wallet button, loading spinner, Stacks auth)
+- [ ] Generate multi-size favicon set: `public/favicon.ico` (32×32), `public/favicon-96.png`, `public/apple-touch-icon.png`
+- [ ] Create `public/images/logo-dark.svg` (icon + reversed wordmark for footer on dark bg)
+- [ ] Delete old `logo-dark.png` / `logo-dark.svg` variants (replace with new icon set)
+- [ ] Also download the CineX DeFi dashboards logo (Drive link 2) and social media banner (Drive link 3) — save to `public/images/brand/` for reference
+
+### 3.1d Logo Placement Audit
+
+- [ ] Landing page `index.html` — replace `.logo-mark` text "CineX" with `<img src="/images/logo.svg" alt="CineX" class="h-8 w-auto">`
+- [ ] `src/components/layout/header.jsx` — update `<img src="/images/logo.png">` → new SVG, add icon-only variant for mobile collapsed state
+- [ ] `src/components/layout/footer.jsx` — update to `logo-dark.svg`
+- [ ] `src/contexts/StacksAuthContext.jsx` — update wallet app icon to `icon.svg`
+- [ ] `src/components/common/header.jsx` (deprecated) — update if kept, or remove entirely
+- [ ] `frontend-v1/frontend-integration/` — update `Header.tsx` and `Home.tsx` logo imports from `hands-together-logo.svg` to `icon.svg`
+- [ ] Verify all 4 pages (hero, about, investor, footer) in landing page show the new icon consistently
+
+### 3.1e Button System Refactor
+
+The current `Button` component (`src/components/ui/button.jsx`) has 3 variants using `#ccff00`. Only 2 feature files import it — 215+ raw `<button>` elements exist.
+
+- [ ] `src/components/ui/button.jsx` — update `"primary"` variant bg from `bg-green-400` (#ccff00) → `bg-[#4ade80]`
+- [ ] `src/components/ui/button.jsx` — add 4th variant `"neon"` (cyan `#00e5ff` for blockchain actions like Connect Wallet, Sign Transaction):
+      ```js
+      neon: 'px-8 py-4 tracking-tighter bg-[#00e5ff] hover:bg-[#00c4e0] active:bg-[#00a3ba] text-black font-bold rounded-full shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_35px_rgba(0,229,255,0.35)] focus:ring-[#00e5ff]'
+      ```
+- [ ] `src/components/ui/button.jsx` — update `"outline"` variant from `border-white` → `border-[rgba(74,222,128,0.3)] text-[#4ade80] hover:bg-[#4ade80] hover:text-black`
+- [ ] `src/components/ui/button.jsx` — add green glow shadow to primary variant
+- [ ] Replace all raw `<button>` elements with shared `Button` component across feature files:
+  - [ ] `features/home/components/` — hero CTAs
+  - [ ] `features/auth/` — sign in/up buttons (already uses Button ✓)
+  - [ ] `features/waitlist/` — submit button
+  - [ ] `features/contact/` — send message (already uses Button ✓)
+  - [ ] `features/campaign/` — create campaign, fund
+  - [ ] `components/layout/header.jsx` — wallet connect
+  - [ ] All inline `bg-yellow-400`, `#FFBF00` buttons → map to `variant="primary"` or `variant="warm"`
+- [ ] Add mapping for warm/CTA buttons: `bg-[#f59e0b] text-black` → export as `variant="warm"` if frequently used
+
+### 3.1f Cypherpunk UI Refinements
+
+Blend "neon cypherpunk blockchain" with "minimalist fintech soothing" — dark spacious layouts with subtle neon glow accents, not in-your-face neon.
+
+- [ ] **Grid backdrop**: Add subtle dot-grid overlay to body (not landing page — it already has the spotlight gradient):
+      ```css
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(74,222,128,0.04) 1px, transparent 0);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      ```
+- [ ] **Glass morphism**: Ensure all cards use: `background: var(--glass-bg)`, `backdrop-filter: blur(14px)`, `border: 1px solid var(--glass-border)`, `box-shadow: var(--glow)`
+- [ ] **Focus states**: Add green glow to all interactive focus rings: `box-shadow: 0 0 0 3px rgba(74,222,128,0.2)`
+- [ ] **Neon sparingly**: Use `--color-neon` only for blockchain-specific actions (Connect Wallet, Sign, Transaction status) — not for generic UI
+- [ ] **Warm accents**: Use `--color-warm (#f59e0b)` for trust signals, achievement badges, community stats — the "African fintech soul"
+- [ ] **Spacing**: Ensure generous whitespace between sections (section padding: 5rem 0), cards (gap: 1.5rem), and text (line-height: 1.6)
+- [ ] **Transitions**: All interactive elements → `transition: all 0.2s ease; hover: scale(1.02)`
+- [ ] **Consistent border radius**: Cards = 28px, buttons = 60px (pill), inputs = 12px
+
 ### 3.2 Font Unification
 
 | Usage | Landing Page | React App | Recommendation |
 |-------|-------------|-----------|---------------|
-| Body | Inter | Clash Grotesk | **Keep Inter** for body text everywhere. It's the fintech standard (Stripe, Linear, Vercel). |
-| Headings | Inter | Playfair Display (serif) | **Drop Playfair Display** — serif doesn't fit fintech. Use Clash Grotesk for headings only, or just use Inter everywhere. |
+| Body | Inter | Poppins | **Change to Inter** — fintech standard (Stripe, Linear, Vercel) |
+| Headings | Inter | Clash Grotesk / Playfair Display | **Keep Clash Grotesk** for headings — modern geometric fits cypherpunk. Drop Playfair Display. |
 
-- [ ] `src/index.css` — Set `font-family` to `'Inter', system-ui, sans-serif`
-- [ ] Remove Playfair Display link from `index.html`
-- [ ] Keep Clash Grotesk as optional heading font (loaded via fontshare)
+- [ ] `src/index.css` — Set `font-family: 'Inter', system-ui, sans-serif` on body (currently `'poppins', sans-serif`)
+- [ ] Remove Playfair Display link from `frontend-v2-legacy/index.html`
+- [ ] Keep Clash Grotesk as heading font in `.font-heading` class
+- [ ] Landing page (`index.html`) — already uses Inter everywhere ✓
 
 ### 3.3 Frontend-V2 `index.html` Cleanup
 
 - [ ] Title already fixed: "CineX — Fintech Infrastructure for African Creative IP" ✅
 - [ ] Add meta description matching landing page
-- [ ] Add Google Fonts preconnect for Inter (already has Playfair Display — replace or keep both)
-- [ ] Verify favicon renders correctly at `/favicon.png`
+- [ ] Add Google Fonts preconnect for Inter (already has Playfair Display — replace with Inter)
+- [ ] Verify favicon renders correctly at `/favicon.png` (will be updated in 3.1c)
 
 ### 3.4 Landing Page (`index.html`) Updates
 
-- [ ] Review for any remaining film-only language (currently well-positioned as multi-vertical)
+- [ ] Review for any remaining film-only language (line 443: "Film, music, gaming, and immersive media" → keep as-is, already expanded)
 - [ ] Change Q3 roadmap item: "filmmaker identity" → "creator identity" (line 686)
-- [ ] Change footer: "film, music, gaming, and immersive media" → "film, music, gaming, fashion, sports entertainment, and immersive media" (expand to full spectrum)
+- [ ] **Footer message**: Replace line 736:
+      ```
+      "Legacy platform is being upgraded — we will keep you updated."
+      →
+      "Built on Bitcoin. Secured by Stacks. New financing rails for African Creative IP assets."
+      ```
 
-**Exit criteria**: Landing page and React app share identical brand colors. Fonts are unified. Both index.html files have correct meta tags.
+**Exit criteria**: Landing page and React app share identical brand colors. Fonts unified. New logo appears on all pages. Buttons use fintech-appropriate variants. Cypherpunk backdrop visible.
 
 ---
 
@@ -252,7 +380,7 @@ VITE_NETWORK=testnet
 
 - [ ] Already rewritten with new positioning ✅
 - [ ] Update contract table if any contracts were renamed (campaign-module vs crowdfunding-module)
-- [ ] Add design system reference (brand colors, fonts)
+- [ ] Add design system reference (brand colors, fonts, logo)
 
 ### 6.2 Create `DEPLOYMENT.md`
 
@@ -274,32 +402,36 @@ VITE_NETWORK=testnet
 ## Phase 7: Final Verification + PR Merge (30 min)
 
 - [ ] Run full test suite: `npx vitest run` (all contract tests + integration)
+- [ ] Run Rendezvous fuzzing: `npm run rv-all`
 - [ ] Run `clarinet check` — no warnings
 - [ ] Start backend → test all wallet endpoints with curl
 - [ ] Production build: `npm run build` (frontend)
-- [ ] Verify landing page (`index.html`) renders correctly
+- [ ] Verify landing page (`index.html`) renders correctly — new logo, updated footer
+- [ ] Visual check: all pages use consistent `#4ade80` green, `#050505` background, glass cards
 - [ ] Stage, commit, push all changes
 - [ ] Merge PR #12 into `main`
 
 ---
 
-## Appendix: Risk Assessment
+## Appendix A: Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | Integration test uncovers cross-contract bug | Medium | High | Fix immediately, re-run all tests |
 | `crowdfunding-module` rename breaks imports | High | High | **Read every reference first.** `clarinet check` catches all. |
+| Rendezvous fuzzing discovers edge-case bug | Medium | Medium | Fix before deploy; fuzzing is safety net, not blocker |
 | Astrum API down during rate test | Low | Low | Falls back to admin rate (₦1,400/$) |
 | Brand color change makes some UI unreadable | Medium | Medium | Visual review of every component after CSS update |
 | Vite build error | Low | Medium | Check missing imports, error log |
 | Backend SQLite migration conflict | Low | Medium | `migrateSchema()` uses `PRAGMA table_info` — safe |
 | Stacks testnet congestion | Medium | Low | `clarinet deploy` may queue; wait or retry |
+| Logo replacement misses some references | Medium | Low | Grep for all `<img src="/images/logo` and update systematically |
 
 ---
 
-## Contract State After Cleanup
+## Appendix B: Contract State After Cleanup
 
-### Kept (9 core + traits)
+### Keep (9 core + traits)
 
 | Contract | Role |
 |----------|------|
@@ -312,7 +444,7 @@ VITE_NETWORK=testnet
 | `project-verification-module-trait` | Trait |
 | `funding-pool` | Pooled/collaborative funding |
 | `funding-pool-trait` | Trait |
-| `yield-escrow` | 70/20/10 yield distribution |
+| `yield-escrow` | 70/20/10 yield distribution (forfeited bonus 70/30 backer/platform) |
 | `yield-escrow-trait` | Trait |
 | `bitflow-strategy` | DeFi yield strategy |
 | `bitflow-strategy-trait` | Trait |
@@ -331,10 +463,10 @@ VITE_NETWORK=testnet
 | `emergency-module-trait` | Trait |
 | `mock-strategy` | Test helper |
 
-### Deleted (10 legacy + 17 test stubs)
+### Delete (10 legacy + 17 test stubs)
 
-| Deleted | Why |
-|---------|-----|
+| Delete | Why |
+|--------|-----|
 | `film-verification-module` | Replaced by `project-verification-module` |
 | `film-verification-dummy` | Test helper for deleted contract |
 | `escrow-module` | Replaced by `milestone-escrow` |
@@ -347,7 +479,45 @@ VITE_NETWORK=testnet
 | `verification-mgt-extension` | Extension of deleted film-verification |
 | `film-verification-module-trait` | No longer referenced after refactor |
 | `escrow-module-trait` | No longer referenced after refactor |
-| 17 `.tests.clar` files | Auto-generated stubs, all empty |
+| 17 `.tests.clar` files | Auto-generated stubs, all referencing deleted contracts |
+
+---
+
+## Appendix C: Brand Design Reference
+
+### Color Token Reference
+
+```css
+/* Primary palette */
+--color-bg: #050505;              /* Deep black */
+--color-primary: #4ade80;         /* Fintech green - buttons, links, active */
+--color-primary-dark: #22c55e;    /* Hover */
+--color-primary-deeper: #16a34a;  /* Active/pressed */
+
+/* Accent palette */
+--color-neon: #00e5ff;            /* Cypherpunk cyan - blockchain actions */
+--color-warm: #f59e0b;            /* African gold - trust signals, badges */
+
+/* Glass effects */
+--glass-bg: rgba(10, 10, 10, 0.72);
+--glass-border: rgba(74, 222, 128, 0.12);
+--glow: 0 0 40px rgba(74, 222, 128, 0.08);
+--neon-glow: 0 0 25px rgba(0, 229, 255, 0.15);
+
+/* Typography */
+--font-body: 'Inter', system-ui, sans-serif;
+--font-heading: 'Clash Grotesk', ui-sans-serif, system-ui, sans-serif;
+```
+
+### Button Variant Reference
+
+| Variant | Use Case | Visual |
+|---------|----------|--------|
+| `primary` | Primary CTAs (Join, Submit, Fund) | Green `#4ade80` bg, black text, green glow |
+| `neon` | Blockchain actions (Connect Wallet, Sign) | Cyan `#00e5ff` bg, black text, cyan glow |
+| `outline` | Secondary actions (Learn More, Cancel) | Transparent bg, green border + text |
+| `ghost` | Tertiary actions (Edit, View Details) | Transparent, white → green on hover |
+| `warm` | Community/social (Join Waitlist, Share) | Amber `#f59e0b` bg, black text |
 
 ---
 

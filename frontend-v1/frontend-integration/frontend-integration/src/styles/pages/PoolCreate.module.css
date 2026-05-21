@@ -116,7 +116,7 @@
 .label {
   font-size: 0.98rem;
   font-weight: 600;
-  color: #FFBF00;
+  color: var(--cinex-gold);
 }
 .helperText {
   font-size: 0.92rem;
@@ -137,7 +137,7 @@
 }
 .input:focus, .textarea:focus {
   outline: none;
-  border-color: #FFBF00;
+  border-color: var(--cinex-gold);
   box-shadow: 0 0 0 1.5px #ffe082;
 }
 .errorMessage {
@@ -212,7 +212,7 @@
   margin: 1.5rem auto 0 auto;
   max-width: 500px;
   text-align: center;
-  border: 1.5px solid #FFBF00;
+  border: 1.5px solid var(--cinex-gold);
 }
 .navBtns {
   display: flex;
@@ -349,7 +349,7 @@
 .step.active {
   opacity: 1;
   color: #181c32;
-  border-bottom: 3px solid #FFBF00;
+  border-bottom: 3px solid var(--cinex-gold);
   background: linear-gradient(90deg, #fffbe6 0%, #fff9c4 100%);
   border-radius: 8px 8px 0 0;
   box-shadow: 0 2px 8px rgba(255,191,0,0.08);
@@ -366,7 +366,7 @@
 .formGrid label {
   font-size: 1.08rem;
   font-weight: 700;
-  color: #FFBF00;
+  color: var(--cinex-gold);
   margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -392,7 +392,7 @@
 .formGrid textarea:focus,
 .formGrid select:focus {
   outline: none;
-  border-color: #FFBF00;
+  border-color: var(--cinex-gold);
   box-shadow: 0 0 0 2px #ffe082;
 }
 
@@ -420,7 +420,7 @@
 }
 
 .nextBtn {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #222;
   border: none;
   border-radius: 10px;
@@ -441,7 +441,7 @@
 }
 
 .nextBtn:hover:not(:disabled), .nextBtn:focus:not(:disabled) {
-  background: #FFD700;
+  background: var(--cinex-gold-light);
   color: #222;
   box-shadow: 0 6px 24px rgba(255,191,0,0.18);
   transform: translateY(-2px) scale(1.03);
