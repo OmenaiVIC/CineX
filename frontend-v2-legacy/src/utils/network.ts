@@ -45,11 +45,11 @@ const CONTRACT_ENV_MAP: Record<string, string> = {
 };
 
 const CONTRACT_NAME_MAP: Record<string, string> = {
-  coep: 'Co-EP-rotating-fundings',
-  crowdfunding: 'crowdfunding-module',
-  core: 'CineX-project',
-  verification: 'film-verification-module',
-  escrow: 'escrow-module',
+  coep: 'funding-pool',
+  crowdfunding: 'campaign-module',
+  core: 'cinex-multisig',
+  verification: 'project-verification-module',
+  escrow: 'milestone-escrow',
   milestone_escrow: 'milestone-escrow',
   yield_escrow: 'yield-escrow',
   milestone_verification: 'milestone-verification',
