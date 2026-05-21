@@ -15,7 +15,7 @@
   margin-bottom: 0.5rem;
 }
 .ctaLink {
-  color: #FFBF00;
+  color: var(--cinex-gold);
   font-weight: 600;
   text-decoration: underline;
   transition: color 0.2s;

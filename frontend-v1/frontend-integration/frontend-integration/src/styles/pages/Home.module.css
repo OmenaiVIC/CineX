@@ -202,13 +202,13 @@
 }
 
 .ctaPrimary {
-  background: #0070f3;
+  background: var(--cinex-blue);
   color: #fff;
   box-shadow: 0 4px 16px rgba(0, 112, 243, 0.08);
 }
 
 .ctaPrimary:hover {
-  background: #005bb5;
+  background: var(--cinex-blue-hover);
   box-shadow: 0 6px 24px rgba(0, 112, 243, 0.15);
 }
 
@@ -221,14 +221,14 @@
 
 .ctaSecondary {
   background-color: transparent;
-  color: #FFBF00;
-  border-color: #FFBF00;
+  color: var(--cinex-gold);
+  border-color: var(--cinex-gold);
 }
 
 .ctaSecondary:hover {
   background-color: rgba(255, 191, 0, 0.1);
-  border-color: #FFD700;
-  color: #FFD700;
+  border-color: var(--cinex-gold-light);
+  color: var(--cinex-gold-light);
   transform: translateY(-2px);
 }
 
@@ -248,14 +248,14 @@
 }
 
   .overviewContent ol li strong {
-    color: #0070f3;
+    color: var(--cinex-blue);
   }
 .featured h2 {
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   margin-top: 2rem;
-  color: #FFBF00;
+  color: var(--cinex-gold);
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }

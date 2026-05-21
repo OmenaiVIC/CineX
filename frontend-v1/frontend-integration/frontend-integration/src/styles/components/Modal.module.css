@@ -30,7 +30,7 @@
   background: none;
   border: none;
   font-size: 2rem;
-  color: #FFBF00;
+  color: var(--cinex-gold);
   cursor: pointer;
   transition: color 0.3s ease;
 }
