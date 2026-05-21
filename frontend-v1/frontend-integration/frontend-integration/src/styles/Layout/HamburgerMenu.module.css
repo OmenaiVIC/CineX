@@ -39,7 +39,7 @@
   right: 1.5rem;
   background: none;
   border: none;
-  color: #FFBF00;
+  color: var(--cinex-gold);
   font-size: 2.2rem;
   cursor: pointer;
   z-index: 2;
@@ -81,7 +81,7 @@
 }
 .menuList a:hover, .menuBtn:hover {
   background: rgba(255, 191, 0, 0.15);
-  color: #FFBF00;
+  color: var(--cinex-gold);
 }
 
 .notificationsPanel {

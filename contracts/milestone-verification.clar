@@ -134,12 +134,13 @@
 
 ;; Creator: set up milestone deadlines for their campaign
 ;; Validates caller is the campaign creator via milestone-escrow::get-campaign
-;; Admin does NOT create milestones — creators know their own milestones
+;; Admin does NOT create milestones - creators know their own milestones
 (define-public (create-milestones (campaign-id uint) (deadlines (list 10 uint)))
   (let
     (
       (existing (map-get? campaign-milestone-state campaign-id))
-      (campaign (unwrap! (contract-call? .milestone-escrow get-campaign campaign-id) ERR-CAMPAIGN-NOT-FOUND))
+      (campaign-opt (unwrap! (contract-call? .milestone-escrow get-campaign campaign-id) ERR-CAMPAIGN-NOT-FOUND))
+      (campaign (unwrap! campaign-opt ERR-CAMPAIGN-NOT-FOUND))
     )
     (try! (check-not-paused))
     (asserts! (var-get initialized) ERR-NOT-INITIALIZED)
@@ -205,7 +206,7 @@
       (state (unwrap! (map-get? campaign-milestone-state campaign-id) ERR-CAMPAIGN-NOT-FOUND))
       (ms (unwrap! (map-get? milestones { campaign-id: campaign-id, milestone-index: milestone-index }) ERR-MILESTONE-NOT-FOUND))
       (existing-endorsement (map-get? endorsements { campaign-id: campaign-id, milestone-index: milestone-index, backer: tx-sender }))
-      (contrib (unwrap! (contract-call? .crowdfunding-module get-campaign-contributions campaign-id tx-sender) ERR-NOT-BACKER))
+      (contrib (unwrap! (contract-call? .campaign-module get-campaign-contributions campaign-id tx-sender) ERR-NOT-BACKER))
       (weight (get total-contributed contrib))
     )
     (try! (check-not-paused))
@@ -242,7 +243,7 @@
     (
       (state (unwrap! (map-get? campaign-milestone-state campaign-id) ERR-CAMPAIGN-NOT-FOUND))
       (ms (unwrap! (map-get? milestones { campaign-id: campaign-id, milestone-index: milestone-index }) ERR-MILESTONE-NOT-FOUND))
-      (total-raised (unwrap! (contract-call? .crowdfunding-module get-total-raised-funds campaign-id) ERR-CAMPAIGN-NOT-FOUND))
+      (total-raised (unwrap! (contract-call? .campaign-module get-total-raised-funds campaign-id) ERR-CAMPAIGN-NOT-FOUND))
     )
     (try! (check-not-paused))
     (asserts! (var-get initialized) ERR-NOT-INITIALIZED)

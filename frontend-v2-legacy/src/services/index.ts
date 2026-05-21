@@ -144,7 +144,7 @@ export function createCineXServices(userSession: any) {
  */
 export const ServiceConfig = {
   // API endpoints (when we integrate with real backend)
-  API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3003',
   STACKS_API_URL: import.meta.env.VITE_STACKS_API_URL || 'https://stacks-node-api.testnet.stacks.co',
   
   // Default pagination limits
@@ -175,7 +175,7 @@ export const ServiceConfig = {
   MOCK_DELAY_MS: 300,
 
   /** Backend URL for the off-chain API */
-  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001',
+  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003',
 } as const;
 
 /**

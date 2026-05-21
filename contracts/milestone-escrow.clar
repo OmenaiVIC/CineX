@@ -239,6 +239,30 @@
   )
 )
 
+;; Backward-compat: deposit STX into a campaign's escrow (alias for deposit)
+;; Called by campaign-module during backer contributions
+(define-public (deposit-to-campaign (campaign-id uint) (amount uint))
+  (deposit campaign-id amount)
+)
+
+;; Backward-compat: withdraw funds from escrow to campaign creator
+;; Called by campaign-module during claim-campaign-funds
+(define-public (withdraw-from-campaign (campaign-id uint) (amount uint))
+  (let ((campaign (unwrap! (map-get? campaigns campaign-id) ERR-CAMPAIGN-NOT-FOUND)))
+    (unwrap! (as-contract (stx-transfer? amount tx-sender (get creator campaign))) ERR-TRANSFER-FAILED)
+    (ok true)
+  )
+)
+
+;; Backward-compat: collect platform fee from campaign escrow
+;; Called by campaign-module during claim-campaign-funds
+(define-public (collect-campaign-fee (campaign-id uint) (amount uint))
+  (let ((collector (var-get platform-fee-collector)))
+    (unwrap! (as-contract (stx-transfer? amount tx-sender collector)) ERR-TRANSFER-FAILED)
+    (ok true)
+  )
+)
+
 ;; Submit proof hash for a completed milestone
 ;; @param campaign-id - target campaign
 ;; @param milestone-index - 0-based milestone index

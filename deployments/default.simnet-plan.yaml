@@ -45,16 +45,20 @@ genesis:
       balance: "100000000000000"
       sbtc-balance: "1000000000"
   contracts:
+    - genesis
+    - lockup
+    - bns
+    - cost-voting
     - costs
     - pox
+    - costs-2
     - pox-2
+    - costs-3
     - pox-3
     - pox-4
-    - lockup
-    - costs-2
-    - costs-3
-    - cost-voting
-    - bns
+    - signers
+    - signers-voting
+    - costs-4
 plan:
   batches:
     - id: 0
@@ -67,56 +71,6 @@ plan:
       epoch: "2.1"
     - id: 1
       transactions:
-        - emulated-contract-publish:
-            contract-name: escrow-module-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/escrow-module-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: film-verification-module-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/film-verification-module-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: crowdfunding-module-traits
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/crowdfunding-module-traits.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: emergency-module-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/emergency-module-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: module-base-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/module-base-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: rewards-module-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/rewards-module-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: CineX-project
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/CineX-project.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: rewards-nft-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/rewards-nft-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: CineX-rewards-sip09
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/CineX-rewards-sip09.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: Co-EP-rotating-fundings
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/Co-EP-rotating-fundings.clar
-            clarity-version: 2
         - emulated-contract-publish:
             contract-name: asset-registry-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -133,9 +87,39 @@ plan:
             path: contracts/bitflow-strategy-trait.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: emergency-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/emergency-module-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: module-base-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/module-base-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: bitflow-strategy
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/bitflow-strategy.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: milestone-escrow-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/milestone-escrow-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: project-verification-module-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/project-verification-module-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: campaign-module-traits
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/campaign-module-traits.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: campaign-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/campaign-module.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: timelock-trait
@@ -153,29 +137,9 @@ plan:
             path: contracts/cinex-multisig.clar
             clarity-version: 2
         - emulated-contract-publish:
-            contract-name: crowdfunding-module
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/crowdfunding-module.clar
-            clarity-version: 2
-        - emulated-contract-publish:
             contract-name: emergency-module
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/emergency-module.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: escrow-module
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/escrow-module.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: film-verification-dummy
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/film-verification-dummy.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: film-verification-module
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/film-verification-module.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: funding-pool-trait
@@ -183,27 +147,14 @@ plan:
             path: contracts/funding-pool-trait.clar
             clarity-version: 2
         - emulated-contract-publish:
-            contract-name: milestone-escrow-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/milestone-escrow-trait.clar
-            clarity-version: 2
-        - emulated-contract-publish:
             contract-name: oracle-proxy-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/oracle-proxy-trait.clar
             clarity-version: 2
-      epoch: "2.5"
-    - id: 2
-      transactions:
         - emulated-contract-publish:
             contract-name: oracle-proxy
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/oracle-proxy.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: project-verification-module-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/project-verification-module-trait.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: project-verification-module
@@ -245,16 +196,9 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/module-base.clar
             clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: rewards-module
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/rewards-module.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: verification-mgt-extension
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/verification-mgt-extension.clar
-            clarity-version: 2
+      epoch: "2.5"
+    - id: 2
+      transactions:
         - emulated-contract-publish:
             contract-name: yield-escrow-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM

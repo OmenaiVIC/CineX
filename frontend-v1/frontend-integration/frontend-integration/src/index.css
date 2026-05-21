@@ -1,4 +1,13 @@
 :root {
+  /* Brand palette */
+  --cinex-gold: #FFBF00;
+  --cinex-gold-hover: #f0b400;
+  --cinex-gold-light: #FFD700;
+  --cinex-dark: #121212;
+  --cinex-blue: #0070f3;
+  --cinex-blue-hover: #005bb5;
+  --cinex-footer-text: #F5F5DC;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -57,7 +66,7 @@ button:focus-visible {
     background-color: #0a0a0a;
   }
   a:hover {
-    color: #FFBF00;
+    color: var(--cinex-gold);
   }
   button {
     background-color: #1a1a1a;
