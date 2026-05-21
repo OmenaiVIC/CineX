@@ -1,6 +1,6 @@
 # CineX Backend Smart Contracts
 
-Clarity smart contracts for decentralized film crowdfunding on Stacks blockchain.
+Clarity smart contracts for milestone-based creative economy financing on Stacks blockchain.
 
 ## Table of Contents
 - [Architecture Overview](#architecture-overview)

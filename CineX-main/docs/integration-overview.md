@@ -15,9 +15,9 @@ This document explains how CineX smart contracts interact with each other, and h
 
 ### 1.1 Project Context
 
-CineX is a modular, multi-contract system enabling filmmakers to:
+CineX is a modular, multi-contract system enabling creatives to:
 
-- Create film projects
+- Create projects
 - Raise funds (crowdfunding + rotating Co-EP model)
 - Validate filmmaker identity
 - Manage rewards
