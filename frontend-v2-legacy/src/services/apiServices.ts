@@ -281,92 +281,196 @@ export class ApiVerificationService { /* keep mock-only awaiting smart contract 
 
 interface WalletInfo {
   id: string;
-  address: string;
-  btcAddress: string;
   userId: string;
-  displayName: string;
-  nairaBalance: number;
-  sbtcBalance: number;
   status: 'active' | 'pending' | 'locked';
+  preferredCurrency: 'NGN' | 'USD';
+  nairaBalance: number;
+  usdBalance: number;
+  sbtcBalance: string;
+  pillarWalletAddress?: string;
+  bnsName?: string;
   createdAt: string;
+}
+
+interface WalletBalance {
+  ngn: number;
+  usd: number;
+  sbtc: string;
+  preferredCurrency: 'NGN' | 'USD';
+  ngnEquivalent: number;
+  usdEquivalent: number;
+  rates: { ngnUsd: number; usdBtc: number };
 }
 
 interface WalletTransaction {
   id: string;
   walletId: string;
-  type: 'deposit' | 'send' | 'receive' | 'fee';
+  type: 'deposit' | 'send' | 'receive' | 'fee' | 'swap';
   amountNgn: number;
-  amountSats: number;
+  amountUsd: number;
+  amountSats: string;
+  currency: 'NGN' | 'USD';
   status: 'pending' | 'confirmed' | 'failed';
   counterparty?: string;
   description?: string;
+  reference?: string;
   createdAt: string;
   confirmedAt?: string;
 }
 
+interface ConversionQuote {
+  quoteId: string;
+  expiresAt: number;
+  from: string;
+  to: string;
+  inputAmount: number;
+  outputAmount: number;
+  rate: number;
+  spread: number;
+}
+
+interface ExchangeRates {
+  ngnUsd: { rate: number; source: string; stale: boolean; warning?: string };
+  usdBtc: { rate: number; source: string; stale: boolean };
+  spread: number;
+}
+
 export class ApiWalletService {
-  async create(displayName: string): Promise<ServiceResponse<WalletInfo>> {
+  async create(userId: string, preferredCurrency?: string): Promise<ServiceResponse<WalletInfo>> {
     try {
-      const data = await api.post<WalletInfo>('/api/wallets', { displayName });
+      const data = await api.post<{ wallet: WalletInfo }>('/api/wallets/create', {
+        user_id: userId,
+        preferred_currency: preferredCurrency || 'NGN',
+      });
+      return toServiceResponse(data.wallet);
+    } catch (err) { return toError(err); }
+  }
+
+  async activate(userId: string, pillarWalletAddress: string, stxAddress?: string, btcAddress?: string): Promise<ServiceResponse<WalletInfo>> {
+    try {
+      const data = await api.post<{ wallet: WalletInfo }>('/api/wallets/activate', {
+        user_id: userId,
+        pillar_wallet_address: pillarWalletAddress,
+        stx_address: stxAddress,
+        btc_address: btcAddress,
+      });
+      return toServiceResponse(data.wallet);
+    } catch (err) { return toError(err); }
+  }
+
+  async get(userId: string): Promise<ServiceResponse<WalletInfo>> {
+    try {
+      const data = await api.get<{ wallet: WalletInfo }>(`/api/wallets/${userId}`);
+      return toServiceResponse(data.wallet);
+    } catch (err) { return toError(err); }
+  }
+
+  async getBalance(userId: string): Promise<ServiceResponse<WalletBalance>> {
+    try {
+      const data = await api.get<WalletBalance>(`/api/wallets/${userId}/balance`);
       return toServiceResponse(data);
     } catch (err) { return toError(err); }
   }
 
-  async get(walletId: string): Promise<ServiceResponse<WalletInfo>> {
+  async getSummary(userId: string): Promise<ServiceResponse<WalletInfo & { balance: WalletBalance }>> {
     try {
-      const data = await api.get<WalletInfo>(`/api/wallets/${walletId}`);
+      const data = await api.get<WalletInfo & { balance: WalletBalance }>(`/api/wallets/${userId}/summary`);
       return toServiceResponse(data);
     } catch (err) { return toError(err); }
   }
 
-  async getBalance(walletId: string): Promise<ServiceResponse<{ nairaBalance: number; sbtcBalance: number }>> {
+  async setPreferredCurrency(userId: string, currency: 'NGN' | 'USD'): Promise<ServiceResponse<WalletInfo>> {
     try {
-      const data = await api.get<{ nairaBalance: number; sbtcBalance: number }>(`/api/wallets/${walletId}/balance`);
+      const data = await api.post<{ wallet: WalletInfo }>('/api/wallets/preferred-currency', {
+        user_id: userId, currency,
+      });
+      return toServiceResponse(data.wallet);
+    } catch (err) { return toError(err); }
+  }
+
+  async getRates(): Promise<ServiceResponse<ExchangeRates>> {
+    try {
+      const data = await api.get<ExchangeRates>('/api/wallets/rates/all');
       return toServiceResponse(data);
     } catch (err) { return toError(err); }
   }
 
-  async recordDeposit(walletId: string, amountNgn: number, reference: string): Promise<ServiceResponse<WalletTransaction>> {
+  async getQuote(userId: string, from: string, to: string, amount: number): Promise<ServiceResponse<ConversionQuote>> {
     try {
-      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/deposit`, { amountNgn, reference });
+      const data = await api.post<ConversionQuote>('/api/wallets/quote', {
+        user_id: userId, from, to, amount,
+      });
       return toServiceResponse(data);
     } catch (err) { return toError(err); }
   }
 
-  async confirmDeposit(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+  async executeConversion(userId: string, quoteId: string): Promise<ServiceResponse<WalletTransaction>> {
     try {
-      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/deposit/${txId}/confirm`);
-      return toServiceResponse(data);
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/convert', {
+        user_id: userId, quote_id: quoteId,
+      });
+      return toServiceResponse(data.transaction);
     } catch (err) { return toError(err); }
   }
 
-  async recordSend(walletId: string, recipientId: string, amountNgn: number): Promise<ServiceResponse<WalletTransaction>> {
+  async recordDeposit(userId: string, params: {
+    amountNaira?: number; amountUsd?: number; currency?: string; txId?: string; description?: string;
+  }): Promise<ServiceResponse<WalletTransaction>> {
     try {
-      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/send`, { recipientId, amountNgn });
-      return toServiceResponse(data);
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/deposit', {
+        user_id: userId,
+        amount_naira: params.amountNaira || 0,
+        amount_usd: params.amountUsd || 0,
+        currency: params.currency || 'NGN',
+        tx_id: params.txId,
+        description: params.description,
+      });
+      return toServiceResponse(data.transaction);
     } catch (err) { return toError(err); }
   }
 
-  async confirmSend(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+  async confirmDeposit(reference: string, txId?: string): Promise<ServiceResponse<WalletTransaction>> {
     try {
-      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/send/${txId}/confirm`);
-      return toServiceResponse(data);
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/confirm-deposit', { reference, tx_id: txId });
+      return toServiceResponse(data.transaction);
     } catch (err) { return toError(err); }
   }
 
-  async failTransaction(walletId: string, txId: string): Promise<ServiceResponse<WalletTransaction>> {
+  async recordSend(userId: string, params: {
+    amount: number; currency?: string; counterpartyUserId: string; description?: string;
+  }): Promise<ServiceResponse<WalletTransaction>> {
     try {
-      const data = await api.post<WalletTransaction>(`/api/wallets/${walletId}/transactions/${txId}/fail`);
-      return toServiceResponse(data);
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/send', {
+        user_id: userId,
+        amount: params.amount,
+        currency: params.currency || 'NGN',
+        counterparty_user_id: params.counterpartyUserId,
+        description: params.description,
+      });
+      return toServiceResponse(data.transaction);
     } catch (err) { return toError(err); }
   }
 
-  async getTransactions(walletId: string, params?: { page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<WalletTransaction>>> {
+  async confirmSend(reference: string, txId?: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/confirm-send', { reference, tx_id: txId });
+      return toServiceResponse(data.transaction);
+    } catch (err) { return toError(err); }
+  }
+
+  async failTransaction(reference: string): Promise<ServiceResponse<WalletTransaction>> {
+    try {
+      const data = await api.post<{ transaction: WalletTransaction }>('/api/wallets/fail', { reference });
+      return toServiceResponse(data.transaction);
+    } catch (err) { return toError(err); }
+  }
+
+  async getTransactions(userId: string, params?: { page?: number; limit?: number }): Promise<ServiceResponse<PaginatedResponse<WalletTransaction>>> {
     try {
       const offset = params?.page ? (params.page - 1) * (params.limit || 20) : 0;
       const limit = params?.limit || 20;
       const data = await api.get<{ transactions: WalletTransaction[]; pagination: { offset: number; limit: number; total: number } }>(
-        `/api/wallets/${walletId}/transactions?offset=${offset}&limit=${limit}`
+        `/api/wallets/${userId}/transactions?offset=${offset}&limit=${limit}`
       );
       return toServiceResponse({
         items: data.transactions,
