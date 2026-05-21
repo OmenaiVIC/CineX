@@ -119,7 +119,7 @@ const Header = React.memo(function Header() {
               <div className="flex items-center justify-between -m-2">
                 <div className="w-auto p-2">
                   <Link className="inline-block" to={getRouteByName('home')}>
-                    <img src="/images/logo.svg" alt="" />
+<img src="/images/logo.svg" alt="CineX" className="h-8 w-auto" />
                   </Link>
                 </div>
                 <div className="w-auto p-2">

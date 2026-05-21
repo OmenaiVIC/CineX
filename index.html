@@ -23,6 +23,8 @@
       --glass-bg: rgba(10, 10, 10, 0.72);
       --glass-border: rgba(74, 222, 128, 0.12);
       --glow: 0 0 40px rgba(74, 222, 128, 0.08);
+      --color-neon: #00e5ff;
+      --color-warm: #f59e0b;
     }
 
     html { scroll-behavior: smooth; }
@@ -115,12 +117,10 @@
       gap: 0.6rem;
       margin-bottom: 0.2rem;
     }
-    .logo-mark {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--green);
-      text-shadow: 0 0 24px rgba(74,222,128,0.25);
+    .logo-mark img {
+      height: 2rem;
+      width: auto;
+      display: block;
     }
     .logo-tagline {
       font-size: 0.78rem;
@@ -391,7 +391,7 @@
     <div class="hero-card glass">
 
       <div class="logo">
-        <span class="logo-mark">CineX</span>
+        <span class="logo-mark"><img src="/images/logo.svg" alt="CineX" /></span>
         <span class="logo-tagline">Fintech Infrastructure</span>
       </div>
 
@@ -733,7 +733,7 @@
 <footer>
   <div class="container">
     <p>New financing rails for African creative IP — film, music, gaming, fashion, sports entertainment, and immersive media.</p>
-    <p style="margin-top:0.25rem;">Legacy platform is being upgraded — we will keep you updated.</p>
+    <p style="margin-top:0.25rem;">Built on Bitcoin. Secured by Stacks. New financing rails for African Creative IP assets.</p>
     <p class="copy">&copy; 2026 CineX. All rights reserved.</p>
   </div>
 </footer>

@@ -7,68 +7,11 @@ cache_dir = '.\.cache'
 
 [[project.requirements]]
 contract_id = 'SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait'
-[contracts.CineX-project]
-path = 'contracts/CineX-project.clar'
-clarity_version = 2
-epoch = '2.5'
 
-[contracts.CineX-rewards-sip09]
-path = 'contracts/CineX-rewards-sip09.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.Co-EP-rotating-fundings]
-path = 'contracts/Co-EP-rotating-fundings.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.crowdfunding-module]
-path = 'contracts/crowdfunding-module.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.crowdfunding-module-traits]
-path = 'contracts/crowdfunding-module-traits.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.emergency-module]
-path = 'contracts/emergency-module.clar'
-clarity_version = 2
-epoch = '2.5'
+# === Admin Infrastructure (Day 1) ===
 
 [contracts.emergency-module-trait]
 path = 'contracts/emergency-module-trait.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.escrow-module]
-path = 'contracts/escrow-module.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.escrow-module-trait]
-path = 'contracts/escrow-module-trait.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.film-verification-dummy]
-path = 'contracts/film-verification-dummy.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.film-verification-module]
-path = 'contracts/film-verification-module.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.film-verification-module-trait]
-path = 'contracts/film-verification-module-trait.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.module-base]
-path = 'contracts/module-base.clar'
 clarity_version = 2
 epoch = '2.5'
 
@@ -76,28 +19,6 @@ epoch = '2.5'
 path = 'contracts/module-base-trait.clar'
 clarity_version = 2
 epoch = '2.5'
-
-[contracts.rewards-module]
-path = 'contracts/rewards-module.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.rewards-module-trait]
-path = 'contracts/rewards-module-trait.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.rewards-nft-trait]
-path = 'contracts/rewards-nft-trait.clar'
-clarity_version = 2
-epoch = '2.5'
-
-[contracts.verification-mgt-extension]
-path = 'contracts/verification-mgt-extension.clar'
-clarity_version = 2
-epoch = '2.5'
-
-# === Day 1: Admin Infrastructure ===
 
 [contracts.timelock-trait]
 path = 'contracts/timelock-trait.clar'
@@ -126,7 +47,7 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['asset-registry-trait']
 
-# === Day 2: Oracle + Reputation + Verification ===
+# === Oracle + Reputation + Verification (Day 2) ===
 
 [contracts.oracle-proxy-trait]
 path = 'contracts/oracle-proxy-trait.clar'
@@ -159,17 +80,35 @@ epoch = '2.5'
 path = 'contracts/project-verification-module.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['project-verification-module-trait', 'film-verification-module-trait', 'emergency-module-trait', 'module-base-trait', 'cinex-multisig']
+depends_on = ['project-verification-module-trait', 'emergency-module-trait', 'module-base-trait', 'cinex-multisig']
 
-# === Day 8: Milestone Verification (Creator Bonus Eligibility) ===
+# === Campaign Module (renamed from crowdfunding-module) ===
 
-[contracts.milestone-verification]
-path = 'contracts/milestone-verification.clar'
+[contracts.campaign-module-traits]
+path = 'contracts/campaign-module-traits.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['emergency-module-trait', 'module-base-trait', 'crowdfunding-module', 'milestone-escrow']
 
-# === Day 6: Yield Escrow ===
+[contracts.campaign-module]
+path = 'contracts/campaign-module.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['campaign-module-traits', 'milestone-escrow-trait', 'project-verification-module-trait', 'emergency-module-trait', 'module-base-trait']
+
+# === Milestone Escrow (Day 4-5) ===
+
+[contracts.milestone-escrow-trait]
+path = 'contracts/milestone-escrow-trait.clar'
+clarity_version = 2
+epoch = '2.5'
+
+[contracts.milestone-escrow]
+path = 'contracts/milestone-escrow.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'asset-registry-trait', 'asset-registry', 'oracle-proxy-trait', 'oracle-proxy']
+
+# === Yield Escrow (Day 6) ===
 
 [contracts.yield-escrow-trait]
 path = 'contracts/yield-escrow-trait.clar'
@@ -180,9 +119,9 @@ epoch = '2.5'
 path = 'contracts/yield-escrow.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['yield-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'bitflow-strategy-trait', 'bitflow-strategy', 'crowdfunding-module', 'milestone-verification']
+depends_on = ['yield-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'bitflow-strategy-trait', 'bitflow-strategy', 'campaign-module', 'milestone-verification']
 
-# === Day 7: Bitflow Strategy ===
+# === Bitflow Strategy (Day 7) ===
 
 [contracts.bitflow-strategy-trait]
 path = 'contracts/bitflow-strategy-trait.clar'
@@ -201,20 +140,15 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['bitflow-strategy-trait']
 
-# === Day 4-5: Milestone Escrow ===
+# === Milestone Verification (Day 8) ===
 
-[contracts.milestone-escrow-trait]
-path = 'contracts/milestone-escrow-trait.clar'
+[contracts.milestone-verification]
+path = 'contracts/milestone-verification.clar'
 clarity_version = 2
 epoch = '2.5'
+depends_on = ['emergency-module-trait', 'module-base-trait', 'campaign-module', 'milestone-escrow']
 
-[contracts.milestone-escrow]
-path = 'contracts/milestone-escrow.clar'
-clarity_version = 2
-epoch = '2.5'
-depends_on = ['milestone-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'asset-registry-trait', 'asset-registry', 'oracle-proxy-trait', 'oracle-proxy']
-
-# === Day 9-10: Funding Pool ===
+# === Funding Pool (Day 9-10) ===
 
 [contracts.funding-pool-trait]
 path = 'contracts/funding-pool-trait.clar'
@@ -226,6 +160,20 @@ path = 'contracts/funding-pool.clar'
 clarity_version = 2
 epoch = '2.5'
 depends_on = ['funding-pool-trait', 'emergency-module-trait', 'module-base-trait', 'project-verification-module', 'reputation', 'milestone-escrow']
+
+# === Emergency Module (shared) ===
+
+[contracts.emergency-module]
+path = 'contracts/emergency-module.clar'
+clarity_version = 2
+epoch = '2.5'
+
+# === Base Module ===
+
+[contracts.module-base]
+path = 'contracts/module-base.clar'
+clarity_version = 2
+epoch = '2.5'
 
 [repl.analysis]
 passes = ['check_checker']

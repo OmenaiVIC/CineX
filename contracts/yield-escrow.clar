@@ -223,7 +223,7 @@
           total-raised-at-deposit: u0, campaign-creator: tx-sender,
           asset: BURN-ADDRESS, last-yield-accrual: block-height }
         (map-get? campaign-yield-pools campaign-id)))
-      (total-raised (unwrap! (contract-call? .crowdfunding-module get-total-raised-funds campaign-id) ERR-NO-SNAPSHOT))
+      (total-raised (unwrap! (contract-call? .campaign-module get-total-raised-funds campaign-id) ERR-NO-SNAPSHOT))
     )
     (asserts! (var-get initialized) ERR-NOT-INITIALIZED)
     (asserts! (is-eq contract-caller (var-get milestone-escrow-contract)) ERR-NOT-AUTHORIZED)
@@ -304,7 +304,7 @@
     (
       (pool (unwrap! (map-get? campaign-yield-pools campaign-id) ERR-CAMPAIGN-NOT-FOUND))
       (accrued-pool (do-accrue-yield pool))
-      (contrib (unwrap! (contract-call? .crowdfunding-module get-campaign-contributions campaign-id tx-sender) ERR-NOT-BACKER))
+      (contrib (unwrap! (contract-call? .campaign-module get-campaign-contributions campaign-id tx-sender) ERR-NOT-BACKER))
       (backer-contribution (get total-contributed contrib))
       (entitlement (compute-backer-entitlement accrued-pool backer-contribution))
       (existing-claim (default-to { total-claimed: u0 }

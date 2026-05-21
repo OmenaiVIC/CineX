@@ -20,6 +20,15 @@
     ;; Deposit STX into a campaign's escrow
     (deposit (uint uint) (response bool uint))
 
+    ;; Backward-compat: deposit STX into a campaign's escrow (alias for deposit)
+    (deposit-to-campaign (uint uint) (response bool uint))
+
+    ;; Backward-compat: withdraw funds from escrow to campaign creator
+    (withdraw-from-campaign (uint uint) (response bool uint))
+
+    ;; Backward-compat: collect platform fee from campaign escrow
+    (collect-campaign-fee (uint uint) (response bool uint))
+
     ;; Submit proof hash for a completed milestone (creator only)
     (submit-milestone-proof (uint uint (buff 32)) (response bool uint))
 
@@ -28,6 +37,9 @@
 
     ;; Release funds for an approved milestone, deducting platform fee
     (release-milestone-funds (uint uint) (response bool uint))
+
+    ;; Get balance of total deposited STX for a campaign
+    (get-campaign-balance (uint) (response uint uint))
 
     ;; Set platform fee collector address and fee rate (owner only)
     (set-fee-parameters (principal uint) (response bool uint))

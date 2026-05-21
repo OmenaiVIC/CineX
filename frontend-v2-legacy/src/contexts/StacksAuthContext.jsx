@@ -103,7 +103,7 @@ function StacksAuthProvider({ children }) {
         authenticate({
           appDetails: {
             name: 'CineX',
-            icon: window.location.origin + '/images/logo.png',
+            icon: window.location.origin + '/images/icon.svg',
           },
           userSession,
           redirectTo,
@@ -159,9 +159,14 @@ function StacksAuthProvider({ children }) {
     if (!userData) return;
     setIsLoadingBalance(true);
     try {
-      // Implement balance fetching logic here
-      // For now, this is a placeholder
-      setBalance(null);
+      const address = getAddressFromUserData(userData);
+      if (!address) { setIsLoadingBalance(false); return; }
+      const { ApiWalletService } = await import('../services/apiServices');
+      const walletService = new ApiWalletService();
+      const res = await walletService.getBalance(address);
+      if (res.success && res.data) {
+        setBalance(res.data);
+      }
     } catch (error) {
       console.error('Failed to refresh balance:', error);
     } finally {

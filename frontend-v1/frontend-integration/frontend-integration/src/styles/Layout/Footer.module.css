@@ -4,8 +4,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.2rem 2.5rem 1.2rem 2.5rem;
-  background-color: #121212;
-  color: #F5F5DC;
+  background-color: var(--cinex-dark);
+  color: var(--cinex-footer-text);
   border-top: 1px solid #333;
   margin-top: auto;
   font-size: 1rem;
@@ -52,15 +52,15 @@
   border: 1px solid #444;
   font-size: 1rem;
   background: #232323;
-  color: #F5F5DC;
+  color: var(--cinex-footer-text);
   outline: none;
   min-width: 160px;
 }
 .contactInput:focus {
-  border-color: #FFBF00;
+  border-color: var(--cinex-gold);
 }
 .contactButton {
-  background: #FFBF00;
+  background: var(--cinex-gold);
   color: #232323;
   border: none;
   border-radius: 6px;
@@ -70,7 +70,7 @@
   transition: background 0.2s;
 }
 .contactButton:hover {
-  background: #FFD700;
+  background: var(--cinex-gold-light);
 }
 .contactSuccess {
   color: #4caf50;
@@ -82,14 +82,14 @@
   margin-bottom: 0.2rem;
 }
 .links a {
-  color: #F5F5DC;
+  color: var(--cinex-footer-text);
   text-decoration: none;
   margin: 0 0.7rem;
   font-size: 1.05rem;
   transition: color 0.3s;
 }
 .links a:hover {
-  color: #FFBF00;
+  color: var(--cinex-gold);
 }
 
 .social {
@@ -104,7 +104,7 @@
   transition: filter 0.2s;
 }
 .socialIcon:hover {
-  filter: brightness(2) drop-shadow(0 0 4px #FFBF00);
+  filter: brightness(2) drop-shadow(0 0 4px var(--cinex-gold));
 }
 
 .copy {
@@ -113,7 +113,7 @@
 }
 .info {
   font-size: 0.98rem;
-  color: #F5F5DC;
+  color: var(--cinex-footer-text);
   font-weight: 500;
 }
 
@@ -146,8 +146,8 @@
 }
 .footer {
   padding: 0.7rem 0.5rem;
-  background-color: #121212;
-  color: #F5F5DC;
+  background-color: var(--cinex-dark);
+  color: var(--cinex-footer-text);
   text-align: center;
   border-top: 1px solid #333;
   margin-top: auto;
@@ -160,7 +160,7 @@
 }
 
 .links a, .social a {
-  color: #F5F5DC;
+  color: var(--cinex-footer-text);
   text-decoration: none;
   margin: 0 0.4rem;
   font-size: 0.95rem;
@@ -168,7 +168,7 @@
 }
 
 .links a:hover, .social a:hover {
-  color: #FFBF00;
+  color: var(--cinex-gold);
 }
 
 .copy {

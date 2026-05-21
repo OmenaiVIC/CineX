@@ -26,7 +26,6 @@
 ;; =============================
 
 (impl-trait .project-verification-module-trait.project-verification-trait)
-(impl-trait .film-verification-module-trait.film-verification-trait)
 (impl-trait .emergency-module-trait.emergency-module-trait)
 (impl-trait .module-base-trait.module-base-trait)
 
