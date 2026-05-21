@@ -1,6 +1,6 @@
 # CineX Deployment 1-Day Workplan — Smart Contract + Frontend
 
-> **Target**: Deploy all 9 smart contracts to testnet + frontend to staging
+> **Target**: Deploy all smart contracts to testnet + frontend to staging
 > **Estimated**: 10–14 hours (one full work day)
 > **Prerequisites**: All code written and committed on `feature/pivot-infrastructure`
 
@@ -9,7 +9,7 @@
 ## Phase 0: Preparation (30 min)
 
 - [ ] Pull latest `feature/pivot-infrastructure`
-- [ ] Run `clarinet check` on all 20+ `.clar` files — fix any compilation errors
+- [ ] Run `clarinet check` on all .clar files — fix any compilation errors
 - [ ] Run `npx vitest run tests/funding-pool.test.ts` — ensure baseline passes
 - [ ] Confirm backend starts: `cd backend; npm start` → `/health` returns ok
 - [ ] Confirm wallet endpoints: `/api/wallets/rates/all` returns rates
@@ -18,9 +18,72 @@
 
 ---
 
-## Phase 1: Smart Contract Day 11 — E2E Integration Tests (3-4 hrs)
+## Phase 1: Contract Cleanup — Remove Legacy, Rename Crowdfunding (2 hrs)
 
-### 1.1 Create `tests/integration.test.ts`
+### 1.1 Delete 10 Legacy Contracts
+
+Remove these files (old film-only era, superseded by new contracts):
+
+| File | Replaced By |
+|------|-------------|
+| `contracts/film-verification-module.clar` | `project-verification-module.clar` |
+| `contracts/film-verification-dummy.clar` | (test helper — no longer needed) |
+| `contracts/escrow-module.clar` | `milestone-escrow.clar` |
+| `contracts/rewards-module.clar` | `yield-escrow.clar` (70/20/10 split) |
+| `contracts/rewards-module-trait.clar` | — |
+| `contracts/rewards-nft-trait.clar` | — |
+| `contracts/CineX-rewards-sip09.clar` | — |
+| `contracts/Co-EP-rotating-fundings.clar` | `funding-pool.clar` |
+| `contracts/CineX-project.clar` | Modular architecture — no hub needed |
+| `contracts/verification-mgt-extension.clar` | — |
+
+### 1.2 Delete 17 Auto-Generated `.tests.clar` Stubs
+
+All `.tests.clar` files that are empty or reference deleted contracts. Keep only:
+- `tests/funding-pool.test.ts` (existing vitest suite)
+- `tests/integration.test.ts` (to be created in Phase 2)
+
+### 1.3 Rename `crowdfunding-module` → `campaign-module`
+
+**⚠️ SAFETY: Read all cross-references first before renaming.**
+
+Search every `.clar` file and `Clarinet.toml` for references to `crowdfunding-module`:
+
+| What to Update | Files Affected |
+|----------------|---------------|
+| File rename | `contracts/crowdfunding-module.clar` → `campaign-module.clar` |
+| File rename | `contracts/crowdfunding-module-traits.clar` → `campaign-module-traits.clar` |
+| Contract name inside source | `crowdfunding-module` → `campaign-module` in both .clar files |
+| Clarinet.toml | Update `name`, `depends_on`, and path references |
+| `funding-pool.clar` | Update any `contract-call?` referencing old name |
+| `milestone-escrow.clar` | Update any references |
+| `milestone-verification.clar` | Update any references |
+| `yield-escrow.clar` | Update any references |
+
+### 1.4 Refactor `campaign-module` to Use New Traits
+
+- [ ] Replace `escrow-module-trait` import → `milestone-escrow-trait`
+- [ ] Replace `film-verification-module-trait` import → `project-verification-module-trait` (use `is-creator-currently-verified` instead of `is-filmmaker-currently-verified`)
+- [ ] Rename internal variables: `campaign-creator` for `campaign-filmmaker`, etc.
+
+### 1.5 Delete Old Traits (After Refactor)
+
+- [ ] `contracts/film-verification-module-trait.clar` — no longer referenced
+- [ ] `contracts/escrow-module-trait.clar` — no longer referenced
+
+### 1.6 Update Clarinet.toml
+
+- [ ] Remove all deleted contracts from `[[contracts]]` sections
+- [ ] Update `campaign-module` name and dependencies
+- [ ] Update deployment order (section 5 of implementation plan)
+
+**Exit criteria**: `clarinet check` passes with zero errors. All 9 core + renamed contracts compile.
+
+---
+
+## Phase 2: Smart Contract Day 11 — E2E Integration Tests (3-4 hrs)
+
+### 2.1 Create `tests/integration.test.ts`
 
 Write 7 integration flows in a single vitest file using simnet fixtures:
 
@@ -34,7 +97,7 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 | **Flow 6** | Bitflow strategy: deposit LP tokens → swap → withdraw | LP position opened and closed |
 | **Flow 7** | Edge cases: expired campaign refund, multi-sig emergency withdraw, unauthorized access | Refunds work, emergency bypasses timelock, non-admin rejected |
 
-### 1.2 Edge Cases Per Flow
+### 2.2 Edge Cases Per Flow
 
 **Flow 1 edge cases**:
 - Campaign below minimum funding → refund, not yield
@@ -64,7 +127,7 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 - Emergency: multi-sig 2-of-3 threshold, timelock bypass
 - Unauthorized: non-admin calls admin function → error u0
 
-### 1.3 Debug + Fix
+### 2.3 Debug + Fix
 
 - Run integration tests: `npx vitest run tests/integration.test.ts`
 - Fix any runtime errors uncovered by cross-contract calls
@@ -74,9 +137,60 @@ Write 7 integration flows in a single vitest file using simnet fixtures:
 
 ---
 
-## Phase 2: Frontend Day 11 — Full Integration (2 hrs)
+## Phase 3: Design Unification — Brand Colors + Landing Page (1.5 hrs)
 
-### 2.1 Wallet Abstraction UI Components
+### 3.1 Brand Color Audit
+
+The landing page (`index.html` — root, not React) uses a professional dark-green palette.
+The React app (`frontend-v2-legacy`) uses a fluorescent lime `#ccff00`.
+**These must be unified.**
+
+| Token | Landing Page (Keep) | React App (Change) |
+|-------|---------------------|--------------------|
+| Background | `#050505` black | `#0e0f11` → change to `#050505` |
+| Primary green | `#4ade80` | `#ccff00` → change to `#4ade80` |
+| Green dark | `#22c55e` | `#b2e600` → change to `#22c55e` |
+| Green deeper | `#16a34a` | `#8ab800` → change to `#16a34a` |
+| Glass effect | `rgba(10,10,10,0.72)` | Missing → add to design system |
+| Green glow | `0 0 40px rgba(74,222,128,0.08)` | Missing → add to design system |
+
+**Files to update in `frontend-v2-legacy`:**
+- [ ] `src/index.css` — Replace `--color-green-*` values with landing page palette. Keep the full green scale (50–900) but shift all values to use `#4ade80` as `--color-green-400`.
+- [ ] Add glass effect variables: `--glass-bg`, `--glass-border`, `--glow`
+- [ ] Set `--color-body-bg` to `#050505` (match landing page)
+- [ ] Verify all components still look correct after color shift
+
+### 3.2 Font Unification
+
+| Usage | Landing Page | React App | Recommendation |
+|-------|-------------|-----------|---------------|
+| Body | Inter | Clash Grotesk | **Keep Inter** for body text everywhere. It's the fintech standard (Stripe, Linear, Vercel). |
+| Headings | Inter | Playfair Display (serif) | **Drop Playfair Display** — serif doesn't fit fintech. Use Clash Grotesk for headings only, or just use Inter everywhere. |
+
+- [ ] `src/index.css` — Set `font-family` to `'Inter', system-ui, sans-serif`
+- [ ] Remove Playfair Display link from `index.html`
+- [ ] Keep Clash Grotesk as optional heading font (loaded via fontshare)
+
+### 3.3 Frontend-V2 `index.html` Cleanup
+
+- [ ] Title already fixed: "CineX — Fintech Infrastructure for African Creative IP" ✅
+- [ ] Add meta description matching landing page
+- [ ] Add Google Fonts preconnect for Inter (already has Playfair Display — replace or keep both)
+- [ ] Verify favicon renders correctly at `/favicon.png`
+
+### 3.4 Landing Page (`index.html`) Updates
+
+- [ ] Review for any remaining film-only language (currently well-positioned as multi-vertical)
+- [ ] Change Q3 roadmap item: "filmmaker identity" → "creator identity" (line 686)
+- [ ] Change footer: "film, music, gaming, and immersive media" → "film, music, gaming, fashion, sports entertainment, and immersive media" (expand to full spectrum)
+
+**Exit criteria**: Landing page and React app share identical brand colors. Fonts are unified. Both index.html files have correct meta tags.
+
+---
+
+## Phase 4: Frontend Day 11 — Wallet UI Components (2 hrs)
+
+### 4.1 Wallet Abstraction UI Components
 
 Create these components in `frontend-v2-legacy/src/components/wallet/`:
 
@@ -88,7 +202,7 @@ Create these components in `frontend-v2-legacy/src/components/wallet/`:
 | `CurrencyConverter.tsx` | Convert NGN ↔ USD with rate quote + 60s countdown + confirm |
 | `TransactionHistory.tsx` | Paginated transaction list; filter by type (deposit/send/swap) and date range |
 
-### 2.2 Integration Test: Frontend ↔ Backend
+### 4.2 Integration Test: Frontend ↔ Backend
 
 - [ ] Start backend: `cd backend; npm start`
 - [ ] Start frontend: `cd frontend-v2-legacy; npm run dev`
@@ -96,13 +210,13 @@ Create these components in `frontend-v2-legacy/src/components/wallet/`:
 - [ ] Test: send NGN → confirm deposit → check balance updated
 - [ ] Test: cross-currency send → verify auto-conversion
 
-**Exit criteria**: All 5 wallet components render with live backend data.
+**Exit criteria**: All 5 wallet components render with live backend data, using unified brand colors.
 
 ---
 
-## Phase 3: Frontend Day 12 — Build + Deploy Config (1.5 hrs)
+## Phase 5: Frontend Day 12 — Build + Deploy Config (1.5 hrs)
 
-### 3.1 Environment Configuration
+### 5.1 Environment Configuration
 
 Create `.env.production`:
 
@@ -113,14 +227,14 @@ VITE_STACKS_API_URL=https://stacks-node-api.testnet.stacks.co
 VITE_NETWORK=testnet
 ```
 
-### 3.2 Build Optimization
+### 5.2 Build Optimization
 
 - [ ] Configure Vite build: code splitting, tree shaking, asset hashing
 - [ ] Add build scripts to `package.json`: `npm run build`, `npm run preview`
 - [ ] Verify production build: `npm run build` completes without errors
 - [ ] Test preview server: `npm run preview` loads all routes
 
-### 3.3 Deployment Target
+### 5.3 Deployment Target
 
 | Target | URL | Method |
 |--------|-----|--------|
@@ -132,53 +246,23 @@ VITE_NETWORK=testnet
 
 ---
 
-## Phase 4: Documentation (1.5 hrs)
+## Phase 6: Documentation (1.5 hrs)
 
-### 4.1 Update `README.md`
+### 6.1 Verify `README.md`
 
-```markdown
-# CineX — Decentralized Creative Crowdfunding
+- [ ] Already rewritten with new positioning ✅
+- [ ] Update contract table if any contracts were renamed (campaign-module vs crowdfunding-module)
+- [ ] Add design system reference (brand colors, fonts)
 
-## Architecture
-9 smart contracts on Stacks + Node.js backend + React/Vite frontend
-
-## Smart Contracts (testnet)
-| Contract | Purpose |
-|----------|---------|
-| cinex-multisig | 2-of-3 admin |
-| ... | ... (full table) |
-
-## Wallet Abstraction
-Users never see blockchain. NGN + USD wallets backed by sBTC.
-Parallel market rate via Astrum API (free). 0.75% platform spread.
-
-## Quick Start
-### Backend
-cd backend && npm install && npm start
-
-### Frontend
-cd frontend-v2-legacy && npm install && npm run dev
-
-### Smart Contracts
-clarinet check && clarinet test && clarinet deploy --testnet
-
-## Environment Variables
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| VITE_USE_MOCK_DATA | true | Toggle mock/API mode |
-| VITE_API_URL | http://localhost:3001 | Backend URL |
-| PORT | 3001 | Backend port |
-```
-
-### 4.2 Create `DEPLOYMENT.md`
+### 6.2 Create `DEPLOYMENT.md`
 
 - Prerequisites (Node 20+, Clarinet 2.8+)
-- Smart contract deployment order (per implementation plan Section 5)
+- Smart contract deployment order (per implementation plan Section 5, updated for renamed contracts)
 - Frontend build + deploy to Vercel
 - Backend deploy to Railway
 - Environment variables per environment
 
-### 4.3 Verify Documentation
+### 6.3 Verify Documentation
 
 - [ ] README.md instructions produce a working local setup
 - [ ] DEPLOYMENT.md instructions successfully deploy
@@ -187,12 +271,13 @@ clarinet check && clarinet test && clarinet deploy --testnet
 
 ---
 
-## Phase 5: Final Verification + PR Merge (30 min)
+## Phase 7: Final Verification + PR Merge (30 min)
 
 - [ ] Run full test suite: `npx vitest run` (all contract tests + integration)
 - [ ] Run `clarinet check` — no warnings
 - [ ] Start backend → test all wallet endpoints with curl
 - [ ] Production build: `npm run build` (frontend)
+- [ ] Verify landing page (`index.html`) renders correctly
 - [ ] Stage, commit, push all changes
 - [ ] Merge PR #12 into `main`
 
@@ -203,10 +288,66 @@ clarinet check && clarinet test && clarinet deploy --testnet
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | Integration test uncovers cross-contract bug | Medium | High | Fix immediately, re-run all tests |
+| `crowdfunding-module` rename breaks imports | High | High | **Read every reference first.** `clarinet check` catches all. |
 | Astrum API down during rate test | Low | Low | Falls back to admin rate (₦1,400/$) |
+| Brand color change makes some UI unreadable | Medium | Medium | Visual review of every component after CSS update |
 | Vite build error | Low | Medium | Check missing imports, error log |
 | Backend SQLite migration conflict | Low | Medium | `migrateSchema()` uses `PRAGMA table_info` — safe |
 | Stacks testnet congestion | Medium | Low | `clarinet deploy` may queue; wait or retry |
+
+---
+
+## Contract State After Cleanup
+
+### Kept (9 core + traits)
+
+| Contract | Role |
+|----------|------|
+| `campaign-module` (renamed from crowdfunding-module) | Campaign creation and fund management |
+| `campaign-module-traits` (renamed) | Trait |
+| `milestone-escrow` | Milestone-gated escrow |
+| `milestone-escrow-trait` | Trait |
+| `milestone-verification` | Backer-weighted voting |
+| `project-verification-module` | Multi-vertical creator verification |
+| `project-verification-module-trait` | Trait |
+| `funding-pool` | Pooled/collaborative funding |
+| `funding-pool-trait` | Trait |
+| `yield-escrow` | 70/20/10 yield distribution |
+| `yield-escrow-trait` | Trait |
+| `bitflow-strategy` | DeFi yield strategy |
+| `bitflow-strategy-trait` | Trait |
+| `cinex-multisig` | 2-of-3 admin |
+| `timelock` | Admin action delay |
+| `timelock-trait` | Trait |
+| `oracle-proxy` | STX/USD price feed |
+| `oracle-proxy-trait` | Trait |
+| `asset-registry` | Token whitelist |
+| `asset-registry-trait` | Trait |
+| `reputation` | Peer-to-peer ratings |
+| `reputation-trait` | Trait |
+| `module-base` | Base module reference |
+| `module-base-trait` | Trait |
+| `emergency-module` | Emergency controls |
+| `emergency-module-trait` | Trait |
+| `mock-strategy` | Test helper |
+
+### Deleted (10 legacy + 17 test stubs)
+
+| Deleted | Why |
+|---------|-----|
+| `film-verification-module` | Replaced by `project-verification-module` |
+| `film-verification-dummy` | Test helper for deleted contract |
+| `escrow-module` | Replaced by `milestone-escrow` |
+| `rewards-module` | Rewards now via yield-escrow split |
+| `rewards-module-trait` | — |
+| `rewards-nft-trait` | — |
+| `CineX-rewards-sip09` | — |
+| `Co-EP-rotating-fundings` | Superseded by `funding-pool` |
+| `CineX-project` | Old hub — modular architecture |
+| `verification-mgt-extension` | Extension of deleted film-verification |
+| `film-verification-module-trait` | No longer referenced after refactor |
+| `escrow-module-trait` | No longer referenced after refactor |
+| 17 `.tests.clar` files | Auto-generated stubs, all empty |
 
 ---
 
