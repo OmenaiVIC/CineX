@@ -1,6 +1,6 @@
 # CineX Platform: UI/UX Design Document
 
-This document outlines the user interface (UI) and user experience (UX) design for the CineX platform, a decentralized crowdfunding platform for indie filmmakers.
+This document outlines the user interface (UI) and user experience (UX) design for the CineX platform, a milestone-based financing infrastructure for the creative economy.
 
 ## 1. Overall Vision & Principles
 
