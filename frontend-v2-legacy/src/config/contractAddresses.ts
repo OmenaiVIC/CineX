@@ -64,15 +64,15 @@ export function resolveContract(key: ContractKey): ContractEntry {
  * deploy the contracts to testnet.
  */
 export const TESTNET_DEFAULTS: Record<ContractKey, ContractEntry> = {
-  crowdfunding: { address: "", name: "crowdfunding-module" },
-  coep:         { address: "", name: "Co-EP-rotating-fundings" },
-  core:         { address: "", name: "CineX-project" },
-  verification: { address: "", name: "film-verification-module" },
-  escrow:       { address: "", name: "escrow-module" },
-  milestone_escrow: { address: "", name: "milestone-escrow" },
-  yield_escrow: { address: "", name: "yield-escrow" },
-  milestone_verification: { address: "", name: "milestone-verification" },
-  bitflow_strategy: { address: "", name: "bitflow-strategy" },
+  crowdfunding: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "campaign-module" },
+  coep:         { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "funding-pool" },
+  core:         { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "cinex-multisig" },
+  verification: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "project-verification-module" },
+  escrow:       { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-escrow" },
+  milestone_escrow: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-escrow" },
+  yield_escrow: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "yield-escrow" },
+  milestone_verification: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-verification" },
+  bitflow_strategy: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "bitflow-strategy" },
 };
 
 /**
@@ -82,11 +82,11 @@ export const TESTNET_DEFAULTS: Record<ContractKey, ContractEntry> = {
  * the full address+name; use the map below for just the name string.
  */
 export const CONTRACT_NAMES: Record<ContractKey, string> = {
-  crowdfunding: "crowdfunding-module",
-  coep:         "Co-EP-rotating-fundings",
-  core:         "CineX-project",
-  verification: "film-verification-module",
-  escrow:       "escrow-module",
+  crowdfunding: "campaign-module",
+  coep:         "funding-pool",
+  core:         "cinex-multisig",
+  verification: "project-verification-module",
+  escrow:       "milestone-escrow",
   milestone_escrow: "milestone-escrow",
   yield_escrow: "yield-escrow",
   milestone_verification: "milestone-verification",
