@@ -142,7 +142,14 @@ nav.scrolled{background:rgba(5,5,5,.85);backdrop-filter:blur(14px);border-bottom
 .btn-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);}
 .btn-outline{background:transparent;color:var(--green);border:1px solid rgba(74,222,128,.3);}
 .btn-outline:hover{background:var(--green-dim);}
-
+.twitter-ticker{display:inline-flex;align-items:center;gap:4px;font-size:.85rem;color:var(--text-muted);transition:color .2s;}
+.twitter-ticker:hover{color:var(--green);}
+.ticker-label{opacity:.7;}
+.ticker-wrap{position:relative;display:inline-block;height:1.2em;overflow:hidden;width:auto;min-width:140px;text-align:left;}
+.ticker-slide{position:absolute;top:0;left:0;width:100%;opacity:0;transform:translateY(8px);transition:all .6s ease;color:var(--green);font-weight:500;}
+.ticker-slide.active{opacity:1;transform:translateY(0);}
+.ticker-arrow{transition:transform .3s;}
+.twitter-ticker:hover .ticker-arrow{transform:translateX(4px);}
 /* Scroll indicator */
 .scroll-indicator{
   position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
@@ -478,7 +485,7 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
     <h1>Fintech Infrastructure for<br><em>African Creative IP</em></h1>
     <p class="hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative work investable, verifiable, and bankable — on a unified financial rail.</p>
     <div class="hero-actions">
-      <a href="https://docs.google.com/forms/d/e/FAIpQLSf8x5Uz7v9mJ8kVgV4nC1Q3yF6H0kL2pR3sT4w5x6y7z8A9bB0cC1dD2eE3fF4gG/viewform" target="_blank" rel="noopener" class="btn btn-primary">Join Waitlist →</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901" target="_blank" rel="noopener" class="btn btn-primary">Join Waitlist →</a>
       <a href="#features" class="btn btn-secondary">Explore Model</a>
     </div>
   </div>
@@ -849,7 +856,7 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
         <div class="inv-item glass"><span class="label">Raise Amount</span><span class="value" style="color:var(--green);">$600,000</span></div>
         <div class="inv-item glass"><span class="label">Valuation</span><span class="value">$5M post / $4.4M pre</span></div>
         <div class="inv-item glass"><span class="label">Anchor Allocations</span><span class="value">$100k–$250k</span></div>
-        <div class="inv-item glass"><span class="label">Contact</span><span class="value" style="font-size:.85rem;"><a href="mailto:invest@cinex.africa">invest@cinex.africa</a></span></div>
+        <div class="inv-item glass"><span class="label">Contact</span><span class="value" style="font-size:.85rem;"><a href="mailto:mediacinex@gmail.com">mediacinex@gmail.com</a></span></div>
       </div>
       <div class="fade-up">
         <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-bottom:16px;">Use of Funds</h3>
@@ -863,7 +870,7 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
       </div>
     </div>
     <div class="investor-cta fade-up">
-      <a href="mailto:invest@cinex.africa" class="btn btn-primary" style="font-size:1rem;padding:16px 40px;">Contact for Investment →</a>
+      <a href="mailto:mediacinex@gmail.com" class="btn btn-primary" style="font-size:1rem;padding:16px 40px;">Contact for Investment →</a>
     </div>
   </div>
 </section>
@@ -872,9 +879,15 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
 <footer>
   <p style="font-size:.9rem;color:var(--text);font-weight:500;">New financing rails for film, music, gaming, and immersive media.</p>
   <div class="social-links">
-    <a href="https://twitter.com/cinex_africa" target="_blank" rel="noopener">Twitter / X</a>
-    <a href="https://github.com/mediafintech/CineX" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://linkedin.com/company/cinex" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="/litepaper.html" target="_blank" rel="noopener" style="font-size:.85rem;">Economic Litepaper</a>
+    <a href="https://x.com/MediaCinex73878" target="_blank" rel="noopener" class="twitter-ticker">
+      <span class="ticker-label">Follow us </span>
+      <span class="ticker-wrap">
+        <span class="ticker-slide active">@MediaCinex73878</span>
+        <span class="ticker-slide">@paper2screen</span>
+      </span>
+      <span class="ticker-arrow">→</span>
+    </a>
   </div>
   <p>© 2026 CineX. All rights reserved.</p>
 </footer>
@@ -991,6 +1004,21 @@ new Swiper('.pilot-carousel',{
     1024:{slidesPerView:1.5,centeredSlides:true}
   }
 });
+
+// TWITTER TICKER
+(function(){
+  const slides=document.querySelectorAll('.ticker-slide');
+  if(slides.length<2)return;
+  let current=0;
+  const links=['https://x.com/MediaCinex73878','https://x.com/paper2screen'];
+  const linkEl=document.querySelector('.twitter-ticker');
+  setInterval(()=>{
+    slides[current].classList.remove('active');
+    current=(current+1)%slides.length;
+    slides[current].classList.add('active');
+    if(linkEl&&links[current])linkEl.href=links[current];
+  },3000);
+})();
 </script>
 </body>
 </html>
