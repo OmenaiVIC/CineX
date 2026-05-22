@@ -49,9 +49,8 @@ npm start
 
 ### Frontend
 ```
-cd frontend-v2-legacy
-npm install
-npm run dev
+cd frontend
+# Vite + React project (coming soon)
 ```
 
 ### Smart Contracts
@@ -72,7 +71,7 @@ clarinet test
 
 ## Project Status
 
-**All 29 smart contracts deployed on Stacks testnet. Frontend live at https://cine-x-main.vercel.app**
+**All 29 smart contracts deployed on Stacks testnet. Frontend live at https://cine-x-iota.vercel.app**
 
 **Completed:**
 - 29 Clarity smart contracts across 9 layers fully developed, tested, and deployed
@@ -104,7 +103,7 @@ clarinet test
 
 ## Learn More
 
-- **[Frontend Guide](./frontend-v2-legacy/README.md)** — Setup and development
+- **Frontend** — Placeholder at `frontend/` (new project coming soon)
 - **[Backend Guide](./BACKEND_README.md)** — API and database
 - **[Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md)** — How dual-currency works
 - **[Deployment Workplan](./DEPLOYMENT_1DAY_WORKPLAN_SMARTCONTRACT_AND_FRONTEND.md)** — Path to testnet
@@ -114,7 +113,7 @@ clarinet test
 
 | Component | URL | Status |
 |-----------|-----|--------|
-| Frontend | https://cine-x-main.vercel.app | ✅ Live (testnet) |
+| Frontend | https://cine-x-iota.vercel.app | ✅ Live (placeholder) |
 | Backend | Render (set up via `render.yaml`) | 🔧 Configured, deploy via Render dashboard |
 | Contracts | ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM | ✅ 29/29 deployed on testnet |
 
