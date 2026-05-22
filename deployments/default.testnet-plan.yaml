@@ -22,192 +22,206 @@ plan:
         - contract-publish:
             contract-name: asset-registry-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27822749
+            cost: 5940
             path: "contracts\\asset-registry-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: asset-registry
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27963935
+            cost: 69120
             path: "contracts\\asset-registry.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: bitflow-strategy-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27831858
+            cost: 9320
             path: "contracts\\bitflow-strategy-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: emergency-module-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27827303
+            cost: 6520
             path: "contracts\\emergency-module-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: module-base-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27827303
+            cost: 6410
             path: "contracts\\module-base-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: bitflow-strategy
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28009479
+            cost: 90870
             path: "contracts\\bitflow-strategy.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: milestone-escrow-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27854629
+            cost: 18610
             path: "contracts\\milestone-escrow-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: project-verification-module-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27877401
+            cost: 29040
             path: "contracts\\project-verification-module-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: campaign-module-traits
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27854629
+            cost: 18960
             path: "contracts\\campaign-module-traits.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: campaign-module
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28496798
+            cost: 314300
+            path: "contracts\\campaign-module.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: campaign-module-2
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 314300
             path: "contracts\\campaign-module.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: timelock-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27836412
+            cost: 10810
             path: "contracts\\timelock-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: timelock
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27941163
+            cost: 58800
             path: "contracts\\timelock.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: cinex-multisig
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28000370
+            cost: 86110
             path: "contracts\\cinex-multisig.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: emergency-module
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27827303
+            cost: 7610
             path: "contracts\\emergency-module.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: funding-pool-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27863738
+            cost: 23170
             path: "contracts\\funding-pool-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: oracle-proxy-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27827303
+            cost: 7420
             path: "contracts\\oracle-proxy-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: oracle-proxy
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27927500
+            cost: 52320
             path: "contracts\\oracle-proxy.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: project-verification-module
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28332840
+            cost: 239960
             path: "contracts\\project-verification-module.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: milestone-escrow
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28259970
+            cost: 205540
             path: "contracts\\milestone-escrow.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: reputation-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27840966
+            cost: 13110
             path: "contracts\\reputation-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: reputation
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27977598
+            cost: 76740
             path: "contracts\\reputation.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: funding-pool
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28364721
+            cost: 255180
             path: "contracts\\funding-pool.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: milestone-verification
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28132447
+            cost: 147180
             path: "contracts\\milestone-verification.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
-            contract-name: mock-strategy
+            contract-name: milestone-verification-2
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27845521
-            path: "contracts\\mock-strategy.clar"
-            anchor-block-only: true
-            clarity-version: 2
-        - contract-publish:
-            contract-name: module-base
-            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27827303
-            path: "contracts\\module-base.clar"
+            cost: 147180
+            path: "contracts\\milestone-verification-2.clar"
             anchor-block-only: true
             clarity-version: 2
       epoch: "2.5"
     - id: 2
       transactions:
         - contract-publish:
+            contract-name: mock-strategy
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 14540
+            path: "contracts\\mock-strategy.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: module-base
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 6380
+            path: "contracts\\module-base.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
             contract-name: yield-escrow-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 27845521
+            cost: 16120
             path: "contracts\\yield-escrow-trait.clar"
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: yield-escrow
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 28241752
+            cost: 197540
             path: "contracts\\yield-escrow.clar"
             anchor-block-only: true
             clarity-version: 2

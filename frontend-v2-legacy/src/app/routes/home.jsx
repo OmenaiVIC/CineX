@@ -5,7 +5,7 @@ import FeaturesSection from '@features/home/components/features-section';
 import SecureAccessSection from '@features/home/components/secure-access-section';
 function HomePage() {
   return (
-    <PageLayout title="Welcome To CineX">
+    <PageLayout title="CineX — Cypherpunk Finance for Creative IP">
       <HeroSection />
       <FeaturesSection />
       <SecureAccessSection />

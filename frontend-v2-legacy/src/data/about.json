@@ -1,22 +1,22 @@
 {
   "hero": {
-    "label": "Check our stats",
-    "title": "About us",
+    "label": "Milestone-Based Financing",
+    "title": "About CineX",
     "description": "Making creative IP investable, verifiable, and bankable",
-    "content": "CineX Protocol is a milestone-based financing infrastructure for African creative IP. We connect idle capital to Africa's $5B+ creative economy — making creative projects verifiable, bankable, and investable through on-chain milestone governance and productive escrow.",
+    "content": "CineX Protocol is a milestone-based financing infrastructure for African creative IP. We connect idle capital to Africa's $5B+ creative economy — making creative projects verifiable, bankable, and investable through on-chain milestone governance and productive escrow on Stacks.",
     "image": "/images/about.png",
     "ctaText": "Read more"
   },
   "stats": [
-    { "value": "$1.5B+", "label": "Assets Under Management" },
-    { "value": "100+", "label": "Active Clients" },
-    { "value": "150+", "label": "Countries Served" },
-    { "value": "40+", "label": "Years Experience" }
+    { "value": "$0M+", "label": "Total Funded" },
+    { "value": "27", "label": "Smart Contracts" },
+    { "value": "9", "label": "Protocol Layers" },
+    { "value": "1+", "label": "Active Projects" }
   ],
   "story": {
-    "label": "Check our stats",
-    "title": "Making credit history with nightcard",
-    "content": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
+    "label": "Our Story",
+    "title": "Cypherpunk Finance for African Creatives",
+    "content": "CineX was built to solve a fundamental problem: African filmmakers and creative entrepreneurs lack access to the financing infrastructure that powers the global entertainment industry. Traditional finance demands collateral they don't have. Crowdfunding platforms take 10-15% fees. Neither offers milestone-based accountability.\n\nBuilt on Stacks (Bitcoin L2), CineX uses milestone escrow contracts to release funds only when deliverables are verified by independent endorsers. Every contribution, milestone completion, and reputation signal is recorded on-chain — creating a transparent, trust-minimized financing layer for the $5B+ African creative economy.",
     "images": [
       "/images/img2.png",
       "/images/img4.png",
@@ -30,22 +30,6 @@
     { "name": "Stephanie Ukiwe", "role": "Product Designer", "image": "/images/team-stephanie.png" },
     { "name": "McDaniells Albert", "role": "Fullstack Engineer", "image": "/images/team-mcdaniells.png" }
   ],
-  "jobs": [
-    { "position": "Product Manager, Instagram Camera", "department": "marketing", "commitment": "Full Time", "location": "Los Angeles", "category": "marketing" },
-    { "position": "UX Designer", "department": "design", "commitment": "Full Time", "location": "San Francisco", "category": "design" },
-    { "position": "Senior Frontend Developer", "department": "engineering", "commitment": "Full Time", "location": "Remote", "category": "software-engineering" },
-    { "position": "Customer Success Manager", "department": "support", "commitment": "Full Time", "location": "New York", "category": "customer-success" },
-    { "position": "Sales Representative", "department": "sales", "commitment": "Full Time", "location": "Chicago", "category": "sales" },
-    { "position": "Marketing Specialist", "department": "marketing", "commitment": "Part Time", "location": "Austin", "category": "marketing" },
-    { "position": "Backend Engineer", "department": "engineering", "commitment": "Full Time", "location": "Remote", "category": "software-engineering" },
-    { "position": "Content Designer", "department": "design", "commitment": "Contract", "location": "Portland", "category": "design" }
-  ],
-  "jobCategories": [
-    { "id": "all", "label": "All" },
-    { "id": "design", "label": "Design" },
-    { "id": "software-engineering", "label": "Software Engineering" },
-    { "id": "customer-success", "label": "Customer Success" },
-    { "id": "sales", "label": "Sales" },
-    { "id": "marketing", "label": "Marketing" }
-  ]
+  "jobs": [],
+  "jobCategories": []
 }

@@ -22,6 +22,12 @@ const FeedPage = lazy(() => import('@routes/feed'));
 const OnboardingPage = lazy(() => import('@routes/onboarding'));
 const CreatorDashboardPage = lazy(() => import('@routes/dashboard-creator'));
 const BackerDashboardPage = lazy(() => import('@routes/dashboard-backer'));
+const AdminPage = lazy(() => import('@routes/admin'));
+const EndorsementPage = lazy(() => import('@routes/endorsement'));
+const AnalyticsPage = lazy(() => import('@routes/analytics'));
+const PortfolioPage = lazy(() => import('@routes/portfolio'));
+const VerificationFeePage = lazy(() => import('@routes/verification-fee'));
+const VerificationRenewalPage = lazy(() => import('@routes/verification-renewal'));
 
 const SuspenseWrapper = ({ children }) => (
   <Suspense fallback={<Loading fullScreen message="Loading page..." />}>
@@ -62,6 +68,12 @@ const routes = [
   createRoute('/feed', FeedPage, 'feed', 'Feed', true),
   createRoute('/login', LoginPage, 'login', 'Login'),
   createRoute('/register', RegisterPage, 'register', 'Register'),
+  createRoute('/admin', AdminPage, 'admin', 'Admin', true),
+  createRoute('/endorsement', EndorsementPage, 'endorsement', 'Endorsement', true),
+  createRoute('/analytics', AnalyticsPage, 'analytics', 'Analytics'),
+  createRoute('/portfolio', PortfolioPage, 'portfolio', 'Portfolio'),
+  createRoute('/verification-fee', VerificationFeePage, 'verification-fee', 'Verification Fee'),
+  createRoute('/verification-renewal', VerificationRenewalPage, 'verification-renewal', 'Verification Renewal'),
 ];
 
 export const router = createBrowserRouter(routes);

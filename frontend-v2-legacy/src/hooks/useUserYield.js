@@ -24,7 +24,7 @@ export function useUserYield(address) {
 
     const [poolsResult, campaignsResult] = await Promise.all([
       svc.pool.getPools({ status: 'active', page: 1, limit: 50 }),
-      svc.crowdfunding?.getCampaigns?.().catch(() => ({ success: false })),
+      svc.campaign?.getCampaigns?.().catch(() => ({ success: false })),
     ]);
 
     const pools = poolsResult.success && poolsResult.data ? poolsResult.data.items : [];

@@ -6,7 +6,7 @@ history.txt
 
 # Environment files - NEVER commit these!
 .env
-.env.*
+.env.local
 
 logs
 *.log
@@ -16,3 +16,6 @@ coverage
 costs-reports.json
 node_modules
 .vercel
+
+# Build artifacts
+frontend-v2-legacy/dist/

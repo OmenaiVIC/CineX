@@ -30,11 +30,11 @@ export function getNetwork(): StacksNetwork {
 /**
  * Get contract deployment address from environment
  */
-type ContractType = 'coep' | 'crowdfunding' | 'core' | 'verification' | 'escrow' | 'milestone_escrow' | 'yield_escrow' | 'milestone_verification' | 'bitflow_strategy';
+type ContractType = 'fundingPool' | 'campaign' | 'core' | 'verification' | 'escrow' | 'milestone_escrow' | 'yield_escrow' | 'milestone_verification' | 'bitflow_strategy';
 
 const CONTRACT_ENV_MAP: Record<string, string> = {
-  coep: 'VITE_CO_EP_CONTRACT_ADDRESS',
-  crowdfunding: 'VITE_CROWDFUNDING_CONTRACT_ADDRESS',
+  fundingPool: 'VITE_CO_EP_CONTRACT_ADDRESS',
+  campaign: 'VITE_CROWDFUNDING_CONTRACT_ADDRESS',
   core: 'VITE_MAIN_HUB_CONTRACT_ADDRESS',
   verification: 'VITE_VERIFICATION_CONTRACT_ADDRESS',
   escrow: 'VITE_ESCROW_CONTRACT_ADDRESS',
@@ -45,14 +45,14 @@ const CONTRACT_ENV_MAP: Record<string, string> = {
 };
 
 const CONTRACT_NAME_MAP: Record<string, string> = {
-  coep: 'funding-pool',
-  crowdfunding: 'campaign-module',
+  fundingPool: 'funding-pool',
+  campaign: 'campaign-module-2',
   core: 'cinex-multisig',
   verification: 'project-verification-module',
   escrow: 'milestone-escrow',
   milestone_escrow: 'milestone-escrow',
   yield_escrow: 'yield-escrow',
-  milestone_verification: 'milestone-verification',
+  milestone_verification: 'milestone-verification-2',
   bitflow_strategy: 'bitflow-strategy',
 };
 
@@ -83,8 +83,8 @@ export function getContractName(contractType: string): string {
   }
 
   const envMap: Record<string, string> = {
-    coep: 'VITE_CO_EP_CONTRACT_NAME',
-    crowdfunding: 'VITE_CROWDFUNDING_CONTRACT_NAME',
+    fundingPool: 'VITE_CO_EP_CONTRACT_NAME',
+    campaign: 'VITE_CROWDFUNDING_CONTRACT_NAME',
     core: 'VITE_MAIN_HUB_CONTRACT_NAME',
     verification: 'VITE_VERIFICATION_CONTRACT_NAME',
     escrow: 'VITE_ESCROW_CONTRACT_NAME',

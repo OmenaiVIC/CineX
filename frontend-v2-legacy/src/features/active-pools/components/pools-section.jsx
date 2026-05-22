@@ -1,11 +1,11 @@
-import { createCrowdfundingService } from '../../../services/crowdfundingService';
+import { createCampaignService } from '../../../services/campaignService';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@contexts/StacksAuthContext';
 import ContributionModal from './contribution-modal';
 
 function PoolsSection() {
-  console.log('VITE_CROWDFUNDING_CONTRACT_ADDRESS (pools-section.jsx):', import.meta.env.VITE_CROWDFUNDING_CONTRACT_ADDRESS);
+  console.log('VITE_CAMPAIGN_CONTRACT_ADDRESS (pools-section.jsx):', import.meta.env.VITE_CAMPAIGN_CONTRACT_ADDRESS);
   const { isAuthenticated, userSession } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -245,7 +245,7 @@ function PoolsSection() {
 
   const PoolCard = ({ pool, featured = false }) => (
     <div className={`w-full ${featured ? 'lg:w-2/3' : 'md:w-1/2 lg:w-1/3'} p-4`}>
-      <div className="h-full bg-gradient-radial-dark border border-gray-900/30 rounded-3xl overflow-hidden hover:border-yellow-400/50 transition duration-300">
+      <div className="h-full bg-gradient-radial-dark border border-gray-900/30 rounded-3xl overflow-hidden hover:border-green-500/40 transition duration-300">
         {/* Image */}
         <div className="mb-6 overflow-hidden h-48 md:h-64 lg:h-72">
           <img 
@@ -259,12 +259,12 @@ function PoolsSection() {
         <div className="px-6 pb-6">
           {/* Category Badge */}
           <div className="flex items-center mb-4">
-            <span className="text-sm text-yellow-400 font-medium capitalize">{pool.category}</span>
-            {featured && <span className="ml-2 px-2 py-1 bg-yellow-400 text-black text-xs font-bold rounded-full">Featured</span>}
+            <span className="text-sm text-green-400 font-medium capitalize">{pool.category}</span>
+            {featured && <span className="ml-2 px-2 py-1 bg-green-500 text-black text-xs font-bold rounded-full">Featured</span>}
           </div>
 
           {/* Title */}
-          <Link to={`/active-pools/${pool.id}`} className={`block mb-3 text-white font-bold hover:text-yellow-400 transition duration-200 line-clamp-2 ${featured ? 'text-3xl' : 'text-xl'}`}>
+          <Link to={`/active-pools/${pool.id}`} className={`block mb-3 text-white font-bold hover:text-green-400 transition duration-200 line-clamp-2 ${featured ? 'text-3xl' : 'text-xl'}`}>
             {pool.title}
           </Link>
 
@@ -277,11 +277,11 @@ function PoolsSection() {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-gray-400">Funding Progress</span>
-              <span className="text-sm text-yellow-400 font-semibold">{Math.round(getProgress(pool.currentFunding, pool.fundingGoal))}%</span>
+              <span className="text-sm text-green-400 font-semibold">{Math.round(getProgress(pool.currentFunding, pool.fundingGoal))}%</span>
             </div>
             <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-full transition-all duration-500"
+                className="bg-gradient-to-r from-green-400 to-green-500 h-full transition-all duration-500"
                 style={{ width: `${getProgress(pool.currentFunding, pool.fundingGoal)}%` }}
               ></div>
             </div>
@@ -294,11 +294,11 @@ function PoolsSection() {
           {/* Stats */}
           <div className="flex justify-between mb-5 text-xs text-gray-400 border-t border-gray-800 pt-4">
             <div className="text-center flex-1">
-              <p className="text-yellow-400 font-bold text-lg">{pool.investors.toLocaleString()}</p>
-              <p>Investors</p>
-            </div>
-            <div className="text-center flex-1 border-l border-gray-800">
-              <p className="text-yellow-400 font-bold text-lg">{pool.daysLeft}</p>
+              <p className="text-green-400 font-bold text-lg">{pool.investors.toLocaleString()}</p>
+               <p>Investors</p>
+             </div>
+             <div className="text-center flex-1 border-l border-gray-800">
+               <p className="text-cyan-400 font-bold text-lg">{pool.daysLeft}</p>
               <p>Days Left</p>
             </div>
           </div>
@@ -306,14 +306,14 @@ function PoolsSection() {
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-5">
             {pool.tags.map((tag, idx) => (
-              <span key={idx} className="px-3 py-1 text-xs text-gray-300 bg-gray-800/50 border border-gray-700 rounded-full hover:border-yellow-400/30 transition">
+              <span key={idx} className="px-3 py-1 text-xs text-gray-300 bg-gray-800/50 border border-gray-700 rounded-full hover:border-green-500/30 transition">
                 {tag}
               </span>
             ))}
           </div>
 
           {/* CTA Button */}
-          <button onClick={() => { setSelectedPool(pool); setShowModal(true); }} disabled={!isAuthenticated} className={`w-full py-3 px-4 font-bold rounded-lg transition duration-300 ${isAuthenticated ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}`}>
+          <button onClick={() => { setSelectedPool(pool); setShowModal(true); }} disabled={!isAuthenticated} className={`w-full py-3 px-4 font-bold rounded-lg transition duration-300 ${isAuthenticated ? 'bg-green-500 hover:bg-green-400 text-black' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}`}>
             {isAuthenticated ? 'Contribute' : 'Connect Wallet'}
           </button>
         </div>
@@ -342,8 +342,8 @@ function PoolsSection() {
               onClick={() => setSelectedCategory(category.id)}
               className={`px-6 py-3 rounded-full font-medium transition duration-300 ${
                 selectedCategory === category.id
-                  ? 'bg-yellow-400 text-black'
-                  : 'bg-gray-900/30 text-gray-300 border border-gray-700 hover:border-yellow-400'
+                  ? 'bg-green-500 text-black'
+                  : 'bg-gray-900/30 text-gray-300 border border-gray-700 hover:border-green-500'
               }`}
             >
               {category.label}
@@ -389,8 +389,8 @@ function PoolsSection() {
               if (!userSession) {
                 return { error: 'Wallet not connected' };
               }
-              const crowdfundingService = createCrowdfundingService(userSession);
-              const result = await crowdfundingService.contributeToCampaign({
+              const campaignService = createCampaignService(userSession);
+              const result = await campaignService.contributeToCampaign({
                 campaignId: selectedPool.id.toString(),
                 amount: amount.toString(),
                 message: ''

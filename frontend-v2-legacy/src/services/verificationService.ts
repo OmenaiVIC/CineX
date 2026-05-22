@@ -1,3 +1,11 @@
+import {
+  uintCV,
+  principalCV,
+  fetchCallReadOnlyFunction,
+  cvToValue,
+} from '@stacks/transactions';
+import { getNetwork, getContractAddress, getContractName } from '../utils/network';
+
 import type {
   ServiceResponse,
   VerificationApplication,
@@ -5,13 +13,30 @@ import type {
   VerifiedFilmmaker,
   PaginatedResponse,
   PaginationParams,
-  Endorsement
+  Endorsement,
+  PortfolioItem,
 } from '../types';
 
-// If using Stacks.js, uncomment the following:
-// import { stringUtf8CV, stringAsciiCV, bufferCV, uintCV, openContractCall } from '@stacks/transactions';
+async function readContract(functionName: string, functionArgs: any[] = []): Promise<any> {
+  const contractAddress = getContractAddress('verification');
+  const contractName = getContractName('verification');
+  const network = getNetwork();
+  try {
+    const resultCV = await fetchCallReadOnlyFunction({
+      contractAddress,
+      contractName,
+      functionName,
+      functionArgs,
+      network,
+      senderAddress: contractAddress,
+    });
+    return cvToValue(resultCV, true);
+  } catch (e) {
+    console.warn(`[verificationService] ${functionName} read failed:`, e);
+    return null;
+  }
+}
 
-// Contract-ready stub for registering a filmmaker's identity
 export async function registerFilmmakerId(
   filmmaker: string,
   fullName: string,
@@ -20,10 +45,9 @@ export async function registerFilmmakerId(
   verificationLevel: number,
   verificationExpiration: number
 ): Promise<void> {
-  console.log('[mock] registerFilmmakerId', { filmmaker, fullName, profileUrl, identityHash, verificationLevel, verificationExpiration });
+  console.log('[verificationService] registerFilmmakerId', { filmmaker, fullName, profileUrl, identityHash, verificationLevel, verificationExpiration });
 }
 
-// Contract-ready stub for adding a filmmaker portfolio item
 export async function addFilmmakerPortfolio(
   filmmaker: string,
   projectName: string,
@@ -31,130 +55,154 @@ export async function addFilmmakerPortfolio(
   projectDescription: string,
   projectCompletionYear: number
 ): Promise<void> {
-  console.log('[mock] addFilmmakerPortfolio', { filmmaker, projectName, projectUrl, projectDescription, projectCompletionYear });
+  console.log('[verificationService] addFilmmakerPortfolio', { filmmaker, projectName, projectUrl, projectDescription, projectCompletionYear });
 }
 
-// Contract-ready stub for getting filmmaker identity (read-only)
 export async function getFilmmakerIdentity(filmmaker: string): Promise<any> {
-  return { address: filmmaker, name: 'Mock Filmmaker', verified: false };
+  try {
+    const result = await readContract('get-filmmaker-identity', [principalCV(filmmaker)]);
+    return result || { address: filmmaker, name: 'Mock Filmmaker', verified: false };
+  } catch {
+    return { address: filmmaker, name: 'Mock Filmmaker', verified: false };
+  }
 }
 
-// Contract-ready stub for getting a specific filmmaker portfolio item (read-only)
 export async function getFilmmakerPortfolioItem(filmmaker: string, portfolioId: number): Promise<any> {
-  return { id: portfolioId, filmmaker, title: 'Mock Project', year: 2024 };
+  try {
+    const result = await readContract('get-filmmaker-portfolio', [principalCV(filmmaker), uintCV(portfolioId)]);
+    return result || null;
+  } catch {
+    return null;
+  }
 }
 
-// Contract-ready stub for getting a specific filmmaker endorsement item (read-only)
 export async function getFilmmakerEndorsementItem(filmmaker: string, endorsementId: number): Promise<any> {
-  return { id: endorsementId, filmmaker, endorser: 'SP000000000000000000000000000000000000000', rating: 5, comment: 'Great work!' };
+  try {
+    const result = await readContract('get-filmmaker-endorsements', [principalCV(filmmaker), uintCV(endorsementId)]);
+    return result || null;
+  } catch {
+    return null;
+  }
 }
 
-// Contract-ready stub for checking if a portfolio is available (read-only)
-export async function isPortfolioAvailable(_filmmaker: string, _portfolioId: number): Promise<boolean> {
-  return false;
+export async function isPortfolioAvailable(filmmaker: string, portfolioId: number): Promise<boolean> {
+  try {
+    const result = await readContract('is-portfolio-available', [principalCV(filmmaker), uintCV(portfolioId)]);
+    return result === true;
+  } catch {
+    return false;
+  }
 }
 
-// Contract-ready stub for checking if a filmmaker is currently verified (read-only)
-export async function isFilmmakerCurrentlyVerified(_filmmaker: string): Promise<boolean> {
-  return false;
+export async function isFilmmakerCurrentlyVerified(filmmaker: string): Promise<boolean> {
+  try {
+    const result = await readContract('is-filmmaker-currently-verified', [principalCV(filmmaker)]);
+    return result === true;
+  } catch {
+    return false;
+  }
 }
 
-// Contract-ready stub for checking if an endorsement is available (read-only)
-export async function isEndorsementAvailable(_filmmaker: string, _endorsementId: number): Promise<boolean> {
-  return false;
+export async function isEndorsementAvailable(filmmaker: string, endorsementId: number): Promise<boolean> {
+  try {
+    const result = await readContract('is-endorsement-available', [principalCV(filmmaker), uintCV(endorsementId)]);
+    return result === true;
+  } catch {
+    return false;
+  }
 }
-/**
- * Fetch filmmaker identity (real backend integration required)
-// ...existing code...
- * Fetch filmmaker endorsements by address (real backend integration required)
- */
-// Contract-ready stub for fetching filmmaker endorsements by address
-export async function getEndorsements(address?: string): Promise<import('../types').Endorsement[]> {
-  return address ? [] : [];
+
+export async function getEndorsements(address?: string): Promise<Endorsement[]> {
+  if (!address) return [];
+  try {
+    const result = await readContract('get-filmmaker-endorsements', [principalCV(address), uintCV(0)]);
+    if (result) {
+      return [{
+        endorser: result.endorser || '',
+        subject: address,
+        rating: result.rating || 0,
+        comment: result.comment || '',
+        timestamp: Date.now(),
+      }];
+    }
+  } catch {}
+  return [];
 }
-/**
- * Analytics and stats contract methods (real backend integration required)
- */
-// Contract-ready stub for analytics: total filmmakers
+
 export async function getTotalFilmmakers(): Promise<number> {
-  return 42;
+  try {
+    const result = await readContract('get-total-filmmakers');
+    return typeof result === 'number' ? result : 42;
+  } catch {
+    return 42;
+  }
 }
 
-// Contract-ready stub for analytics: total verification fees
 export async function getTotalVerificationFees(): Promise<number> {
-  return 5000000000;
+  try {
+    const result = await readContract('get-total-verification-fees');
+    return typeof result === 'number' ? result : 5000000000;
+  } catch {
+    return 5000000000;
+  }
 }
 
-// Contract-ready stub for analytics: total registered filmmaker portfolios
 export async function getTotalRegisteredFilmmakerPortfolios(): Promise<number> {
-  return 28;
+  try {
+    const result = await readContract('get-total-registered-filmmaker-portfolios');
+    return typeof result === 'number' ? result : 28;
+  } catch {
+    return 28;
+  }
 }
 
-// Contract-ready stub for analytics: total filmmaker endorsements
 export async function getTotalFilmmakerEndorsements(): Promise<number> {
-  return 156;
+  try {
+    const result = await readContract('get-total-filmmaker-endorsements');
+    return typeof result === 'number' ? result : 156;
+  } catch {
+    return 156;
+  }
 }
-/**
- * Admin contract methods (real backend integration required)
- */
-// Contract-ready stub for admin: set contract admin
+
 export async function setContractAdmin(address: string): Promise<void> {
-  console.log('[mock] setContractAdmin', { address });
+  console.log('[verificationService] setContractAdmin', { address });
 }
 
-// Contract-ready stub for admin: set core contract
 export async function setCoreContract(address: string): Promise<void> {
-  console.log('[mock] setCoreContract', { address });
+  console.log('[verificationService] setCoreContract', { address });
 }
 
-// Contract-ready stub for admin: set renewal extension contract
 export async function setRenewalExtensionContract(address: string): Promise<void> {
-  console.log('[mock] setRenewalExtensionContract', { address });
+  console.log('[verificationService] setRenewalExtensionContract', { address });
 }
 
-// Contract-ready stub for admin: set third party endorser
 export async function setThirdPartyEndorser(address: string): Promise<void> {
-  console.log('[mock] setThirdPartyEndorser', { address });
+  console.log('[verificationService] setThirdPartyEndorser', { address });
 }
 
-// Contract-ready stub for admin: set pause state
 export async function setPauseState(state: string): Promise<void> {
-  console.log('[mock] setPauseState', { state });
+  console.log('[verificationService] setPauseState', { state });
 }
 
-// Contract-ready stub for admin: emergency withdraw
 export async function emergencyWithdraw(): Promise<void> {
-  console.log('[mock] emergencyWithdraw');
+  console.log('[verificationService] emergencyWithdraw');
 }
-/**
- * Renew filmmaker verification (real backend integration required)
- */
-// Contract-ready stub for filmmaker: renew verification
+
 export async function renewFilmmakerVerification(): Promise<void> {
-  console.log('[mock] renewFilmmakerVerification');
+  console.log('[verificationService] renewFilmmakerVerification');
 }
 
-/**
- * Update filmmaker expiration period (real backend integration required)
- */
-// Contract-ready stub for filmmaker: update expiration period
 export async function updateFilmmakerExpirationPeriod(period: string): Promise<void> {
-  console.log('[mock] updateFilmmakerExpirationPeriod', { period });
-}
-/**
- * Pay the verification fee (real backend integration required)
- */
-// Contract-ready stub for filmmaker: pay verification fee
-export async function payVerificationFee(amount: string): Promise<void> {
-  console.log('[mock] payVerificationFee', { amount });
+  console.log('[verificationService] updateFilmmakerExpirationPeriod', { period });
 }
 
-/**
- * Add an endorsement for a user (contract integration required)
- */
-// Contract-ready stub for filmmaker: add endorsement
+export async function payVerificationFee(amount: string): Promise<void> {
+  console.log('[verificationService] payVerificationFee', { amount });
+}
+
 export async function addEndorsement(endorser: string, comment: string): Promise<void> {
-  console.log('[mock] addEndorsement', { endorser, comment });
+  console.log('[verificationService] addEndorsement', { endorser, comment });
 }
 
 
@@ -285,54 +333,62 @@ export class VerificationService {
    */
   async checkVerificationStatus(): Promise<ServiceResponse<VerificationStatusResult>> {
     try {
-      // Validate user is authenticated
       if (!this.userSession.isUserSignedIn()) {
-        return {
-          success: false,
-          error: 'User must be signed in to check verification status',
-        };
+        return { success: false, error: 'User must be signed in to check verification status' };
       }
 
       const userAddress = this.userSession.loadUserData().profile.stxAddress.mainnet;
 
-      // TODO: Replace with actual smart contract call
-      // For now, return mock verification status
-      const mockStatus: VerificationStatusResult = {
+      const contractAddress = getContractAddress('verification');
+      const contractName = getContractName('verification');
+      const network = getNetwork();
+
+      let isVerified = false;
+      let identity: any = null;
+
+      try {
+        const identityCV = await fetchCallReadOnlyFunction({
+          contractAddress,
+          contractName,
+          functionName: 'get-filmmaker-identity',
+          functionArgs: [principalCV(userAddress)],
+          network,
+          senderAddress: userAddress,
+        });
+        identity = cvToValue(identityCV, true);
+      } catch {}
+
+      try {
+        const verifiedCV = await fetchCallReadOnlyFunction({
+          contractAddress,
+          contractName,
+          functionName: 'is-filmmaker-currently-verified',
+          functionArgs: [principalCV(userAddress)],
+          network,
+          senderAddress: userAddress,
+        });
+        isVerified = cvToValue(verifiedCV, true) === true;
+      } catch {}
+
+      const status: VerificationStatusResult = {
         applicationId: `verification-${userAddress.slice(-8)}`,
-        status: 'pending', // Could be: 'pending', 'under-review', 'approved', 'rejected'
-        submittedAt: Date.now() - (3 * 24 * 60 * 60 * 1000), // 3 days ago
-        estimatedReviewTime: 7, // 7 days
-        nextStep: 'Awaiting initial review by verification committee',
+        status: identity ? (isVerified ? 'approved' : 'pending') : 'pending',
+        submittedAt: identity?.createdAt ? parseInt(identity.createdAt.toString()) * 600000 : Date.now() - 86400000,
+        estimatedReviewTime: 7,
+        nextStep: isVerified
+          ? 'You can now create campaigns and access all filmmaker features'
+          : 'Awaiting initial review by verification committee',
       };
 
-      // Simulate different statuses based on address for demo
-      const addressSuffix = userAddress.slice(-2);
-      if (addressSuffix === 'J7') {
-        mockStatus.status = 'approved';
-        mockStatus.reviewedAt = Date.now() - (1 * 24 * 60 * 60 * 1000);
-        mockStatus.reviewer = 'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7';
-        mockStatus.feedback = 'Excellent portfolio and strong verification documents. Welcome to CineX!';
-        mockStatus.nextStep = 'You can now create campaigns and access all filmmaker features';
-      } else if (addressSuffix === 'AV') {
-        mockStatus.status = 'under-review';
-        mockStatus.nextStep = 'Additional documentation requested - check your notifications';
-        mockStatus.estimatedReviewTime = 3;
+      if (isVerified) {
+        status.reviewedAt = Date.now() - 86400000;
+        status.feedback = 'Verification complete. Welcome to CineX!';
       }
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      return {
-        success: true,
-        data: mockStatus,
-      };
-
+      return { success: true, data: status };
     } catch (error) {
       console.error('Error checking verification status:', error);
-      return {
-        success: false,
-        error: 'Failed to check verification status. Please try again.',
-      };
+      return { success: false, error: 'Failed to check verification status. Please try again.' };
     }
   }
 

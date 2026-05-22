@@ -52,7 +52,6 @@ export const ErrorCodes = {
   POOL_NOT_ACTIVE: 'POOL_NOT_ACTIVE',
   ALREADY_POOL_MEMBER: 'ALREADY_POOL_MEMBER',
   NOT_POOL_MEMBER: 'NOT_POOL_MEMBER',
-  ROTATION_IN_PROGRESS: 'ROTATION_IN_PROGRESS',
 
   // Escrow specific errors
   ESCROW_LOCKED: 'ESCROW_LOCKED',
@@ -101,11 +100,10 @@ export const ErrorMessages: Record<string, string> = {
   [ErrorCodes.CAMPAIGN_NOT_ACTIVE]: 'This campaign is not currently accepting contributions.',
   [ErrorCodes.INSUFFICIENT_FUNDS]: 'You do not have enough STX for this transaction.',
 
-  [ErrorCodes.POOL_FULL]: 'This Co-EP pool is full and not accepting new members.',
-  [ErrorCodes.POOL_NOT_ACTIVE]: 'This Co-EP pool is not currently active.',
-  [ErrorCodes.ALREADY_POOL_MEMBER]: 'You are already a member of this Co-EP pool.',
-  [ErrorCodes.NOT_POOL_MEMBER]: 'You are not a member of this Co-EP pool.',
-  [ErrorCodes.ROTATION_IN_PROGRESS]: 'Cannot perform this action while pool rotation is in progress.',
+  [ErrorCodes.POOL_FULL]: 'This funding pool is full and not accepting new members.',
+  [ErrorCodes.POOL_NOT_ACTIVE]: 'This funding pool is not currently active.',
+  [ErrorCodes.ALREADY_POOL_MEMBER]: 'You are already a member of this funding pool.',
+  [ErrorCodes.NOT_POOL_MEMBER]: 'You are not a member of this funding pool.',
 
   [ErrorCodes.ESCROW_LOCKED]: 'These funds are currently locked in escrow.',
   [ErrorCodes.ESCROW_ALREADY_RELEASED]: 'These escrow funds have already been released.',

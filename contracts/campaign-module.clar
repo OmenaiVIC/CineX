@@ -675,9 +675,6 @@
   (begin
     ;; Only the original contract owner can call this
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
-
-    ;; Ensure module's address is not an invalid tx-sender
-    (asserts! (is-valid-module tx-sender) ERR-INVALID-RECIPIENT)  
     
     ;; Save the core contract address
     (var-set core-contract core)

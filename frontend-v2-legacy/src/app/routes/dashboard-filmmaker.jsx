@@ -4,7 +4,7 @@ import { useAuth } from '@contexts/StacksAuthContext';
 import DashboardLayout from '@components/dashboard/DashboardLayout';
 import PublicCampaignForm from '@features/campaign/components/public-campaign-form';
 import PrivatePoolForm from '@features/campaign/components/private-pool-form';
-import { createCrowdfundingService } from '../../services/crowdfundingService';
+import { createCampaignService } from '../../services/campaignService';
 import FeedWidget from '@features/dashboard/components/FeedWidget';
 import AIRecommendations from '@features/dashboard/components/AIRecommendations';
 import ReputationSummary from '@features/dashboard/components/ReputationSummary';
@@ -37,7 +37,7 @@ export default function FilmmakerDashboard() {
         setIsSubmitting(false);
         return;
       }
-      const crowdfundingService = createCrowdfundingService(userSession);
+      const campaignService = createCampaignService(userSession);
       const allowedCategories = [
         'short-film', 'feature', 'documentary', 'music-video', 'web-series', 'animation', 'podcast', 'other'
       ];
@@ -45,7 +45,7 @@ export default function FilmmakerDashboard() {
       if (!allowedCategories.includes(category)) {
         category = 'feature';
       }
-      const result = await crowdfundingService.createCampaign({
+      const result = await campaignService.createCampaign({
         title: formData.title,
         description: formData.description,
         targetAmount: formData.targetAmount,
@@ -83,8 +83,8 @@ export default function FilmmakerDashboard() {
         setIsSubmitting(false);
         return;
       }
-      const crowdfundingService = createCrowdfundingService(userSession);
-      const result = await crowdfundingService.createCampaign({
+      const campaignService = createCampaignService(userSession);
+      const result = await campaignService.createCampaign({
         title: formData.title,
         description: formData.description,
         targetAmount: formData.targetAmount,

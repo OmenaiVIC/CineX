@@ -30,6 +30,7 @@ function StacksAuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [balance, setBalance] = useState(null);
+  const [stxBalance, setStxBalance] = useState(null);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [error, setError] = useState(null);
   // user type: 'public' | 'filmmaker' | 'endorser' | null
@@ -155,6 +156,27 @@ function StacksAuthProvider({ children }) {
     userSession.signUserOut();
   };
 
+  const fetchStxBalance = async () => {
+    if (!userData) return;
+    try {
+      const address = getAddressFromUserData(userData);
+      if (!address) return;
+      const network = address.startsWith('ST') ? 'testnet' : 'mainnet';
+      const baseUrl = network === 'testnet'
+        ? 'https://api.testnet.hiro.so'
+        : 'https://api.mainnet.hiro.so';
+      const res = await fetch(`${baseUrl}/v2/accounts/${address}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.balance) {
+        const stx = parseFloat(json.balance) / 1_000_000;
+        setStxBalance(stx.toFixed(2));
+      }
+    } catch (error) {
+      console.error('Failed to fetch STX balance:', error);
+    }
+  };
+
   const refreshBalance = async () => {
     if (!userData) return;
     setIsLoadingBalance(true);
@@ -167,6 +189,7 @@ function StacksAuthProvider({ children }) {
       if (res.success && res.data) {
         setBalance(res.data);
       }
+      await fetchStxBalance();
     } catch (error) {
       console.error('Failed to refresh balance:', error);
     } finally {
@@ -174,12 +197,20 @@ function StacksAuthProvider({ children }) {
     }
   };
 
+  // Fetch STX balance on mount when authenticated
+  useEffect(() => {
+    if (isAuthenticated && userData) {
+      fetchStxBalance();
+    }
+  }, [isAuthenticated, userData]);
+
   const value = {
     userSession,
     userData,
     isAuthenticated,
     isLoading,
     balance,
+    stxBalance,
     isLoadingBalance,
     error,
     userType,
@@ -187,6 +218,7 @@ function StacksAuthProvider({ children }) {
     signIn,
     signOut,
     refreshBalance,
+    fetchStxBalance,
     getAddressFromUserData,
   };
 

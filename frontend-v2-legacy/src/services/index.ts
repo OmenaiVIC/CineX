@@ -2,8 +2,8 @@
 // Centralized exports for all CineX platform services
 // Gated by VITE_USE_MOCK_DATA — when 'false', API-backed services are used.
 
-import { CrowdfundingService, createCrowdfundingService } from './crowdfundingService';
-import { CoEPService, createCoEPService } from './coepService';
+import { CampaignService, createCampaignService } from './campaignService';
+import { FundingPoolService, createFundingPoolService } from './fundingPoolService';
 import { EscrowService, createEscrowService } from './escrowService';
 import { VerificationService, createVerificationService } from './verificationService';
 import { EmergencyService, createEmergencyService } from './emergencyService';
@@ -11,6 +11,7 @@ import { ReputationService, createReputationService } from './reputationService'
 import { ProfileService, createProfileService } from './profileService';
 import { PoolService, createPoolService } from './poolService';
 import { MilestoneService, createMilestoneService } from './milestoneService';
+import { MilestoneVerificationService, createMilestoneVerificationService } from './milestoneVerificationService';
 import { FeedService, createFeedService } from './feedService';
 import { AiService, createAiService } from './aiService';
 import { UserSettingsService, createUserSettingsService } from './userSettingsService';
@@ -21,8 +22,8 @@ import {
 } from './apiServices';
 import type { Campaign } from '../types';
 
-export { CrowdfundingService, createCrowdfundingService };
-export { CoEPService, createCoEPService };
+export { CampaignService, createCampaignService };
+export { FundingPoolService, createFundingPoolService };
 export { EscrowService, createEscrowService };
 export { VerificationService, createVerificationService };
 export { EmergencyService, createEmergencyService };
@@ -30,6 +31,7 @@ export { ReputationService, createReputationService };
 export { ProfileService, createProfileService };
 export { PoolService, createPoolService };
 export { MilestoneService, createMilestoneService };
+export { MilestoneVerificationService, createMilestoneVerificationService };
 export { FeedService, createFeedService };
 export { AiService, createAiService };
 export { UserSettingsService, createUserSettingsService };
@@ -58,7 +60,8 @@ export type {
   ServiceResponse,
   Campaign,
   CampaignContribution,
-  CoEPPool,
+  GovernancePool,
+  GovernanceProposal,
   PoolMember,
   EscrowDeposit,
   EscrowRelease,
@@ -85,7 +88,7 @@ export type {
  * const services = createCineXServices(userSession);
  * 
  * // Use services
- * const campaigns = await services.crowdfunding.getCampaigns();
+ * const campaigns = await services.campaign.getCampaigns();
  * const pools = await services.coep.getPools();
  * ```
  */
@@ -107,8 +110,8 @@ export function createCineXServices(userSession: any) {
 
   if (!useMock) {
     return {
-      crowdfunding: createCrowdfundingService(userSession),
-      coep: createCoEPService(userSession),
+      campaign: createCampaignService(userSession),
+      fundingPool: createFundingPoolService(userSession),
       escrow: createEscrowService(userSession),
       verification: createVerificationService(userSession),
       emergency: createEmergencyService(userSession),
@@ -116,6 +119,7 @@ export function createCineXServices(userSession: any) {
       profile:       new ApiProfileService(),
       pool:          new ApiPoolService(),
       milestone:     new ApiMilestoneService(),
+      milestoneVerification: createMilestoneVerificationService(userSession),
       feed:          new ApiFeedService(),
       ai:            new ApiAiService(false),
       userSettings:  new ApiUserSettingsService(),
@@ -124,8 +128,8 @@ export function createCineXServices(userSession: any) {
   }
 
   return {
-    crowdfunding: createCrowdfundingService(userSession),
-    coep: createCoEPService(userSession),
+    campaign: createCampaignService(userSession),
+    fundingPool: createFundingPoolService(userSession),
     escrow: createEscrowService(userSession),
     verification: createVerificationService(userSession),
     emergency: createEmergencyService(userSession),
@@ -133,6 +137,7 @@ export function createCineXServices(userSession: any) {
     profile:       createProfileService(userSession),
     pool:          createPoolService(userSession),
     milestone:     createMilestoneService(userSession),
+    milestoneVerification: createMilestoneVerificationService(userSession),
     feed:          createFeedService(userSession),
     ai:            createAiService(userSession),
     userSettings:  createUserSettingsService(userSession),

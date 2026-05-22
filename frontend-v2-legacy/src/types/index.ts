@@ -64,49 +64,54 @@ export interface CampaignContribution {
   message?: string;
 }
 
-// Co-EP Pool related types
-export interface CoEPPool {
+// Governance Pool related types
+export interface GovernancePool {
   id: string;
   name: string;
   description: string;
   creator: string; // Stacks address
+  targetAmount: string; // In microSTX
+  currentAmount: string; // In microSTX
+  minContribution: string; // In microSTX
+  minReputation: number;
+  duration: number; // In blocks
   maxMembers: number;
-  currentMembers: number;
-  contributionAmount: string; // In microSTX per rotation
-  cycleDuration: number; // In blocks
-  category: 'short-film' | 'feature' | 'documentary' | 'music-video' | 'web-series';
-  geographicFocus: 'bollywood' | 'hollywood' | 'nollywood' | 'global';
-  status: 'forming' | 'active' | 'completed' | 'paused';
+  memberCount: number;
+  status: 'active' | 'completed' | 'closed';
   createdAt: number;
-  currentRotation: number;
-  totalRotations: number;
-  legalAgreementHash?: string;
+  expiresAt: number;
+  members: PoolMember[];
+  proposals: GovernanceProposal[];
 }
 
 export interface PoolMember {
-  poolId: string;
   address: string;
+  amount: string; // In microSTX
   joinedAt: number;
-  rotationOrder: number;
-  hasBenefited: boolean;
-  contributionsMade: number;
-  isActive: boolean;
-  verificationStatus: UserProfile['verificationLevel'];
 }
 
-export interface PoolRotation {
+export interface GovernanceProposal {
+  id: string;
   poolId: string;
-  rotationNumber: number;
-  beneficiary: string;
+  proposer: string;
+  campaignId: string;
+  title: string;
+  description: string;
   amount: string; // In microSTX
-  startBlock: number;
-  endBlock: number;
-  status: 'upcoming' | 'active' | 'completed' | 'failed';
-  project?: {
-    title: string;
-    description: string;
-    mediaUrls?: string[];
-  };
+  status: 'active' | 'passed' | 'executed' | 'rejected';
+  createdAt: number;
+  deadline: number;
+  yesVotes: number;
+  noVotes: number;
+  totalVotes: number;
+  voters: Vote[];
+}
+
+export interface Vote {
+  voter: string;
+  support: boolean;
+  amount: string;
+  timestamp: number;
 }
 
 // Escrow related types
@@ -236,18 +241,32 @@ export interface ContributeToCampaignParams {
 
 export interface CreatePoolParams {
   name: string;
-  description: string;
-  maxMembers: number;
-  contributionAmount: string;
-  cycleDuration: number;
-  category: CoEPPool['category'];
-  geographicFocus: CoEPPool['geographicFocus'];
-  legalAgreementHash?: string;
+  description?: string;
+  targetAmount: string;
+  minContribution: string;
+  minReputation?: number;
+  duration?: number;
+  maxMembers?: number;
 }
 
 export interface JoinPoolParams {
   poolId: string;
-  rotationOrder: number;
+  amount: string;
+}
+
+export interface ProposeAllocationParams {
+  poolId: string;
+  campaignId: string;
+  amount: string;
+}
+
+export interface VoteOnProposalParams {
+  proposalId: string;
+  approve: boolean;
+}
+
+export interface ExecuteAllocationParams {
+  proposalId: string;
 }
 
 export interface ContributeToPoolParams {
@@ -292,10 +311,9 @@ export interface CampaignFilters {
 }
 
 export interface PoolFilters {
-  category?: CoEPPool['category'];
-  geographicFocus?: CoEPPool['geographicFocus'];
-  status?: CoEPPool['status'];
-  hasSpace?: boolean;
+  status?: GovernancePool['status'];
+  minAmount?: string;
+  maxAmount?: string;
   search?: string;
 }
 

@@ -1,39 +1,23 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@contexts/StacksAuthContext';
 
-const MOCK_BACKED = [
-  {
-    id: 'backed-1',
-    campaignId: 'camp-b1',
-    title: 'Sahara Blues',
-    creatorName: 'Amara Okafor',
-    creatorAddress: 'SP3X6QWWETNB4GB6B6W6Z1S2SQE3X6QWWETNB4GB',
-    amountContributed: '500000000',
-    status: 'active',
-    deadline: Date.now() + 30 * 86400000,
-  },
-  {
-    id: 'backed-2',
-    campaignId: 'camp-b2',
-    title: 'AfroJazz Fusion',
-    creatorName: 'Kofi Mensah',
-    creatorAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-    amountContributed: '250000000',
-    status: 'funded',
-    deadline: Date.now() - 10 * 86400000,
-  },
-  {
-    id: 'backed-3',
-    campaignId: 'camp-b3',
-    title: 'Nairobi Cyberpunk',
-    creatorName: 'Theo Adelekun',
-    creatorAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-    amountContributed: '1000000000',
-    status: 'active',
-    deadline: Date.now() + 60 * 86400000,
-  },
-];
+const BACKED_PREFIX = 'cinex_backed_';
+
+function getAllBackedCampaignIds() {
+  const ids = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(BACKED_PREFIX)) {
+        ids.push(key.slice(BACKED_PREFIX.length));
+      }
+    }
+  } catch {}
+  return ids;
+}
 
 export function useBackedCampaigns(address) {
+  const { userSession } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,13 +28,41 @@ export function useBackedCampaigns(address) {
       return;
     }
 
-    const timer = setTimeout(() => {
-      setCampaigns(MOCK_BACKED);
-      setIsLoading(false);
-    }, 300);
+    let cancelled = false;
 
-    return () => clearTimeout(timer);
-  }, [address]);
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const { createCampaignService } = await import('@services/campaignService');
+        const service = createCampaignService(userSession);
+        const backedIds = getAllBackedCampaignIds();
+        const results = [];
+
+        for (const id of backedIds) {
+          const res = await service.getCampaignDetails(id);
+          if (res.success && res.data) {
+            const backedInfo = JSON.parse(localStorage.getItem(`${BACKED_PREFIX}${id}`) || '{}');
+            results.push({
+              ...res.data,
+              amountContributed: backedInfo.amount || '0',
+            });
+          }
+        }
+
+        if (!cancelled) {
+          setCampaigns(results);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) setError('Failed to load backed campaigns');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [address, userSession]);
 
   return { campaigns, isLoading, error };
 }
