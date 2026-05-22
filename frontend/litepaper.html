@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineX Economic Litepaper — Fintech Infrastructure for African Creative IP</title>
+<meta name="description" content="CineX Economic Litepaper: Productive escrow, milestone-gated payouts, dual-currency wallets, and the economic model powering Africa's creative economy financing infrastructure.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--green:#4ade80;--green-dim:rgba(74,222,128,0.1);--green-glow:rgba(74,222,128,0.25);--bg:#050505;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--text:#f0f0f0;--text-muted:#888;--warm:#f59e0b;--neon:#00e5ff;--radius:16px;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;--font-display:'Space Grotesk','Inter',sans-serif}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--green);color:#000}
+a{color:var(--green);text-decoration:none;transition:opacity .2s}
+a:hover{opacity:.8}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(74,222,128,0.04) 1px,transparent 0);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* NAV */
+#navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;background:transparent;transition:all .3s;font-family:var(--font-display)}
+#navbar.scrolled{background:rgba(5,5,5,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:1.1rem;font-weight:700;color:#fff}
+.nav-logo span{color:var(--green);font-weight:400}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--text-muted);font-size:.8rem;font-weight:500;letter-spacing:.03em;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--green);color:#000!important;padding:8px 20px;border-radius:100px;font-weight:600!important;font-size:.75rem!important}
+
+/* LAYOUT */
+.page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:120px 24px 80px}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.12;margin-bottom:16px}
+h1 em{color:var(--green);font-style:normal}
+.subtitle{font-size:1.05rem;color:var(--text-muted);margin-bottom:48px;max-width:680px}
+h2{font-family:var(--font-display);font-size:clamp(1.3rem,2.5vw,1.7rem);font-weight:700;margin:56px 0 16px;padding-top:24px;border-top:1px solid var(--border)}
+h2 .num{color:var(--green);margin-right:8px}
+h3{font-family:var(--font-display);font-size:1.1rem;font-weight:600;margin:32px 0 12px;color:var(--green)}
+p{margin-bottom:16px;color:var(--text-muted);font-size:.95rem}
+p strong{color:var(--text);font-weight:600}
+
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.card-green{border-color:rgba(74,222,128,.15);box-shadow:0 0 30px rgba(74,222,128,.04)}
+.card-header{font-family:var(--font-display);font-weight:600;margin-bottom:8px;color:var(--text)}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}
+.stat-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-value{font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--green)}
+.stat-label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-family:var(--font-display);font-weight:600;color:var(--green);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+td{color:var(--text-muted)}
+tr:hover td{background:var(--bg-card)}
+
+/* LISTS */
+ul{padding-left:20px;margin-bottom:16px}
+li{color:var(--text-muted);margin-bottom:6px;font-size:.9rem}
+li strong{color:var(--text)}
+
+/* HIGHLIGHT BOX */
+.highlight{background:var(--green-dim);border-left:3px solid var(--green);border-radius:0 12px 12px 0;padding:20px 24px;margin:24px 0}
+.highlight p:last-child{margin-bottom:0}
+
+/* METADATA */
+.meta{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:48px;padding:16px 0;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text-muted)}
+.meta span strong{color:var(--text)}
+
+/* TOC */
+.toc-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:32px 0}
+.toc-card ol{padding-left:20px;margin:0}
+.toc-card li{margin-bottom:8px;font-size:.9rem}
+.toc-card li a{color:var(--text-muted)}
+.toc-card li a:hover{color:var(--green)}
+
+/* PROGRESS BAR */
+.progress{display:flex;height:8px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.06);margin:8px 0}
+.progress-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.progress-fill.green{background:var(--green)}
+.progress-fill.warm{background:var(--warm)}
+.progress-fill.neon{background:var(--neon)}
+.progress-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-bottom:4px}
+
+/* CHART BARS */
+.chart{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.chart-row{display:flex;align-items:center;gap:12px}
+.chart-label{width:140px;font-size:.8rem;color:var(--text-muted);text-align:right;flex-shrink:0}
+.chart-bar{flex:1;height:28px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;position:relative}
+.chart-fill{height:100%;border-radius:6px;transition:width 1s ease;display:flex;align-items:center;padding-left:10px;font-size:.75rem;font-weight:600;color:#000;min-width:fit-content}
+.chart-fill.green{background:var(--green)}
+.chart-fill.warm{background:var(--warm)}
+.chart-fill.neon{background:var(--neon)}
+.chart-fill.purple{background:#a78bfa}
+.chart-pct{font-size:.8rem;color:var(--text-muted);width:40px;text-align:right}
+
+/* TAGS */
+.tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.7rem;font-weight:500;letter-spacing:.03em;margin-right:6px;margin-bottom:4px}
+.tag-green{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.tag-warm{background:rgba(245,158,11,.12);color:var(--warm);border:1px solid rgba(245,158,11,.2)}
+.tag-neon{background:rgba(0,229,255,.12);color:var(--neon);border:1px solid rgba(0,229,255,.2)}
+
+/* DASHED DIVIDER */
+.divider{border:none;border-top:1px dashed rgba(255,255,255,.08);margin:40px 0}
+
+/* FOOTER */
+footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8rem;border-top:1px solid var(--border);position:relative;z-index:1}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .page{padding:100px 16px 60px}
+  .nav-links a:not(.nav-cta){display:none}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .meta{flex-direction:column;gap:8px}
+  .chart-label{width:100px;font-size:.7rem}
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-logo">CineX <span>Litepaper</span></div>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#model">Model</a>
+    <a href="#market">Market</a>
+    <a href="#tech">Tech</a>
+    <a href="#financials">Financials</a>
+    <a href="https://cine-x-iota.vercel.app" class="nav-cta">← Main Site</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- TITLE -->
+  <h1>CineX <em>Economic Litepaper</em></h1>
+  <p class="subtitle">Fintech Infrastructure for African Creative IP — Productive escrow, milestone-gated capital, dual-currency wallets, and the economic model that makes African creative work investable, verifiable, and bankable.</p>
+  <div class="meta">
+    <span><strong>Version</strong> 1.0</span>
+    <span><strong>Date</strong> May 2026</span>
+    <span><strong>Contact</strong> <a href="mailto:mediacinex@gmail.com">mediacinex@gmail.com</a></span>
+    <span><strong>Status</strong> <span class="tag tag-green">Pre-Seed</span></span>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc-card">
+    <ol>
+      <li><a href="#exec">Executive Summary</a></li>
+      <li><a href="#problem">The Problem — Africa's $5B+ Creative Capital Gap</a></li>
+      <li><a href="#solution">The Solution — A Unified Financing Rail</a></li>
+      <li><a href="#model">Business Model — How CineX Generates Revenue</a></li>
+      <li><a href="#market">Market Opportunity</a></li>
+      <li><a href="#gtm">Go-to-Market — The Gatekeeper Model</a></li>
+      <li><a href="#tech">Technology Architecture</a></li>
+      <li><a href="#security">Security &amp; Risk Management</a></li>
+      <li><a href="#financials">Financial Projections</a></li>
+      <li><a href="#funds">Use of Funds</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#roadmap">Roadmap &amp; Milestones</a></li>
+      <li><a href="#risks">Risks &amp; Mitigations</a></li>
+      <li><a href="#appendix">Appendix — Technical Detail</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. EXECUTIVE SUMMARY -->
+  <h2 id="exec"><span class="num">01</span>Executive Summary</h2>
+
+  <p>CineX is building <strong>the financial infrastructure layer for Africa's creative economy</strong> — a unified system that connects verified African creators (filmmakers, musicians, game developers, immersive media artists) with global capital, using milestone-gated payouts, productive escrow with automated yield distribution, and dual-currency (NGN/USD) wallets that abstract away blockchain complexity entirely.</p>
+
+  <p>Africa's creative economy is valued at over <strong>$5 billion</strong>, yet virtually none of it is bankable. Creatives cannot access financing because there is no system to verify identity, release funds conditionally, or give backers confidence their capital is safe. Existing solutions are either donation-based (Kickstarter-style, no accountability) or require collateral and credit history that most African creatives do not have.</p>
+
+  <p>CineX solves this by providing a <strong>full-stack financing infrastructure</strong>:</p>
+
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-value">34</div><div class="stat-label">Gatekeepers Committed</div></div>
+    <div class="stat-item"><div class="stat-value">$1M+</div><div class="stat-label">Pipeline Value</div></div>
+    <div class="stat-item"><div class="stat-value">70/20/10</div><div class="stat-label">Yield Split (Backer/Platform/Creator)</div></div>
+    <div class="stat-item"><div class="stat-value">$200B</div><div class="stat-label">TAM (Global Creative Economy)</div></div>
+    <div class="stat-item"><div class="stat-value">29</div><div class="stat-label">Smart Contracts Deployed</div></div>
+    <div class="stat-item"><div class="stat-value">50</div><div class="stat-label">Passing Tests</div></div>
+  </div>
+
+  <p>CineX is raising a <strong>$600,000 pre-seed round</strong> at a $5M post-money valuation ($4.4M pre-money) to deploy the platform on Stacks mainnet, commission 5 pilot projects across film, music, and immersive media, onboard the 34 committed gatekeepers, build the dual-currency wallet, and achieve regulatory compliance.</p>
+
+  <hr class="divider">
+
+  <!-- 2. THE PROBLEM -->
+  <h2 id="problem"><span class="num">02</span>The Problem — Africa's $5B+ Creative Capital Gap</h2>
+
+  <p>Africa's creative economy generates <strong>$5+ billion annually</strong> across film (Nollywood: $6.4B GDP contribution), music (Afrobeats global export), gaming ($1B+), and emerging immersive media. Nigeria alone has over <strong>500,000 active filmmakers</strong> and <strong>1M+ creatives</strong> across all verticals. Yet the financing infrastructure is virtually non-existent.</p>
+
+  <h3>The Capital Access Problem</h3>
+  <ul>
+    <li><strong>No identity verification</strong> — Creatives cannot prove who they are or that they deliver on promises. Traditional credit scoring excludes 80%+ of African creatives.</li>
+    <li><strong>No conditional release</strong> — Capital is either grant-funded (no accountability) or requires full upfront payment (impossible for most projects).</li>
+    <li><strong>No backer confidence</strong> — No mechanism to hold funds securely and release them only when work is verified. Fraud and abandonment are endemic.</li>
+    <li><strong>Currency friction</strong> — Global backers transact in USD; Nigerian creatives need NGN. Conversion costs 3-5% through traditional channels with multi-day settlement.</li>
+    <li><strong>No productive use of idle capital</strong> — Funds sit in bank accounts earning zero yield while awaiting milestone completion. This is a massive opportunity cost.</li>
+  </ul>
+
+  <div class="highlight">
+    <p><strong>The result:</strong> Most African creative projects are financed by personal savings, family loans, or not at all. Institutional capital — impact funds, development finance institutions (DFIs), entertainment debt funds — cannot deploy because there is no verifiable, transparent infrastructure to route capital through.</p>
+  </div>
+
+  <h3>Market Validation</h3>
+  <p>The team conducted <strong>structured discovery sessions</strong> with 34 creative guild leaders, association heads, film producers, music label executives, and game studio founders across Nigeria. Key insights:</p>
+  <ul>
+    <li><strong>93.5% of initial conversations were in Nigeria</strong> — reflecting the country's dominant creative economy position</li>
+    <li>Average project budget: <strong>$9,000</strong> — accessible capital makes a disproportionate impact</li>
+    <li>Most pressing need: <strong>"Someone to verify we are real and hold funds safely"</strong></li>
+    <li>Gatekeepers consistently said: "If you build the verification system, we will bring our networks"</li>
+  </ul>
+
+  <hr class="divider">
+
+  <!-- 3. THE SOLUTION -->
+  <h2 id="solution"><span class="num">03</span>The Solution — A Unified Financing Rail</h2>
+
+  <p>CineX provides four interconnected capabilities that make African creative IP a real asset class:</p>
+
+  <div class="card card-green">
+    <div class="card-header">1. Verified Project Onboarding</div>
+    <p>No blind funding. Every project is vouched for by a trusted gatekeeper before it reaches the platform. Gatekeepers are guild leaders, association heads, and industry influencers who can verify a creative's identity and track record. CineX has 34 gatekeepers already committed, representing a pipeline of <strong>3,400+ potential creatives</strong> at zero marginal cost.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">2. Milestone-Gated Payouts</div>
+    <p>Capital does not flow upfront. Each project is broken into milestones. When a milestone is completed and verified by backers, the next tranche is released. If work is not delivered, the remaining capital stays protected. This is <strong>not crowdfunding</strong> — it is conditional financing with accountability built in at the protocol level.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">3. Productive Escrow (70/20/10 Model)</div>
+    <p>While capital sits in escrow awaiting milestone completion, it is deployed to DeFi yield strategies (initially Bitflow stable pools, later diversified across ALEX and Stacking DAO). The yield is distributed as follows:</p>
+    <div class="stat-row" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px">
+      <div class="stat-item"><div class="stat-value" style="font-size:1.3rem">70%</div><div class="stat-label">Backers (Proportional)</div></div>
+      <div class="stat-item"><div class="stat-value" style="font-size:1.3rem">20%</div><div class="stat-label">Platform (CineX)</div></div>
+      <div class="stat-item"><div class="stat-value" style="font-size:1.3rem">10%</div><div class="stat-label">Creator Bonus (Conditional)</div></div>
+    </div>
+    <p>The creator bonus (10%) is conditional on milestone performance — if a creator misses 3 or more milestones, the bonus is forfeited and redistributed 70/30 between backers and platform. This aligns incentives: creators are rewarded for delivery, and backers are protected beyond just capital preservation.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">4. Dual-Currency Wallet (NGN + USD)</div>
+    <p>Every user gets a wallet with <strong>three balances</strong> (NGN, USD, sBTC) backed by a single on-chain sBTC position in a Pillar smart wallet. Global backers fund in USD; Nigerian creatives receive in NGN. The conversion happens automatically at parallel market rates with a 0.75% spread. Users never see blockchain addresses, sign transactions, or pay gas fees — sponsored transactions abstract away the entire blockchain layer.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 4. BUSINESS MODEL -->
+  <h2 id="model"><span class="num">04</span>Business Model — How CineX Generates Revenue</h2>
+
+  <p>CineX has <strong>four revenue streams</strong>, each with different margin profiles and growth trajectories:</p>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 1: Platform Yield Share (20%)</div>
+    <table>
+      <tr><th>Source</th><td>20% of all yield generated from idle escrow capital deployed via DeFi strategies</td></tr>
+      <tr><th>Gross Margin</th><td>~90%+ (yield is passive; costs are gas fees and strategy monitoring)</td></tr>
+      <tr><th>Driver</th><td>Total financings × average escrow period × APY</td></tr>
+      <tr><th>Example</th><td>$1M deployed at 8% APY × 6-month avg hold = $40k yield → $8k platform revenue</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 2: Cross-Currency Spread (0.75%)</div>
+    <table>
+      <tr><th>Source</th><td>0.75% spread on every NGN↔USD conversion (USD→NGN = rate × 1.0075, NGN→USD = rate × 0.9925)</td></tr>
+      <tr><th>Gross Margin</th><td>~70% (covers Astrum API costs, hedging buffer, reconciliation overhead)</td></tr>
+      <tr><th>Driver</th><td>Total cross-currency transaction volume</td></tr>
+      <tr><th>Context</th><td>Industry standard: Wise 0.41-1.5%, virtual card providers 1-3%, banks 3-5%</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 3: Escrow Fee (5% per release)</div>
+    <table>
+      <tr><th>Source</th><td>5% fee on each milestone release, deducted from the released amount before it reaches the creator</td></tr>
+      <tr><th>Gross Margin</th><td>~60% (covers oracle costs, verification overhead, administrative costs)</td></tr>
+      <tr><th>Driver</th><td>Number and size of milestone releases (not total commitments)</td></tr>
+      <tr><th>Comparison</th><td>Kickstarter: 5% + 3-5% payment processing. Indiegogo: 5%. Republic: 6-8%.</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 4: Forfeited Creator Bonus (30% share)</div>
+    <table>
+      <tr><th>Source</th><td>When a creator misses ≥3 milestones and forfeits their 10% yield bonus, 30% of the forfeited bonus goes to the platform</td></tr>
+      <tr><th>Gross Margin</th><td>~100% (pure pass-through from contract logic; no additional cost to serve)</td></tr>
+      <tr><th>Notes</th><td>Not a target — this is a safety valve. Aligned with creator success, not platform revenue optimization.</td></tr>
+    </table>
+  </div>
+
+  <h3>Revenue Model Summary</h3>
+  <table>
+    <tr><th>Stream</th><th>% of Platform Revenue (Year 1 Est.)</th><th>Maturity</th><th>Scalability</th></tr>
+    <tr><td>Yield Share (20%)</td><td>35%</td><td>Medium (depends on DeFi integration)</td><td>High (passive, linear with AUM)</td></tr>
+    <tr><td>Cross-Currency Spread</td><td>30%</td><td>High (rate service built)</td><td>High (scales with volume)</td></tr>
+    <tr><td>Escrow Fee (5%)</td><td>30%</td><td>High (built into smart contracts)</td><td>High (scales with financings)</td></tr>
+    <tr><td>Forfeited Bonus (30%)</td><td>5%</td><td>Low (unpredictable)</td><td>Low (by design — not optimized for)</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 5. MARKET OPPORTUNITY -->
+  <h2 id="market"><span class="num">05</span>Market Opportunity</h2>
+
+  <p>CineX addresses a <strong>layered market</strong> with three concentric addressable segments:</p>
+
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-value">$1M</div><div class="stat-label">Initial Pipeline (Nigeria Gatekeepers)</div></div>
+    <div class="stat-item"><div class="stat-value">$5B+</div><div class="stat-label">Africa Creative Economy (SAM)</div></div>
+    <div class="stat-item"><div class="stat-value">$200B+</div><div class="stat-label">Global Creative Financing (TAM)</div></div>
+  </div>
+
+  <h3>Target Addressable Market</h3>
+  <table>
+    <tr><th>Segment</th><th>Annual Value</th><th>Geography</th><th>CineX Relevance</th></tr>
+    <tr><td>Nollywood film financing</td><td>$500M+</td><td>Nigeria</td><td>Direct — 34 gatekeepers already engaged</td></tr>
+    <tr><td>Afrobeats music production</td><td>$300M+</td><td>Nigeria / Ghana</td><td>Direct — gatekeeper network covers label heads</td></tr>
+    <tr><td>African gaming / game dev</td><td>$200M+</td><td>Pan-Africa</td><td>Emerging — dedicated pilot projects planned</td></tr>
+    <tr><td>Pan-African creative economy</td><td>$5B+</td><td>Sub-Saharan Africa</td><td>Medium — expansion target for Year 2+</td></tr>
+    <tr><td>Global creative economy financing</td><td>$200B+</td><td>Global</td><td>Long-term vision — infrastructure layer for all creative IP</td></tr>
+  </table>
+
+  <h3>Competitive Landscape (No Names, No Direct Competitors)</h3>
+  <table>
+    <tr><th>Category</th><th>Approach</th><th>Gap</th><th>CineX Advantage</th></tr>
+    <tr><td>Donation Crowdfunding</td><td>All-or-nothing, no accountability</td><td>Backers bear full risk; no verification</td><td>Milestone-gated with identity verification</td></tr>
+    <tr><td>Revenue-Based Financing</td><td>Requires revenue history</td><td>Most African creatives have no revenue track record</td><td>Gatekeeper vouching replaces credit history</td></tr>
+    <tr><td>Impact / Grant Funds</td><td>Application-based, slow</td><td>Months to decision; one-size-fits-all</td><td>Programmatic, fast, project-specific</td></tr>
+    <tr><td>Traditional Bank Loans</td><td>Collateral + credit score</td><td>Excludes 80%+ of creatives</td><td>Zero collateral required; work-based trust</td></tr>
+    <tr><td>Western crowdfunding platforms</td><td>Global but Western-centric</td><td>No Africa-specific tribes, no NGN support</td><td>Built for Africa's cultural reality; NGN/USD native</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 6. GO-TO-MARKET -->
+  <h2 id="gtm"><span class="num">06</span>Go-to-Market — The Gatekeeper Model</h2>
+
+  <div class="highlight">
+    <p><strong>Core insight:</strong> In Africa, adoption is tribal. People join platforms because someone they trust brought them. CineX's GTM is built around this cultural reality: <strong>tribesmen decide the success of a village.</strong> We do not buy ads. We earn trust. One gatekeeper endorsement unlocks their entire network.</p>
+  </div>
+
+  <h3>How It Works</h3>
+  <ul>
+    <li><strong>Identify gatekeepers</strong> — Guild leaders, association presidents, influential producers, label executives, festival curators with existing networks of 100+ creatives</li>
+    <li><strong>Build trust first</strong> — In-person meetups, listening sessions, product demos. No sales pitch. The team spent months doing this across Nigeria.</li>
+    <li><strong>Gatekeeper vouches</strong> — A gatekeeper endorses a creative's project before it can raise capital on CineX. This is the identity verification step.</li>
+    <li><strong>Network unlocks</strong> — Each gatekeeper brings their tribe organically. 34 gatekeepers × 100+ creatives each = 3,400+ potential users at zero marginal cost.</li>
+  </ul>
+
+  <h3>Validation Sprint</h3>
+  <p>In Q2 2026, CineX will run a structured 8-week validation sprint to convert the committed gatekeeper pipeline into active platform usage:</p>
+  <table>
+    <tr><th>Phase</th><th>Duration</th><th>Activities</th><th>Success Metric</th></tr>
+    <tr><td>1: Gatekeeper Activation</td><td>Week 1-2</td><td>Onboard gatekeepers, issue verification credentials, set up referral tracking</td><td>34 gatekeepers activated</td></tr>
+    <tr><td>2: Creative Onboarding</td><td>Week 3-4</td><td>Gatekeeper-referred creatives register, create profiles, submit project proposals</td><td>100+ creatives onboarded</td></tr>
+    <tr><td>3: Pilot Financing</td><td>Week 5-6</td><td>5 pilot projects funded. Milestone tracking live. Yield escrow active.</td><td>5 projects funded, first milestone complete</td></tr>
+    <tr><td>4: Learn & Optimize</td><td>Week 7-8</td><td>iterate on UX, milestone structure, verification flow, dual-currency wallet</td><td>Feedback collected from all stakeholders</td></tr>
+  </table>
+
+  <h3>Pilot Projects</h3>
+  <p>Five pre-identified pilot projects spanning creative verticals will launch within the first 60 days of mainnet deployment:</p>
+  <ul>
+    <li><strong>Rain</strong> — Narrative feature film with milestone-based production schedule</li>
+    <li><strong>Death of Eternity</strong> — Immersive media / XR project with multi-phase deliverables</li>
+    <li><strong>PrePARE VR</strong> — Virtual reality training simulation for emergency response</li>
+    <li><strong>Northern Travels</strong> — Documentary film with cultural preservation component</li>
+    <li><strong>Music production & distribution</strong> — Album project with Afrobeats artist (gatekeeper-referred)</li>
+  </ul>
+
+  <hr class="divider">
+
+  <!-- 7. TECHNOLOGY -->
+  <h2 id="tech"><span class="num">07</span>Technology Architecture</h2>
+
+  <p>CineX is built on a modular, security-first architecture with <strong>29 smart contracts</strong> organized across 9 layers, all deployed and tested on Stacks testnet.</p>
+
+  <h3>System Architecture</h3>
+  <p>The system comprises four layers that work together to deliver a seamless user experience:</p>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--green)">Layer 1: Smart Contracts (Stacks Blockchain)</div>
+    <p>29 Clarity contracts deployed on Stacks testnet, organized across 9 layers: Admin (2-of-3 multisig + timelock), Oracle/Reputation/Verification (identity verification, pricing, ratings), Campaign (campaign lifecycle), Escrow (milestone-gated capital), Yield (70/20/10 distribution), Strategy (DeFi yield), Milestone Verification (backer-weighted voting), Funding Pool (collaborative pools), and Base (shared traits). All contracts are immutable — the 2-of-3 multisig can only pause or emergency-withdraw, not change contract logic.</p>
+    <p style="font-size:.85rem;color:var(--text-muted)"><strong>Deployment:</strong> <code>ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM</code> on Stacks testnet · <strong>Tests:</strong> 50 passing (28 funding-pool + 22 integration) · <strong>Security:</strong> 7 issues found and fixed in audit, 8 vulnerabilities analyzed, 0 critical unaddressed</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--neon)">Layer 2: Dual-Currency Wallet (Backend + Pillar Smart Wallet)</div>
+    <p>Every user gets a wallet with three balances (NGN kobo, USD cents, sBTC sats) backed by a single on-chain sBTC position in a Pillar smart wallet. The rate service (Astrum API primary, admin hardcoded fallback) provides parallel market NGN/USD rates with 5-minute caching and 0.75% platform spread. All blockchain operations use Pillar-sponsored transactions — users never need STX for gas or see blockchain addresses.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--warm)">Layer 3: Frontend (Self-Contained HTML)</div>
+    <p>The primary user interface is a self-contained landing page at <a href="https://cine-x-iota.vercel.app">https://cine-x-iota.vercel.app</a> built with inline CSS and JavaScript (no build step, no framework). A full React/Vite application with role-based dashboards, activity feeds, AI credibility summaries, and demo mode is designed and ready for the next development sprint.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--green)">Layer 4: Backend (Node.js + SQLite)</div>
+    <p>The backend provides off-chain services: rate fetching and caching, dual-currency wallet bookkeeping, feed indexing, and AI credibility summaries. Deployed on Render at <code>https://cinex-backend-zo1r.onrender.com</code> with health endpoint verified.</p>
+  </div>
+
+  <h3>Key Design Decisions</h3>
+  <table>
+    <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+    <tr><td>Blockchain</td><td>Stacks (Bitcoin L2)</td><td>Bitcoin security for financial transactions; Clarity language for safety; growing DeFi ecosystem (ALEX, Bitflow, Zest)</td></tr>
+    <tr><td>Contract mutability</td><td>Immutable (no proxy)</td><td>Security and auditability. Migration = deploy new + transfer assets.</td></tr>
+    <tr><td>Admin control</td><td>2-of-3 multisig + 24h timelock</td><td>No single point of failure. Emergency bypass available for critical scenarios.</td></tr>
+    <tr><td>Yield strategy</td><td>Bitflow stable pools (v1)</td><td>Battle-tested DeFi pools; low IL risk; v2 adds ALEX + Stacking DAO diversification</td></tr>
+    <tr><td>Oracle</td><td>Multisig-pushed + timelock-gated</td><td>Prevents price manipulation. Fallback hardcoded rate for emergencies.</td></tr>
+    <tr><td>Wallet</td><td>Pillar smart wallet (MCP-managed)</td><td>Sponsored transactions = zero gas for users. Dual-currency abstraction.</td></tr>
+    <tr><td>Rate source</td><td>Astrum API (parallel market)</td><td>Actual market rates (not fictional CBN rate). Every Nigerian fintech uses parallel market rates.</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 8. SECURITY -->
+  <h2 id="security"><span class="num">08</span>Security &amp; Risk Management</h2>
+
+  <p>CineX underwent a comprehensive security audit across all smart contracts. <strong>7 findings were identified and fixed; zero critical issues remain unaddressed.</strong></p>
+
+  <h3>Audit Summary</h3>
+  <table>
+    <tr><th>Severity</th><th>Issues Found</th><th>Fixed</th><th>Description</th></tr>
+    <tr><td><span class="tag tag-green">Critical</span></td><td>3</td><td>3 ✓</td><td>Arithmetic underflow from let-binding before assertions (bitflow-strategy, yield-escrow); inverted capacity check (Co-EP module)</td></tr>
+    <tr><td><span class="tag tag-warm">High</span></td><td>1</td><td>1 ✓</td><td>Double integer truncation causing failed withdrawals in yield-escrow — fixed with ceiling division</td></tr>
+    <tr><td><span class="tag tag-warm">Medium</span></td><td>2</td><td>2 ✓</td><td>State reads before authorization check; zero exchange-rate guard missing</td></tr>
+    <tr><td><span class="tag tag-neon">Low</span></td><td>2</td><td>2 ✓</td><td>Missing emergency ops log (yield-escrow — acknowledged for v2); strategy hardcoding (accepted for v1 mock)</td></tr>
+  </table>
+
+  <h3>Security Architecture</h3>
+  <ul>
+    <li><strong>2-of-3 multisig admin</strong> — No single signer can execute admin actions. Two must propose + confirm.</li>
+    <li><strong>24-hour timelock</strong> — All non-emergency admin actions (fee changes, asset additions, strategy updates) are queued with a 24-hour delay, giving users and the third signer time to detect and cancel malicious proposals.</li>
+    <li><strong>Emergency bypass</strong> — For active exploits, the multisig can directly pause contracts and emergency-withdraw funds, bypassing the timelock.</li>
+    <li><strong>Clarity language safety</strong> — Checked arithmetic (overflow/underflow traps by default), non-reentrant by design, explicit error handling.</li>
+    <li><strong>Immutable contracts</strong> — No upgrade proxies. If a bug is discovered post-deploy, the team deploys v2 and users migrate. This is a deliberate trade-off favoring auditability.</li>
+    <li><strong>Oracle safety</strong> — Price updates push through the multisig with timelock delay for large deviations. Stale price detection prevents fee computation with outdated data.</li>
+  </ul>
+
+  <h3>Key Risk Mitigations</h3>
+  <table>
+    <tr><th>Risk</th><th>Impact</th><th>Likelihood</th><th>Mitigation</th></tr>
+    <tr><td>Oracle price manipulation</td><td>Fee calculation attacks</td><td>Low</td><td>Multisig-pushed prices; timelock delays large changes 24h; fallback hardcoded price</td></tr>
+    <tr><td>DeFi protocol hack (Bitflow)</td><td>Loss of deposited capital</td><td>Low</td><td>% of TVL capped per pool; emergency-withdraw bypasses timelock</td></tr>
+    <tr><td>Reputation sybil attack</td><td>Low-quality creators funded</td><td>Medium</td><td>Only KYC'd verified users can rate; one rating per target; default reputation score of 50%</td></tr>
+    <tr><td>Multisig signer compromise</td><td>Malicious timelock proposals</td><td>Low</td><td>2-of-3 threshold; 24h timelock gives detection window; third signer as independent oversight</td></tr>
+    <tr><td>Creator misses milestones</td><td>Delayed project delivery</td><td>Medium</td><td>≥3 missed → bonus forfeited → redistributed to backers; market forces reasonable deadlines</td></tr>
+    <tr><td>NGN volatility >5% daily</td><td>sBTC backing momentarily insufficient</td><td>Medium</td><td>Large conversions require rate acknowledgment; USD is canonical store of value</td></tr>
+    <tr><td>Backer chargeback (card)</td><td>Capital withdrawn after escrow release</td><td>Low</td><td>7-day hold on card deposits (new); 3 days (verified); NGN bank transfers have zero hold (irreversible)</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 9. FINANCIAL PROJECTIONS -->
+  <h2 id="financials"><span class="num">09</span>Financial Projections</h2>
+
+  <p>Financial projections assume a <strong>conservative base case</strong> with gradual adoption through the gatekeeper network. The model is driven by three primary variables:</p>
+  <ul>
+    <li><strong>Number of financed projects</strong> — grows from 5 pilots to 200+ by Year 3</li>
+    <li><strong>Average project size</strong> — starts at $9,000 (validated by market discovery) and scales to $25,000+ as institutional capital enters</li>
+    <li><strong>Yield APY</strong> — assumes 8% blended across all escrow deployment (stable pools + STX stacking)</li>
+  </ul>
+
+  <h3>Revenue Projections (Base Case)</h3>
+  <table>
+    <tr><th>Metric</th><th>Year 1</th><th>Year 2</th><th>Year 3</th></tr>
+    <tr><td>Projects Financed</td><td>25</td><td>100</td><td>250</td></tr>
+    <tr><td>Total Escrow Volume</td><td>$250,000</td><td>$1,500,000</td><td>$6,000,000</td></tr>
+    <tr><td>Avg Escrow Period</td><td>6 mo</td><td>5 mo</td><td>4 mo</td></tr>
+    <tr><td>Yield Generated</td><td>$10,000</td><td>$50,000</td><td>$160,000</td></tr>
+    <tr><td><strong>Platform Revenue</strong></td><td><strong>$24,500</strong></td><td><strong>$142,000</strong></td><td><strong>$560,000</strong></td></tr>
+    <tr><td><em>— Escrow Fees (5%)</em></td><td><em>$12,500</em></td><td><em>$75,000</em></td><td><em>$300,000</em></td></tr>
+    <tr><td><em>— Yield Share (20%)</em></td><td><em>$2,000</em></td><td><em>$10,000</em></td><td><em>$32,000</em></td></tr>
+    <tr><td><em>— Currency Spread</em></td><td><em>$10,000</em></td><td><em>$57,000</em></td><td><em>$228,000</em></td></tr>
+    <tr><td>Operating Expenses</td><td>$420,000</td><td>$480,000</td><td>$540,000</td></tr>
+    <tr><td>Net Income</td><td>($395,500)</td><td>($338,000)</td><td>$20,000</td></tr>
+  </table>
+
+  <p class="highlight" style="margin-top:0"><strong>Path to profitability:</strong> Year 3 break-even at $560k revenue on $540k expenses, driven by escrow volume scaling to $6M+. Gross margins improve from 35% (Year 1) to 65%+ (Year 3) as infrastructure costs are fixed and revenue is primarily volume-based.</p>
+
+  <h3>Key Assumptions</h3>
+  <ul>
+    <li><strong>Gatekeeper conversion:</strong> 50% of committed gatekeepers actively onboard creatives in Year 1, increasing to 90% by Year 3</li>
+    <li><strong>Average project:</strong> $9,000 (Year 1) based on market discovery, growing to $15,000 (Year 2) and $24,000 (Year 3) as institutional capital enters</li>
+    <li><strong>Escrow duration:</strong> 6 months average (Year 1) decreasing to 4 months as the platform optimizes milestone structures</li>
+    <li><strong>Yield APY:</strong> 8% blended across stable pools and STX stacking</li>
+    <li><strong>Currency conversion rate:</strong> 75% of transactions require cross-currency conversion (USD backer → NGN creative)</li>
+    <li><strong>Team:</strong> 6 FTE by Year 1, growing to 10 by Year 3</li>
+  </ul>
+
+  <hr class="divider">
+
+  <!-- 10. USE OF FUNDS -->
+  <h2 id="funds"><span class="num">10</span>Use of Funds</h2>
+
+  <p>CineX is raising <strong>$600,000</strong> in a pre-seed round at a <strong>$5M post-money valuation</strong> ($4.4M pre-money). Anchor allocations of $100k–$250k are available.</p>
+
+  <div class="chart">
+    <div class="chart-row"><div class="chart-label">Product Build</div><div class="chart-bar"><div class="chart-fill green" style="width:45%">$270,000</div></div><div class="chart-pct">45%</div></div>
+    <div class="chart-row"><div class="chart-label">Pilot Commissioning</div><div class="chart-bar"><div class="chart-fill warm" style="width:20%">$120,000</div></div><div class="chart-pct">20%</div></div>
+    <div class="chart-row"><div class="chart-label">Legal / Compliance</div><div class="chart-bar"><div class="chart-fill neon" style="width:15%">$90,000</div></div><div class="chart-pct">15%</div></div>
+    <div class="chart-row"><div class="chart-label">Ecosystem BD</div><div class="chart-bar"><div class="chart-fill" style="width:10%;background:#a78bfa">$60,000</div></div><div class="chart-pct">10%</div></div>
+    <div class="chart-row"><div class="chart-label">Founder Runway</div><div class="chart-bar"><div class="chart-fill" style="width:10%;background:#f472b6">$60,000</div></div><div class="chart-pct">10%</div></div>
+  </div>
+
+  <table>
+    <tr><th>Category</th><th>Amount</th><th>Details</th></tr>
+    <tr><td>Product Build</td><td>$270,000</td><td>Mainnet deployment, dual-currency wallet build and audit, React dashboard (creator + backer), AI credibility summaries, wallet abstraction frontend, integration testing</td></tr>
+    <tr><td>Pilot Commissioning</td><td>$120,000</td><td>Fund 5 pilot projects ($15k–$30k each), gatekeeper onboarding incentives, creative onboarding support, milestone tracking operations</td></tr>
+    <tr><td>Legal / Compliance</td><td>$90,000</td><td>SEC registration (Nigeria), legal structuring (Panama or similar), smart contract audit (third-party), regulatory counsel for cross-border payments</td></tr>
+    <tr><td>Ecosystem BD</td><td>$60,000</td><td>Gatekeeper expansion (Pan-Africa), partnership development (DFIs, impact funds), conference participation (AfroNolly, GDC, SXSW), community management</td></tr>
+    <tr><td>Founder Runway</td><td>$60,000</td><td>12-month operational runway for 2 founders at $2,500/month each. Lean startup approach — all team members have existing income streams.</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 11. TEAM -->
+  <h2 id="team"><span class="num">11</span>Team</h2>
+
+  <p>CineX is founded by a team with deep expertise across creative production, financial technology, blockchain engineering, and the Nigerian creative ecosystem.</p>
+
+  <div class="card card-green">
+    <div class="card-header">Victor — Founder &amp; Product Lead</div>
+    <p>Victor conceived CineX from direct experience in the African creative economy. He led the product discovery with 34 gatekeepers, built the smart contract architecture (29 contracts across 9 layers), and designed the economic model. His background spans fintech product design, blockchain engineering, and creative project management.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Stephanie — Operations &amp; Ecosystem</div>
+    <p>Based in Nigeria, Stephanie manages gatekeeper relationships, creative onboarding, and ecosystem partnerships. She conducted the majority of the discovery sessions that validated the gatekeeper model and pipeline projections.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">McDaniells — Creative Director &amp; Content Strategy</div>
+    <p>McDaniells brings creative industry expertise spanning film, music, and immersive media production. He oversees pilot project selection, creative quality standards, and gatekeeper communication.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Theophilus — Blockchain Engineering</div>
+    <p>Theophilus leads Clarity smart contract development, test engineering (50 passing tests), and DeFi strategy integration. He built the yield-escrow 70/20/10 model, milestone verification system, and security audit fixes.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 12. ROADMAP -->
+  <h2 id="roadmap"><span class="num">12</span>Roadmap &amp; Milestones</h2>
+
+  <table>
+    <tr><th>Period</th><th>Milestone</th><th>Key Deliverable</th></tr>
+    <tr><td>Q2 2026</td><td>Pre-Seed Close + Mainnet Launch</td><td>$600k raised · 29 contracts on mainnet · Backend production-ready · 5 pilot projects initiated</td></tr>
+    <tr><td>Q3 2026</td><td>Validation Sprint Complete</td><td>100+ creatives onboarded · 5 pilots active · Gatekeeper model proven · Dual-currency wallet pilot</td></tr>
+    <tr><td>Q4 2026</td><td>Public Launch (Beta)</td><td>Public platform open · Wallet abstraction live · NGN/USD on-ramp active · 50+ projects financed</td></tr>
+    <tr><td>H1 2027</td><td>Scale &amp; Institutional</td><td>Institutional capital partnerships · NGN/USD on-ramps scaled · Pan-African gatekeeper expansion · 100+ projects financed</td></tr>
+    <tr><td>H2 2027</td><td>Series A</td><td>$3M+ raise · 500+ projects financed · Multiple DeFi strategies active · AI credibility summaries live · Regulatory compliant across key markets</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 13. RISKS -->
+  <h2 id="risks"><span class="num">13</span>Risks &amp; Mitigations</h2>
+
+  <h3>Business Risks</h3>
+  <table>
+    <tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
+    <tr><td>Gatekeeper attrition — committed gatekeepers do not actively onboard creatives</td><td>Medium</td><td>Gatekeeper incentives (tiered rewards for active referrals); public pipeline tracking creates social accountability</td></tr>
+    <tr><td>Creator quality — pilot projects fail to deliver</td><td>Medium</td><td>Milestone-gated payouts prevent full loss; 3-milestone miss threshold triggers forfeiture; gatekeeper vouching provides pre-screening</td></tr>
+    <tr><td>Regulatory uncertainty — Nigerian SEC / CBN regulations change</td><td>Medium</td><td>Legal counsel engaged; Panama structuring for token wrapper; multiple jurisdictional options maintained</td></tr>
+    <tr><td>Slow adoption — target users prefer existing informal financing</td><td>Low</td><td>Gatekeeper model directly addresses informal trust networks; zero-collateral entry is transformative; NGN support removes friction</td></tr>
+    <tr><td>Currency risk — NGN hyperinflation / parallel market collapse</td><td>Low</td><td>USD is canonical store of value; NGN is only a display/transaction layer; all on-chain value is sBTC</td></tr>
+  </table>
+
+  <h3>Technical Risks</h3>
+  <table>
+    <tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
+    <tr><td>Smart contract vulnerability discovered post-deploy</td><td>High</td><td>Immutable contracts require v2 deploy; emergency-withdraw can rescue funds; audit already conducted (7/7 fixes)</td></tr>
+    <tr><td>Stacks network congestion / downtime</td><td>Low</td><td>Off-chain wallet abstraction means users never directly interact with the chain; backend queues transactions</td></tr>
+    <tr><td>DeFi strategy (Bitflow) pool hack</td><td>Low</td><td>% of TVL capped per pool; multi-strategy diversification planned; emergency-withdraw available</td></tr>
+    <tr><td>Oracle price feed manipulation</td><td>Low</td><td>Multisig-pushed prices; timelock for large changes; fallback hardcoded rate</td></tr>
+    <tr><td>Wallet abstraction Pillar dependency</td><td>Medium</td><td>Custom embedded wallet SDK planned for post-MVP; sponsored transactions have fallback path</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- 14. APPENDIX -->
+  <h2 id="appendix"><span class="num">14</span>Appendix — Technical Detail</h2>
+
+  <h3>Smart Contract Architecture (29 Contracts, 9 Layers)</h3>
+  <table>
+    <tr><th>Layer</th><th>Contracts</th><th>Purpose</th></tr>
+    <tr><td>Admin</td><td>cinex-multisig, timelock, emergency-module, module-base</td><td>2-of-3 multisig admin, 24h timelock for non-emergency actions, emergency pause and fund recovery</td></tr>
+    <tr><td>Oracle / Reputation / Verification</td><td>oracle-proxy, reputation, project-verification-module, asset-registry</td><td>STX/USD price feed, peer-to-peer reputation scoring, multi-vertical creator identity verification, token whitelist</td></tr>
+    <tr><td>Campaign</td><td>campaign-module, campaign-module-traits</td><td>Campaign creation, contribution management, milestone lifecycle</td></tr>
+    <tr><td>Escrow</td><td>milestone-escrow, milestone-escrow-trait</td><td>Multi-asset milestone-gated escrow with 5% fee on each release</td></tr>
+    <tr><td>Yield</td><td>yield-escrow, yield-escrow-trait</td><td>70/20/10 yield distribution, creator bonus forfeiture, backer yield claiming</td></tr>
+    <tr><td>Strategy</td><td>bitflow-strategy, bitflow-strategy-trait, mock-strategy</td><td>DeFi yield wrapper for Bitflow AMM pools (v1); mock strategy for testing</td></tr>
+    <tr><td>Milestone Verification</td><td>milestone-verification</td><td>Backer-weighted voting (>50% YES threshold), deadline tracking, bonus eligibility</td></tr>
+    <tr><td>Funding Pool</td><td>funding-pool, funding-pool-trait</td><td>Collaborative capital pools with proposal/vote/execute governance</td></tr>
+    <tr><td>Base</td><td>module-base-trait, emergency-module-trait, + shared traits</td><td>Reusable module framework, emergency trait, compile-time interface enforcement</td></tr>
+  </table>
+
+  <h3>Key Integration Flows</h3>
+  <p><strong>Flow A: Campaign Lifecycle (Backer Approval Path)</strong></p>
+  <ol>
+    <li>Creator registers and is verified via project-verification-module (gatekeeper vouching)</li>
+    <li>Creator creates campaign in milestone-escrow with milestones, amounts, and deadlines</li>
+    <li>Backers deposit capital — funds held in milestone-escrow</li>
+    <li>Idle capital deployed to yield-escrow → bitflow-strategy for yield generation</li>
+    <li>Creator submits milestone proof → backer approves (creator cannot self-approve)</li>
+    <li>Approved milestone releases tranche (5% platform fee deducted)</li>
+    <li>Sequential: milestone n requires milestone n-1 approved</li>
+    <li>On completion: yield distributed 70/20/10; creator bonus conditional on milestone performance</li>
+  </ol>
+
+  <p><strong>Flow B: Dual-Currency Wallet</strong></p>
+  <ol>
+    <li>US backer funds $100 through USD on-ramp (bank wire → backend credits → sBTC on Pillar)</li>
+    <li>Backer selects Nigerian creative project, enters $100</li>
+    <li>System auto-converts at current NGN/USD rate + 0.75% spread</li>
+    <li>Creative's NGN balance credited ₦ equivalent</li>
+    <li>Creative sees only NGN — no blockchain addresses, no gas fees, no complexity</li>
+  </ol>
+
+  <p><strong>Flow C: Emergency Admin</strong></p>
+  <ol>
+    <li>Signer A proposes transaction on multisig</li>
+    <li>Signer B confirms (2-of-3 threshold reached)</li>
+    <li>For non-emergency: queued in timelock with 24h delay → anyone executes after delay</li>
+    <li>For emergency: executes directly on target contract (pause or emergency-withdraw)</li>
+  </ol>
+
+  <h3>Contract Deployment Order</h3>
+  <p>Contracts deploy in strict dependency order. The full sequence is documented in <code>SMART_CONTRACT_IMPLEMENTATION_PLAN_2WEEKS.md</code> (Section 4) and verified in <code>Clarinet.toml</code>.</p>
+
+  <h3>Testing</h3>
+  <ul>
+    <li><strong>Unit tests:</strong> 28 in funding-pool.test.ts + 22 in integration.test.ts = 50 total</li>
+    <li><strong>Integration flows:</strong> 7 end-to-end flows covering campaign lifecycle, yield distribution, milestone forfeiture, funding pool governance, strategy integration, and edge cases</li>
+    <li><strong>Rendezvous fuzzing:</strong> Property-based testing across all 9 core contracts via node scripts/run-rv-for-all.js</li>
+    <li><strong>Security audit:</strong> Manual review covering arithmetic underflow, integer truncation, access control, reentrancy (none — Clarity is non-reentrant), oracle manipulation, strategy isolation, and emergency mechanisms</li>
+  </ul>
+
+  <hr class="divider">
+
+  <p style="text-align:center;font-size:.9rem;color:var(--text-muted)">CineX — Fintech Infrastructure for African Creative IP<br>
+  <a href="mailto:mediacinex@gmail.com">mediacinex@gmail.com</a> · <a href="https://cine-x-iota.vercel.app">https://cine-x-iota.vercel.app</a><br>
+  <span style="font-size:.8rem">This document is for informational purposes only and does not constitute an offer or solicitation.</span></p>
+
+</div>
+
+<script>
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); });
+</script>
+
+</body>
+</html>
