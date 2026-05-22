@@ -1,55 +1,996 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CineX — Africa's Creative Economy Financing Infrastructure</title>
-  <meta name="description" content="CineX is the invisible financial rail that makes African creative work investable, verifiable, and bankable.">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #0a0a0a;
-      color: #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-      padding: 2rem;
-    }
-    .container { max-width: 640px; }
-    h1 {
-      font-size: 2rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin-bottom: 1rem;
-    }
-    .tagline {
-      font-size: 1.1rem;
-      color: #888;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-    .coming-soon {
-      display: inline-block;
-      border: 1px solid #333;
-      border-radius: 999px;
-      padding: 0.5rem 1.5rem;
-      font-size: 0.875rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .divider { margin: 2rem 0; border: 0; border-top: 1px solid #1a1a1a; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineX — Africa's Creative Economy Financing Infrastructure</title>
+<meta name="description" content="CineX is the invisible financial rail that makes African creative work investable, verifiable, and bankable. Milestone-based financing for film, music, gaming, and immersive media.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<style>
+:root {
+  --green: #4ade80;
+  --green-dim: rgba(74, 222, 128, 0.1);
+  --green-glow: rgba(74, 222, 128, 0.25);
+  --bg: #050505;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.06);
+  --text: #f0f0f0;
+  --text-muted: #888;
+  --radius: 16px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--green);color:#000}
+a{color:var(--green);text-decoration:none;transition:opacity .2s}
+a:hover{opacity:.8}
+img{max-width:100%;height:auto;display:block}
+.section{padding:100px 24px;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-label{
+  font-family:var(--font-display);
+  font-size:.75rem;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--green);
+  margin-bottom:12px;
+}
+.section-title{
+  font-family:var(--font-display);
+  font-size:clamp(1.75rem,4vw,2.75rem);
+  font-weight:700;
+  line-height:1.15;
+  margin-bottom:16px;
+}
+.section-sub{
+  color:var(--text-muted);
+  font-size:1.05rem;
+  max-width:640px;
+  line-height:1.7;
+}
+
+/* Canvas particles */
+#particles-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;
+}
+
+/* Glass card base */
+.glass{
+  background:var(--bg-card);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  transition:all .3s ease;
+}
+.glass:hover{border-color:rgba(74,222,128,0.2);box-shadow:0 0 40px rgba(74,222,128,0.04);}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:100;
+  padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .3s;
+}
+nav.scrolled{background:rgba(5,5,5,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:#fff;}
+.nav-logo span{color:var(--green);}
+.nav-links{display:flex;gap:24px;align-items:center;}
+.nav-links a{color:var(--text-muted);font-size:.85rem;font-weight:500;transition:color .2s;}
+.nav-links a:hover{color:#fff;}
+.nav-cta{
+  background:var(--green);color:#000!important;
+  padding:8px 20px;border-radius:999px;
+  font-weight:600!important;font-size:.8rem!important;
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;position:relative;z-index:1;
+}
+.hero-content{max-width:800px;}
+.hero-badge{
+  display:inline-block;border:1px solid rgba(74,222,128,.2);
+  border-radius:999px;padding:6px 18px;margin-bottom:28px;
+  font-size:.75rem;color:var(--green);letter-spacing:.06em;
+  background:rgba(74,222,128,.04);
+}
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(2rem,5vw,3.75rem);
+  font-weight:800;
+  line-height:1.1;
+  margin-bottom:20px;
+  letter-spacing:-.025em;
+}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--green),#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{
+  font-size:clamp(1rem,2vw,1.2rem);
+  color:var(--text-muted);
+  max-width:600px;
+  margin:0 auto 36px;
+  line-height:1.7;
+}
+.hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 32px;border-radius:999px;
+  font-family:var(--font-sans);
+  font-size:.95rem;font-weight:600;
+  border:none;cursor:pointer;
+  transition:all .25s ease;position:relative;
+}
+.btn-primary{background:var(--green);color:#000;}
+.btn-primary:hover{box-shadow:0 0 30px rgba(74,222,128,.3);transform:translateY(-1px);}
+.btn-secondary{background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);}
+.btn-outline{background:transparent;color:var(--green);border:1px solid rgba(74,222,128,.3);}
+.btn-outline:hover{background:var(--green-dim);}
+
+/* Scroll indicator */
+.scroll-indicator{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--text-muted);font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;animation:float 2.5s ease-in-out infinite;
+}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--text-muted),transparent);}
+
+/* GATEKEEPER */
+.gatekeeper-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:40px;}
+.gatekeeper-visual{
+  background:var(--bg-card);border-radius:var(--radius);padding:40px;
+  border:1px solid var(--border);position:relative;overflow:hidden;
+}
+.gatekeeper-network{display:flex;flex-direction:column;gap:16px;position:relative;z-index:1;}
+.gk-node{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;border-radius:12px;
+  background:rgba(255,255,255,.02);border:1px solid var(--border);
+  transition:all .3s;
+}
+.gk-node:hover{background:var(--green-dim);border-color:rgba(74,222,128,.2);}
+.gk-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.gk-dot.muted{background:#333;}
+.gk-line{width:1px;height:24px;background:var(--border);margin-left:4.5px;}
+.gk-branch{padding-left:34px;display:flex;flex-direction:column;gap:10px;}
+.gk-leaf{
+  padding:8px 14px;border-radius:8px;
+  background:rgba(255,255,255,.015);border:1px solid var(--border);
+  font-size:.8rem;color:var(--text-muted);
+  display:flex;align-items:center;gap:8px;
+}
+.gk-leaf::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--text-muted);flex-shrink:0;}
+.gk-mult{font-size:2rem;font-weight:700;color:var(--green);display:block;margin:16px 0 8px;}
+.gk-result{font-size:1.5rem;font-weight:700;color:#fff;}
+.gatekeeper-text h3{font-family:var(--font-display);font-size:1.6rem;font-weight:700;margin-bottom:16px;}
+.gatekeeper-text p{color:var(--text-muted);margin-bottom:12px;line-height:1.8;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;}
+.stat-card{
+  text-align:center;padding:32px 16px;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  opacity:0;transition:opacity .4s;
+}
+.stat-card:hover::before{opacity:1;}
+.stat-number{
+  font-family:var(--font-display);
+  font-size:clamp(1.8rem,3vw,2.5rem);
+  font-weight:700;
+  background:linear-gradient(135deg,var(--green),#22c55e);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-label{color:var(--text-muted);font-size:.85rem;margin-top:6px;line-height:1.4;}
+.stat-detail{font-size:.7rem;color:#555;margin-top:4px;}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:40px;}
+.feature-card{padding:36px 28px;position:relative;overflow:hidden;cursor:default;}
+.feature-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--green-dim);border:1px solid rgba(74,222,128,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:18px;
+}
+.feature-card h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;margin-bottom:8px;}
+.feature-card .stat-line{font-size:.9rem;color:var(--green);font-weight:600;margin-bottom:6px;}
+.feature-card p{color:var(--text-muted);font-size:.85rem;line-height:1.7;}
+.feature-detail{
+  max-height:0;overflow:hidden;transition:max-height .4s ease,padding .4s ease;
+  color:var(--text-muted);font-size:.82rem;line-height:1.6;
+}
+.feature-card:hover .feature-detail{max-height:100px;padding-top:12px;}
+
+/* PILOT PROJECTS */
+.pilot-header{text-align:center;margin-bottom:40px;}
+.pilot-header .section-sub{margin:0 auto;}
+.swiper-wrapper{padding-bottom:40px;}
+.pilot-slide{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  padding:32px;min-height:400px;
+}
+.pilot-slide h3{font-family:var(--font-display);font-size:1.3rem;font-weight:700;margin-bottom:4px;}
+.pilot-format{font-size:.8rem;color:var(--green);font-weight:500;margin-bottom:12px;}
+.pilot-pitch{color:var(--text-muted);font-size:.9rem;line-height:1.7;margin-bottom:20px;}
+
+/* Rain flip cards */
+.rain-flip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.flip-card{
+  aspect-ratio:3/4;perspective:800px;cursor:pointer;
+}
+.flip-inner{
+  position:relative;width:100%;height:100%;
+  transition:transform .6s cubic-bezier(.23,1,.32,1);
+  transform-style:preserve-3d;
+}
+.flip-card:hover .flip-inner{transform:rotateY(180deg);}
+.flip-front,.flip-back{
+  position:absolute;inset:0;border-radius:10px;
+  backface-visibility:hidden;overflow:hidden;
+  background:var(--bg-card);border:1px solid var(--border);
+}
+.flip-front img,.flip-back img{width:100%;height:100%;object-fit:cover;}
+.flip-back{
+  transform:rotateY(180deg);
+  padding:20px;display:flex;flex-direction:column;justify-content:center;
+}
+.flip-back p{font-size:.78rem;color:var(--text-muted);line-height:1.6;}
+.flip-back strong{color:#fff;display:block;margin-bottom:6px;font-size:.85rem;}
+.flip-label{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 12px;background:linear-gradient(transparent,rgba(0,0,0,.8));
+  font-size:.7rem;color:var(--text-muted);text-align:center;
+}
+
+/* DoE mood board */
+.doe-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.doe-cell{
+  aspect-ratio:4/3;border-radius:10px;overflow:hidden;
+  position:relative;cursor:pointer;border:1px solid var(--border);
+  transition:all .3s;
+}
+.doe-cell:hover{transform:scale(1.02);border-color:var(--green);}
+.doe-cell img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.doe-cell:hover img{transform:scale(1.05);}
+.doe-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.7),transparent 50%);
+  opacity:0;transition:opacity .3s;display:flex;align-items:flex-end;padding:14px;
+}
+.doe-cell:hover .doe-overlay{opacity:1;}
+.doe-overlay span{font-size:.75rem;color:var(--green);font-weight:500;}
+
+/* Lightbox */
+.lightbox{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.95);
+  align-items:center;justify-content:center;padding:40px;
+}
+.lightbox.active{display:flex;}
+.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;}
+.lightbox-close{
+  position:absolute;top:24px;right:32px;
+  color:#fff;font-size:2rem;cursor:pointer;background:none;border:none;
+  width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;transition:background .2s;
+}
+.lightbox-close:hover{background:rgba(255,255,255,.1);}
+
+.placeholder-project{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:300px;text-align:center;
+  background:linear-gradient(135deg,rgba(74,222,128,.04),rgba(34,197,94,.02));
+  border:1px dashed var(--border);border-radius:var(--radius);
+}
+.placeholder-icon{font-size:3rem;margin-bottom:16px;opacity:.4;}
+
+/* HOW IT WORKS */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;}
+.how-step{text-align:center;padding:36px 24px;position:relative;}
+.how-num{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--green-dim);border:1px solid rgba(74,222,128,.2);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--green);
+}
+.how-step h3{font-family:var(--font-display);font-size:1.05rem;font-weight:600;margin-bottom:8px;}
+.how-step p{color:var(--text-muted);font-size:.85rem;line-height:1.7;}
+
+/* COMPETITIVE MATRIX */
+.matrix-wrap{overflow-x:auto;margin-top:40px;}
+.matrix-table{width:100%;border-collapse:separate;border-spacing:0;min-width:600px;}
+.matrix-table th,.matrix-table td{
+  padding:16px 20px;text-align:left;font-size:.85rem;
+  border-bottom:1px solid var(--border);
+}
+.matrix-table th{
+  font-family:var(--font-display);font-size:.8rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);
+  background:var(--bg-card);
+}
+.matrix-table th:first-child{border-radius:12px 0 0 0;}
+.matrix-table th:last-child{border-radius:0 12px 0 0;}
+.matrix-table td:first-child{font-weight:500;color:var(--text);}
+.matrix-table tr:last-child td{border-bottom:none;}
+.matrix-table .cinex-col{color:var(--green)!important;font-weight:600;}
+.check{color:var(--green);}
+.cross{color:#555;}
+
+/* MARKET OPPORTUNITY */
+.market-bar-wrap{margin-top:40px;}
+.market-bar{
+  position:relative;height:48px;border-radius:12px;
+  background:var(--bg-card);border:1px solid var(--border);
+  overflow:hidden;margin-bottom:8px;
+}
+.market-fill{
+  position:absolute;top:0;left:0;height:100%;
+  background:linear-gradient(90deg,var(--green),rgba(74,222,128,.3));
+  border-radius:12px;transition:width 1.2s cubic-bezier(.23,1,.32,1);
+  display:flex;align-items:center;padding:0 16px;
+  font-family:var(--font-display);font-weight:700;font-size:.85rem;color:#000;
+  width:0;
+}
+.market-fill.animate{width:var(--w);}
+.market-labels{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-top:8px;}
+.market-source{font-size:.75rem;color:#555;margin-top:16px;}
+.market-source a{color:var(--text-muted);text-decoration:underline;}
+
+/* TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;}
+.team-card{
+  text-align:center;padding:24px 16px;
+}
+.team-photo{
+  width:80px;height:80px;border-radius:50%;object-fit:cover;
+  margin:0 auto 12px;border:2px solid var(--border);
+}
+.team-card h4{font-size:.95rem;font-weight:600;}
+.team-card .role{font-size:.75rem;color:var(--green);margin-bottom:4px;}
+.team-card .bio{font-size:.75rem;color:var(--text-muted);line-height:1.5;}
+.advisors-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;}
+.advisor-card{padding:20px 16px;text-align:center;}
+.advisor-card h4{font-size:.9rem;font-weight:600;}
+.advisor-card .role{font-size:.75rem;color:var(--green);margin-top:4px;}
+
+/* ROADMAP */
+.roadmap{position:relative;margin-top:40px;padding-left:40px;}
+.roadmap::before{
+  content:'';position:absolute;left:16px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,var(--green),var(--border),transparent);
+}
+.rm-item{position:relative;padding-bottom:40px;}
+.rm-item:last-child{padding-bottom:0;}
+.rm-dot{
+  position:absolute;left:-36px;top:6px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--green);
+  z-index:1;
+}
+.rm-dot.current{background:var(--green);box-shadow:0 0 12px var(--green-glow);}
+.rm-date{font-size:.75rem;color:var(--green);font-weight:600;margin-bottom:2px;}
+.rm-title{font-family:var(--font-display);font-size:1rem;font-weight:600;margin-bottom:4px;}
+.rm-desc{color:var(--text-muted);font-size:.82rem;line-height:1.6;}
+
+/* INVESTOR ASK */
+.investor-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;}
+.investor-numbers{display:flex;flex-direction:column;gap:16px;}
+.inv-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;
+}
+.inv-item .label{color:var(--text-muted);font-size:.85rem;}
+.inv-item .value{font-family:var(--font-display);font-weight:700;font-size:1.15rem;}
+.use-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.use-item{
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  font-size:.82rem;
+}
+.use-item .pct{font-weight:700;color:var(--green);}
+.use-item .desc{color:var(--text-muted);}
+.use-bar{height:4px;background:var(--border);border-radius:4px;margin-top:4px;overflow:hidden;}
+.use-fill{height:100%;background:var(--green);border-radius:4px;}
+.investor-cta{margin-top:24px;text-align:center;}
+
+/* FOOTER */
+footer{
+  padding:48px 24px;border-top:1px solid var(--border);
+  text-align:center;position:relative;z-index:1;
+}
+footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
+.social-links{display:flex;justify-content:center;gap:24px;margin-bottom:24px;}
+.social-links a{color:var(--text-muted);font-size:.82rem;transition:color .2s;}
+.social-links a:hover{color:var(--green);}
+
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.23,1,.32,1);}
+.fade-up.visible{opacity:1;transform:translateY(0);}
+.fade-in{opacity:0;transition:opacity .8s ease;}
+.fade-in.visible{opacity:1;}
+@keyframes float{
+  0%,100%{transform:translateX(-50%) translateY(0);}
+  50%{transform:translateX(-50%) translateY(-8px);}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .gatekeeper-grid{grid-template-columns:1fr;}
+  .features-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .how-grid{grid-template-columns:1fr;}
+  .team-grid{grid-template-columns:repeat(2,1fr);}
+  .investor-grid{grid-template-columns:1fr;}
+  .advisors-grid{grid-template-columns:1fr;}
+  .rain-flip-grid{grid-template-columns:repeat(2,1fr);}
+  .nav-links a:not(.nav-cta){display:none;}
+}
+@media(max-width:550px){
+  .stats-grid{grid-template-columns:1fr;}
+  .team-grid{grid-template-columns:repeat(2,1fr);}
+  .rain-flip-grid{grid-template-columns:repeat(2,1fr);}
+  .doe-grid{grid-template-columns:1fr;}
+  .section{padding:60px 16px;}
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Fintech Infrastructure for African Creative IP</h1>
-    <p class="tagline">Milestone‑based financing. Verified projects. Productive escrow.</p>
-    <span class="coming-soon">Coming soon</span>
+
+<canvas id="particles-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">CineX <span>Fintech</span></div>
+  <div class="nav-links">
+    <a href="#gatekeeper">Strategy</a>
+    <a href="#features">Product</a>
+    <a href="#pilots">Pilots</a>
+    <a href="#team">Team</a>
+    <a href="#investor" class="nav-cta">Invest</a>
   </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content fade-up">
+    <div class="hero-badge">Africa's Creative Economy Financing Infrastructure</div>
+    <h1>Fintech Infrastructure for<br><em>African Creative IP</em></h1>
+    <p class="hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative work investable, verifiable, and bankable — on a unified financial rail.</p>
+    <div class="hero-actions">
+      <a href="https://docs.google.com/forms/d/e/FAIpQLSf8x5Uz7v9mJ8kVgV4nC1Q3yF6H0kL2pR3sT4w5x6y7z8A9bB0cC1dD2eE3fF4gG/viewform" target="_blank" rel="noopener" class="btn btn-primary">Join Waitlist →</a>
+      <a href="#features" class="btn btn-secondary">Explore Model</a>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- GATEKEEPER -->
+<section class="section" id="gatekeeper">
+  <div class="section-inner">
+    <div class="section-label fade-up">Strategic Moat</div>
+    <h2 class="section-title fade-up">Not Just a Waitlist — a Movement of Gatekeepers</h2>
+    <p class="section-sub fade-up" style="margin-bottom:8px;">In Africa, adoption is tribal. We recruited 34 guild leaders, association heads, and industry influencers through trust‑based meetups — zero paid ads. Global players spent millions on marketing but ignored cultural trust. CineX is built around Africa's reality.</p>
+    <div class="gatekeeper-grid">
+      <div class="gatekeeper-visual fade-up">
+        <div class="gatekeeper-network">
+          <div class="gk-node"><div class="gk-dot"></div><span><strong>34 Gatekeepers</strong> <span style="color:var(--text-muted);font-size:.85rem;">— guild leaders, association heads</span></span></div>
+          <div class="gk-line"></div>
+          <div class="gk-branch">
+            <div class="gk-leaf">Filmmakers Guild — 200+ members</div>
+            <div class="gk-leaf">Music Producers Network — 150+ members</div>
+            <div class="gk-leaf">Game Developers Collective — 80+ members</div>
+            <div class="gk-leaf">Fashion Creatives Hub — 120+ members</div>
+            <div class="gk-leaf" style="border-color:rgba(74,222,128,.2);color:var(--text);">+30 more gatekeepers × 100+ creatives each</div>
+          </div>
+          <div class="gk-mult">×100+</div>
+          <div class="gk-node" style="border-color:rgba(74,222,128,.2);">
+            <div class="gk-dot" style="box-shadow:0 0 8px var(--green-glow);"></div>
+            <span><strong style="color:var(--green);">3,400+</strong> <span style="color:var(--text-muted);font-size:.85rem;">potential users at zero marginal CAC</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="gatekeeper-text fade-up">
+        <h3>Distribution That Mirrors Reality</h3>
+        <p>In Nigeria, creative communities organize around trusted leaders — guild presidents, association chairs, industry elders. They decide what tools their tribe adopts.</p>
+        <p>CineX's GTM is built around this cultural reality: <strong style="color:#fff;">tribesmen decide the success of a village.</strong> We don't buy ads. We earn trust. One gatekeeper endorsement unlocks their entire network.</p>
+        <p style="color:var(--green);font-weight:500;font-size:.9rem;">34 gatekeepers × 100+ creatives each = 3,400+ potential users at zero marginal cost. Adoption spreads like political parties — through tribe leaders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="section" style="padding-top:0;">
+  <div class="section-inner">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card glass fade-up"><div class="stat-number"><span class="counter" data-target="34">0</span>+</div><div class="stat-label">Verified Gatekeepers</div><div class="stat-detail">Not users — guild leaders</div></div>
+      <div class="stat-card glass fade-up"><div class="stat-number">$<span class="counter" data-target="1">0</span>M+</div><div class="stat-label">Pipeline Value</div><div class="stat-detail">From waitlist conversations</div></div>
+      <div class="stat-card glass fade-up"><div class="stat-number"><span class="counter" data-target="93.5">0</span>%</div><div class="stat-label">Nigeria‑First Focus</div><div class="stat-detail">Beachhead market</div></div>
+      <div class="stat-card glass fade-up"><div class="stat-number">$<span class="counter" data-target="9">0</span>k+</div><div class="stat-label">Non‑dilutive Grants</div><div class="stat-detail">Stacks Ascent + DeGrants</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-label fade-up">The CineX Engine</div>
+    <h2 class="section-title fade-up">Financing Infrastructure, Not a Donation Page</h2>
+    <p class="section-sub fade-up">Four interconnected capabilities that make creative IP a real asset class.</p>
+    <div class="features-grid">
+      <div class="feature-card glass fade-up">
+        <div class="feature-icon">✓</div>
+        <h3>Verified Project Onboarding</h3>
+        <div class="stat-line">34 gatekeepers already committed</div>
+        <p>No blind funding. Every project is vouched for by a trusted gatekeeper before it reaches our platform.</p>
+        <div class="feature-detail">Each gatekeeper brings their tribe organically — zero paid ads. One endorsement unlocks hundreds of vetted creatives.</div>
+      </div>
+      <div class="feature-card glass fade-up">
+        <div class="feature-icon">◈</div>
+        <h3>Milestone‑Gated Payouts</h3>
+        <div class="stat-line">$1M+ pipeline in active conversation</div>
+        <p>Capital releases in stages, only when deliverables are proven. No lump-sum risk. Backers see exactly where their money goes.</p>
+        <div class="feature-detail">29 smart contracts across 9 layers handle escrow, verification, and release. 50+ tests passing. 2-of-3 multisig admin security.</div>
+      </div>
+      <div class="feature-card glass fade-up">
+        <div class="feature-icon">⟁</div>
+        <h3>Productive Escrow Yield</h3>
+        <div class="stat-line">70% backers / 20% platform / 10% creator bonus</div>
+        <p>Idle capital doesn't sit still — it earns yield through secure DeFi strategies. No lock-ups, no waste, no speculation.</p>
+        <div class="feature-detail">Yield split applied on earned yield (not fixed principal). Backers earn while projects develop. Creators get a bonus when projects succeed.</div>
+      </div>
+      <div class="feature-card glass fade-up">
+        <div class="feature-icon">◆</div>
+        <h3>Nigeria‑First, Built for Africa</h3>
+        <div class="stat-line">$5B+ market today → $200B by 2030</div>
+        <p>Designed for African creative realities from day one. NGN/USD wallet abstraction. Mobile-first. Tribal GTM.</p>
+        <div class="feature-detail">93.5% Nigeria-based beachhead. Brookings Institution projects Africa's creative economy at $200B by 2030. CineX is the financial rail to capture it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILOT PROJECTS -->
+<section class="section" id="pilots">
+  <div class="section-inner">
+    <div class="pilot-header fade-up">
+      <div class="section-label">Traction — Cohort 0</div>
+      <h2 class="section-title">Four Pilot Projects in the Pipeline</h2>
+      <p class="section-sub">Real creative works being structured for milestone‑based financing. Each represents a creative sector CineX serves.</p>
+    </div>
+    <div class="swiper pilot-carousel fade-up">
+      <div class="swiper-wrapper">
+        <!-- Rain Series -->
+        <div class="swiper-slide">
+          <div class="pilot-slide">
+            <h3>Rain</h3>
+            <div class="pilot-format">Series Development • TV / Streaming</div>
+            <p class="pilot-pitch">A gripping Nigerian drama series exploring love, loss, and redemption against the backdrop of Lagos — structured as CineX's first episodic milestone model.</p>
+            <div class="rain-flip-grid">
+              <div class="flip-card">
+                <div class="flip-inner">
+                  <div class="flip-front">
+                    <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Concept%20Cover%20pics.png" alt="Rain Series Concept Cover" loading="lazy">
+                    <div class="flip-label">Concept Cover</div>
+                  </div>
+                  <div class="flip-back">
+                    <strong>The Visual Identity</strong>
+                    <p>The world of Rain — a rich, atmospheric Lagos where every frame tells a story of contrast: wealth and struggle, tradition and ambition.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flip-card">
+                <div class="flip-inner">
+                  <div class="flip-front">
+                    <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Story%20format%20type%20pics.png" alt="Rain Series Format" loading="lazy">
+                    <div class="flip-label">Story Format</div>
+                  </div>
+                  <div class="flip-back">
+                    <strong>Format: TV Series</strong>
+                    <p>Genre: Drama. Target: Streaming platforms. Structured in milestone-aligned episodes — each episode unlocks the next tranche of financing.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flip-card">
+                <div class="flip-inner">
+                  <div class="flip-front">
+                    <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Logline%20pics.png" alt="Rain Series Logline" loading="lazy">
+                    <div class="flip-label">Logline</div>
+                  </div>
+                  <div class="flip-back">
+                    <strong>The Core Story</strong>
+                    <p>When a young Lagos filmmaker returns home after a decade abroad, she discovers the family estate — and its secrets — are crumbling alongside her mother's health.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flip-card">
+                <div class="flip-inner">
+                  <div class="flip-front">
+                    <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Synopsis%20pics.png" alt="Rain Series Synopsis" loading="lazy">
+                    <div class="flip-label">Synopsis</div>
+                  </div>
+                  <div class="flip-back">
+                    <strong>The Journey</strong>
+                    <p>A story of identity, belonging, and the rain that washes away more than dirt. Each episode milestone maps to a phase of the protagonist's reckoning.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Death of Eternity -->
+        <div class="swiper-slide">
+          <div class="pilot-slide">
+            <h3>The Death of Eternity</h3>
+            <div class="pilot-format">Narrative Film • Feature</div>
+            <p class="pilot-pitch">A thought‑provoking feature film that questions immortality, legacy, and the price of forever — a showcase for CineX's full lifecycle milestone model.</p>
+            <div class="doe-grid">
+              <div class="doe-cell" onclick="openLightbox('doe1')">
+                <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics.png" alt="Death of Eternity Concept" loading="lazy">
+                <div class="doe-overlay"><span>View Concept →</span></div>
+              </div>
+              <div class="doe-cell" onclick="openLightbox('doe2')">
+                <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics2.png" alt="Death of Eternity Concept 2" loading="lazy">
+                <div class="doe-overlay"><span>View Concept →</span></div>
+              </div>
+              <div class="doe-cell" onclick="openLightbox('doe3')">
+                <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20Premise%20pics.png" alt="Death of Eternity Premise" loading="lazy">
+                <div class="doe-overlay"><span>View Premise →</span></div>
+              </div>
+              <div class="doe-cell" onclick="openLightbox('doe4')">
+                <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Logline%20pics.png" alt="Death of Eternity Logline" loading="lazy">
+                <div class="doe-overlay"><span>View Logline →</span></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;color:var(--text-muted);font-size:.8rem;text-align:center;">Click any image to expand — cinematic mood board</div>
+          </div>
+        </div>
+        <!-- PrePARE VR -->
+        <div class="swiper-slide">
+          <div class="pilot-slide" style="background:linear-gradient(135deg,rgba(74,222,128,.04),rgba(34,197,94,.02));">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;text-align:center;">
+              <div style="font-size:3.5rem;margin-bottom:16px;opacity:.5;">◉</div>
+              <h3>PrePARE VR</h3>
+              <div class="pilot-format">Immersive Media • VR Experience</div>
+              <p class="pilot-pitch" style="max-width:500px;">An immersive virtual reality experience preparing users for real‑world emergency situations — combining education with experiential storytelling. CineX's first immersive media pilot.</p>
+            </div>
+          </div>
+        </div>
+        <!-- Northern Travels -->
+        <div class="swiper-slide">
+          <div class="pilot-slide" style="background:linear-gradient(135deg,rgba(74,222,128,.04),rgba(34,197,94,.02));">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;text-align:center;">
+              <div style="font-size:3.5rem;margin-bottom:16px;opacity:.5;">⊡</div>
+              <h3>Northern Travels</h3>
+              <div class="pilot-format">Factual / Travel Content</div>
+              <p class="pilot-pitch" style="max-width:500px;">A documentary travel series exploring the rich cultural heritage, landscapes, and untold stories of Northern Nigeria — bridging regional narratives to global audiences.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="swiper-pagination"></div>
+      <div class="swiper-button-next" style="color:var(--green);"></div>
+      <div class="swiper-button-prev" style="color:var(--green);"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" style="background:radial-gradient(ellipse at center,rgba(74,222,128,.02),transparent 60%);">
+  <div class="section-inner">
+    <div class="section-label fade-up" style="text-align:center;">How It Works</div>
+    <h2 class="section-title fade-up" style="text-align:center;">Three Steps to Bankable Creativity</h2>
+    <p class="section-sub fade-up" style="text-align:center;margin:0 auto;">Plain English. No blockchain jargon. Just a better way to finance creative work.</p>
+    <div class="how-grid">
+      <div class="how-step glass fade-up">
+        <div class="how-num">1</div>
+        <h3>Verified Intake</h3>
+        <p>Gatekeepers invite vetted creatives. Projects are validated for quality and feasibility before any funding is raised. No blind pitches.</p>
+      </div>
+      <div class="how-step glass fade-up">
+        <div class="how-num">2</div>
+        <h3>Milestone Gating</h3>
+        <p>Funds release in stages, secured by automated agreements on a digital ledger. Each deliverable is verified before the next tranche unlocks.</p>
+      </div>
+      <div class="how-step glass fade-up">
+        <div class="how-num">3</div>
+        <h3>Productive Escrow</h3>
+        <p>Idle capital earns yield automatically through secure strategies — no lock-ups, no waste. Backers earn while projects develop. Creators get a success bonus (70/20/10 split).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITIVE MATRIX -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label fade-up">Why CineX</div>
+    <h2 class="section-title fade-up">Built Different for a Different Reality</h2>
+    <div class="matrix-wrap fade-up">
+      <table class="matrix-table glass" style="padding:0;overflow:hidden;">
+        <thead>
+          <tr><th>Feature</th><th>Traditional Crowdfunding</th><th>Generic Crypto Platforms</th><th style="color:var(--green);">CineX</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Milestone control</td><td><span class="cross">✗</span> Lump-sum</td><td><span class="cross">✗</span> Usually none</td><td><span class="check">✓</span> Staged releases</td></tr>
+          <tr><td>Escrow visibility</td><td>Opaque</td><td>Pseudonymous</td><td><span class="check">✓</span> Transparent, on-chain</td></tr>
+          <tr><td>Yield on idle capital</td><td><span class="cross">✗</span> None</td><td>Sometimes speculative</td><td><span class="check">✓</span> Productive escrow (70/20/10)</td></tr>
+          <tr><td>Africa‑specific tribes</td><td><span class="cross">✗</span> Ignored</td><td><span class="cross">✗</span> Western-centric</td><td><span class="check">✓</span> Built on gatekeeper trust</td></tr>
+          <tr><td>Admin security</td><td>Centralized</td><td>Variable</td><td><span class="check">✓</span> 2-of-3 multisig + timelock</td></tr>
+          <tr><td style="border-bottom:none;">Smart contract audit readiness</td><td style="border-bottom:none;">N/A</td><td style="border-bottom:none;">Varies</td><td style="border-bottom:none;color:var(--green);font-weight:600;">29 contracts, 50+ tests</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET OPPORTUNITY -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label fade-up">Market Opportunity</div>
+    <h2 class="section-title fade-up">A $200 Billion Market by 2030</h2>
+    <div class="market-bar-wrap fade-up">
+      <div style="position:relative;margin-bottom:24px;">
+        <div class="market-bar"><div class="market-fill" id="market-bar-1" style="--w:1%;">$1M+ Pipeline</div></div>
+        <div class="market-bar"><div class="market-fill" id="market-bar-2" style="--w:15%;">$5B+ Today</div></div>
+        <div class="market-bar"><div class="market-fill" id="market-bar-3" style="--w:100%;background:linear-gradient(90deg,rgba(74,222,128,.2),rgba(74,222,128,.05));color:var(--text-muted);">$200B by 2030</div></div>
+      </div>
+      <div class="market-source">Source: <a href="https://www.brookings.edu/articles/africas-creative-economy/" target="_blank" rel="noopener">Brookings Institution — Africa's Creative Economy</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="section" id="team">
+  <div class="section-inner">
+    <div class="section-label fade-up">Team & Advisors</div>
+    <h2 class="section-title fade-up">The People Building CineX</h2>
+    <div class="team-grid">
+      <div class="team-card glass fade-up">
+        <img class="team-photo" src="assets/images/Team%20profile%20pics/VIC%20LinkedIn%20Headshot.png" alt="Victor Omenai" loading="lazy">
+        <h4>Victor Omenai</h4>
+        <div class="role">Technical Founder</div>
+        <div class="bio">Smart contract architecture, product strategy, fundraising</div>
+      </div>
+      <div class="team-card glass fade-up">
+        <img class="team-photo" src="assets/images/Team%20profile%20pics/Stephanie%20profile%20pics.png" alt="Stephanie Ukiwe" loading="lazy">
+        <h4>Stephanie Ukiwe</h4>
+        <div class="role">Product Design</div>
+        <div class="bio">UX/UI design, user research, brand identity, product direction</div>
+      </div>
+      <div class="team-card glass fade-up">
+        <img class="team-photo" src="assets/images/Team%20profile%20pics/McDaniells%20profile%20pics.png" alt="McDaniells Albert" loading="lazy">
+        <h4>McDaniells Albert</h4>
+        <div class="role">Full-Stack Engineer</div>
+        <div class="bio">Frontend architecture, API development, smart contract integration</div>
+      </div>
+      <div class="team-card glass fade-up">
+        <img class="team-photo" src="assets/images/Team%20profile%20pics/Theophilus%20.png" alt="Theophilus Adelekun" loading="lazy">
+        <h4>Theophilus Adelekun</h4>
+        <div class="role">Project Manager</div>
+        <div class="bio">Operations, milestone tracking, creative partner coordination</div>
+      </div>
+    </div>
+    <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-top:40px;margin-bottom:12px;" class="fade-up">Advisors</h3>
+    <div class="advisors-grid fade-up">
+      <div class="advisor-card glass"><h4>Setzeus</h4><div class="role">Clarity OG • Smart Contract Advisor</div></div>
+      <div class="advisor-card glass"><h4>Gary Riger</h4><div class="role">Working Group Host • Ecosystem Strategy</div></div>
+      <div class="advisor-card glass"><h4>Stephen Perrino</h4><div class="role">Communications • Go-to-Market</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label fade-up">Roadmap</div>
+    <h2 class="section-title fade-up">From Strategic Reset to Institutional Capital</h2>
+    <div class="roadmap fade-up">
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-date">Q2 2026</div>
+        <div class="rm-title">Strategic Reset</div>
+        <div class="rm-desc">Completed. 29 contracts deployed on testnet. 50+ tests passing. 2-of-3 multisig live. Backend on Render, new frontend placeholder.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot current"></div>
+        <div class="rm-date">Q3 2026</div>
+        <div class="rm-title">Pivot MVP Build</div>
+        <div class="rm-desc">In progress. Full frontend with wallet abstraction, milestone management UI, gatekeeper onboarding flow, and creative dashboard. Testnet launch.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-date">Q4 2026</div>
+        <div class="rm-title">Cohort 0 Pilots</div>
+        <div class="rm-desc">4 pilot projects live on mainnet. Rain, Death of Eternity, PrePARE VR, Northern Travels. Full milestone lifecycle validated with real creative works.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-date">H1 2027</div>
+        <div class="rm-title">Supply Partners & Scale</div>
+        <div class="rm-desc">Institutional capital partnerships. NGN/USD on-ramps. Pan-African gatekeeper expansion. 100+ projects financed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INVESTOR ASK -->
+<section class="section" id="investor">
+  <div class="section-inner">
+    <div class="section-label fade-up" style="text-align:center;">Pre-Seed Round</div>
+    <h2 class="section-title fade-up" style="text-align:center;">Join the Pre-Seed Round</h2>
+    <p class="section-sub fade-up" style="text-align:center;margin:0 auto 8px;">We are welcoming anchor allocations of $100k–$250k at a $5M post-money valuation ($4.4M pre-money).</p>
+    <div class="investor-grid">
+      <div class="investor-numbers fade-up">
+        <div class="inv-item glass"><span class="label">Raise Amount</span><span class="value" style="color:var(--green);">$600,000</span></div>
+        <div class="inv-item glass"><span class="label">Valuation</span><span class="value">$5M post / $4.4M pre</span></div>
+        <div class="inv-item glass"><span class="label">Anchor Allocations</span><span class="value">$100k–$250k</span></div>
+        <div class="inv-item glass"><span class="label">Contact</span><span class="value" style="font-size:.85rem;"><a href="mailto:invest@cinex.africa">invest@cinex.africa</a></span></div>
+      </div>
+      <div class="fade-up">
+        <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-bottom:16px;">Use of Funds</h3>
+        <div class="use-grid">
+          <div class="use-item glass"><span class="desc">Product Build</span><span class="pct">45%</span></div><div class="use-item glass" style="border-left:none;"><div class="use-bar" style="width:100%;"><div class="use-fill" style="width:45%;"></div></div></div>
+          <div class="use-item glass"><span class="desc">Pilot Commissioning</span><span class="pct">20%</span></div><div class="use-item glass" style="border-left:none;"><div class="use-bar" style="width:100%;"><div class="use-fill" style="width:20%;"></div></div></div>
+          <div class="use-item glass"><span class="desc">Legal / Compliance</span><span class="pct">15%</span></div><div class="use-item glass" style="border-left:none;"><div class="use-bar" style="width:100%;"><div class="use-fill" style="width:15%;"></div></div></div>
+          <div class="use-item glass"><span class="desc">Ecosystem BD</span><span class="pct">10%</span></div><div class="use-item glass" style="border-left:none;"><div class="use-bar" style="width:100%;"><div class="use-fill" style="width:10%;"></div></div></div>
+          <div class="use-item glass"><span class="desc">Founder Runway</span><span class="pct">10%</span></div><div class="use-item glass" style="border-left:none;"><div class="use-bar" style="width:100%;"><div class="use-fill" style="width:10%;"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="investor-cta fade-up">
+      <a href="mailto:invest@cinex.africa" class="btn btn-primary" style="font-size:1rem;padding:16px 40px;">Contact for Investment →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-size:.9rem;color:var(--text);font-weight:500;">New financing rails for film, music, gaming, and immersive media.</p>
+  <div class="social-links">
+    <a href="https://twitter.com/cinex_africa" target="_blank" rel="noopener">Twitter / X</a>
+    <a href="https://github.com/mediafintech/CineX" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://linkedin.com/company/cinex" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p>© 2026 CineX. All rights reserved.</p>
+</footer>
+
+<!-- DEATH OF ETERNITY LIGHTBOXES -->
+<div class="lightbox" id="lb-doe1" onclick="this.classList.remove('active')">
+  <button class="lightbox-close" onclick="event.stopPropagation();this.parentElement.classList.remove('active')">✕</button>
+  <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics.png" alt="Death of Eternity Concept Art" onclick="event.stopPropagation()">
+</div>
+<div class="lightbox" id="lb-doe2" onclick="this.classList.remove('active')">
+  <button class="lightbox-close" onclick="event.stopPropagation();this.parentElement.classList.remove('active')">✕</button>
+  <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics2.png" alt="Death of Eternity Concept Art 2" onclick="event.stopPropagation()">
+</div>
+<div class="lightbox" id="lb-doe3" onclick="this.classList.remove('active')">
+  <button class="lightbox-close" onclick="event.stopPropagation();this.parentElement.classList.remove('active')">✕</button>
+  <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20Premise%20pics.png" alt="Death of Eternity Concept Premise" onclick="event.stopPropagation()">
+</div>
+<div class="lightbox" id="lb-doe4" onclick="this.classList.remove('active')">
+  <button class="lightbox-close" onclick="event.stopPropagation();this.parentElement.classList.remove('active')">✕</button>
+  <img src="assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Logline%20pics.png" alt="Death of Eternity Logline" onclick="event.stopPropagation()">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+// LIGHTBOX
+function openLightbox(id) {
+  document.getElementById('lb-' + id).classList.add('active');
+}
+
+// PARTICLES
+(function(){
+  const c = document.getElementById('particles-canvas');
+  const ctx = c.getContext('2d');
+  let w, h, particles = [];
+  const COUNT = 60;
+  function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight;}
+  window.addEventListener('resize', resize);
+  resize();
+  class P{
+    constructor(){this.x=Math.random()*w;this.y=Math.random()*h;this.vx=(Math.random()-.5)*.4;this.vy=(Math.random()-.5)*.4;this.r=1.5;}
+    update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>w)this.vx*=-1;if(this.y<0||this.y>h)this.vy*=-1;}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(74,222,128,0.3)';ctx.fill();}
+  }
+  for(let i=0;i<COUNT;i++)particles.push(new P());
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{p.update();p.draw();});
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<150){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(74,222,128,${.06*(1-dist/150)})`;
+          ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// NAV SCROLL
+const nav=document.getElementById('navbar');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60);});
+
+// SCROLL ANIMATIONS
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});
+},{threshold:.1});
+document.querySelectorAll('.fade-up, .fade-in').forEach(el=>observer.observe(el));
+
+// COUNTERS
+const counterObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    const el=e.target;
+    const target=parseFloat(el.dataset.target);
+    if(isNaN(target))return;
+    const duration=1500;
+    const start=performance.now();
+    function tick(now){
+      const t=Math.min((now-start)/duration,1);
+      const eased=1-Math.pow(1-t,3);
+      const current=target*eased;
+      el.textContent=target%1===0?Math.round(current).toString():current.toFixed(1);
+      if(t<1)requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    counterObserver.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('.counter').forEach(el=>counterObserver.observe(el));
+
+// MARKET BAR ANIMATION
+const marketObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    e.target.classList.add('animate');
+    marketObserver.unobserve(e.target);
+  });
+},{threshold:.3});
+document.querySelectorAll('.market-fill').forEach(el=>marketObserver.observe(el));
+
+// SWIPER
+new Swiper('.pilot-carousel',{
+  slidesPerView:1,
+  spaceBetween:24,
+  pagination:{el:'.swiper-pagination',clickable:true},
+  navigation:{nextEl:'.swiper-button-next',prevEl:'.swiper-button-prev'},
+  breakpoints:{
+    768:{slidesPerView:1.2,centeredSlides:true},
+    1024:{slidesPerView:1.5,centeredSlides:true}
+  }
+});
+</script>
 </body>
 </html>
