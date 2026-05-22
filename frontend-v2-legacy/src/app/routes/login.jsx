@@ -3,7 +3,7 @@ import AuthSection from '@features/auth/components/auth-section';
 
 function LoginPage() {
   return (
-    <PageLayout title="Login - Global Bank">
+    <PageLayout title="Login - CineX">
       <AuthSection type="login" />
     </PageLayout>
   );

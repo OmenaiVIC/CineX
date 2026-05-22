@@ -12,8 +12,8 @@
 
 /** Logical contract key used across the codebase */
 export type ContractKey =
-  | "crowdfunding"
-  | "coep"
+  | "campaign"
+  | "fundingPool"
   | "core"
   | "verification"
   | "escrow"
@@ -38,7 +38,7 @@ export interface ContractEntry {
  *   1. VITE_{KEY}_CONTRACT_ADDRESS / VITE_{KEY}_CONTRACT_NAME env vars
  *   2. Hardcoded testnet defaults below
  *
- * @param key - Logical contract name ("crowdfunding", "coep", etc.)
+ * @param key - Logical contract name ("campaign", "fundingPool", etc.)
  */
 export function resolveContract(key: ContractKey): ContractEntry {
   const envKey   = key.toUpperCase().replace(/-/g, "_");
@@ -64,14 +64,14 @@ export function resolveContract(key: ContractKey): ContractEntry {
  * deploy the contracts to testnet.
  */
 export const TESTNET_DEFAULTS: Record<ContractKey, ContractEntry> = {
-  crowdfunding: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "campaign-module" },
-  coep:         { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "funding-pool" },
+  campaign:    { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "campaign-module-2" },
+  fundingPool: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "funding-pool" },
   core:         { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "cinex-multisig" },
   verification: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "project-verification-module" },
   escrow:       { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-escrow" },
   milestone_escrow: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-escrow" },
   yield_escrow: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "yield-escrow" },
-  milestone_verification: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-verification" },
+  milestone_verification: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "milestone-verification-2" },
   bitflow_strategy: { address: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", name: "bitflow-strategy" },
 };
 
@@ -82,13 +82,13 @@ export const TESTNET_DEFAULTS: Record<ContractKey, ContractEntry> = {
  * the full address+name; use the map below for just the name string.
  */
 export const CONTRACT_NAMES: Record<ContractKey, string> = {
-  crowdfunding: "campaign-module",
-  coep:         "funding-pool",
+  campaign:    "campaign-module-2",
+  fundingPool: "funding-pool",
   core:         "cinex-multisig",
   verification: "project-verification-module",
   escrow:       "milestone-escrow",
   milestone_escrow: "milestone-escrow",
   yield_escrow: "yield-escrow",
-  milestone_verification: "milestone-verification",
+  milestone_verification: "milestone-verification-2",
   bitflow_strategy: "bitflow-strategy",
 };

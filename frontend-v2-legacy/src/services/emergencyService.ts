@@ -71,7 +71,7 @@ export class EmergencyService {
       }
 
       // Check if system is already paused
-      const statusResult = await this.getSystemStatus('crowdfunding');
+      const statusResult = await this.getSystemStatus('campaign');
       if (statusResult.success && statusResult.data?.isPaused) {
         return {
           success: false,
@@ -81,8 +81,8 @@ export class EmergencyService {
 
       // Call smart contract to pause system
       const network = getNetwork();
-      const contractAddress = getContractAddress('crowdfunding');
-      const contractName = getContractName('crowdfunding');
+      const contractAddress = getContractAddress('campaign');
+      const contractName = getContractName('campaign');
 
       try {
         // Open Stacks wallet to sign transaction
@@ -139,7 +139,7 @@ export class EmergencyService {
       }
 
       // Check if system is paused
-      const statusResult = await this.getSystemStatus('crowdfunding');
+      const statusResult = await this.getSystemStatus('campaign');
       if (statusResult.success && !statusResult.data?.isPaused) {
         return {
           success: false,
@@ -149,8 +149,8 @@ export class EmergencyService {
 
       // Call smart contract to resume system
       const network = getNetwork();
-      const contractAddress = getContractAddress('crowdfunding');
-      const contractName = getContractName('crowdfunding');
+      const contractAddress = getContractAddress('campaign');
+      const contractName = getContractName('campaign');
 
       try {
         // Open Stacks wallet to sign transaction
@@ -194,10 +194,10 @@ export class EmergencyService {
 
   /**
    * Get system status (paused or active)
-   * @param module Module to check status for ('crowdfunding', 'coep', 'escrow', 'verification')
+   * @param module Module to check status for ('campaign', 'fundingPool', 'escrow', 'verification')
    * @returns Promise with system status
    */
-  async getSystemStatus(module: 'crowdfunding' | 'coep' | 'escrow' | 'verification'): Promise<ServiceResponse<SystemStatus>> {
+  async getSystemStatus(module: 'campaign' | 'fundingPool' | 'escrow' | 'verification'): Promise<ServiceResponse<SystemStatus>> {
     try {
       const network = getNetwork();
       const contractAddress = getContractAddress(module);
@@ -256,7 +256,7 @@ export class EmergencyService {
    * @param module Module to check version for
    * @returns Promise with module version
    */
-  async getModuleVersion(module: 'crowdfunding' | 'coep' | 'escrow' | 'verification'): Promise<ServiceResponse<number>> {
+  async getModuleVersion(module: 'campaign' | 'fundingPool' | 'escrow' | 'verification'): Promise<ServiceResponse<number>> {
     try {
       const network = getNetwork();
       const contractAddress = getContractAddress(module);
@@ -304,7 +304,7 @@ export class EmergencyService {
    * @param module Module to check
    * @returns Promise with module active status
    */
-  async isModuleActive(module: 'crowdfunding' | 'coep' | 'escrow' | 'verification'): Promise<ServiceResponse<boolean>> {
+  async isModuleActive(module: 'campaign' | 'fundingPool' | 'escrow' | 'verification'): Promise<ServiceResponse<boolean>> {
     try {
       const network = getNetwork();
       const contractAddress = getContractAddress(module);
@@ -353,9 +353,9 @@ export class EmergencyService {
    */
   async getAllSystemStatuses(): Promise<ServiceResponse<SystemStatus[]>> {
     try {
-      const modules: Array<'crowdfunding' | 'coep' | 'escrow' | 'verification'> = [
-        'crowdfunding',
-        'coep',
+      const modules: Array<'campaign' | 'fundingPool' | 'escrow' | 'verification'> = [
+        'campaign',
+        'fundingPool',
         'escrow',
         'verification',
       ];

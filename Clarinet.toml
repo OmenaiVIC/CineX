@@ -95,6 +95,12 @@ clarity_version = 2
 epoch = '2.5'
 depends_on = ['campaign-module-traits', 'milestone-escrow-trait', 'project-verification-module-trait', 'emergency-module-trait', 'module-base-trait']
 
+[contracts.campaign-module-2]
+path = 'contracts/campaign-module.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['campaign-module-traits', 'milestone-escrow-trait', 'project-verification-module-trait', 'emergency-module-trait', 'module-base-trait']
+
 # === Milestone Escrow (Day 4-5) ===
 
 [contracts.milestone-escrow-trait]
@@ -119,7 +125,7 @@ epoch = '2.5'
 path = 'contracts/yield-escrow.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['yield-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'bitflow-strategy-trait', 'bitflow-strategy', 'campaign-module', 'milestone-verification']
+depends_on = ['yield-escrow-trait', 'emergency-module-trait', 'module-base-trait', 'bitflow-strategy-trait', 'bitflow-strategy', 'campaign-module-2', 'milestone-verification']
 
 # === Bitflow Strategy (Day 7) ===
 
@@ -146,7 +152,13 @@ depends_on = ['bitflow-strategy-trait']
 path = 'contracts/milestone-verification.clar'
 clarity_version = 2
 epoch = '2.5'
-depends_on = ['emergency-module-trait', 'module-base-trait', 'campaign-module', 'milestone-escrow']
+depends_on = ['emergency-module-trait', 'module-base-trait', 'campaign-module-2', 'milestone-escrow']
+
+[contracts.milestone-verification-2]
+path = 'contracts/milestone-verification-2.clar'
+clarity_version = 2
+epoch = '2.5'
+depends_on = ['emergency-module-trait', 'module-base-trait', 'campaign-module-2', 'milestone-escrow']
 
 # === Funding Pool (Day 9-10) ===
 

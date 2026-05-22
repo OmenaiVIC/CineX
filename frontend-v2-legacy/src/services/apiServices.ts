@@ -273,8 +273,8 @@ export class ApiPoolService {
   }
 }
 
-export class ApiCrowdfundingService { /* keep mock-only — on-chain contract calls */ }
-export class ApiCoEPService { /* keep mock-only — on-chain contract calls */ }
+export class ApiCampaignService { /* keep mock-only — on-chain contract calls */ }
+export class ApiFundingPoolService { /* keep mock-only — on-chain contract calls */ }
 export class ApiEscrowService { /* keep mock-only — on-chain contract calls */ }
 export class ApiEmergencyService { /* keep mock-only — on-chain contract calls */ }
 export class ApiVerificationService { /* keep mock-only awaiting smart contract integration */ }

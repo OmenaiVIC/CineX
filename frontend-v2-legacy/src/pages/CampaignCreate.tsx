@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../auth/StacksAuthContext';
-import { createCrowdfundingService } from '../services/crowdfundingService';
+import { createCampaignService } from '../services/campaignService';
 // Removed modal import for campaign creation
 import styles from '../styles/pages/PoolCreate.module.css'; // Reuse pool create styles
 
@@ -104,12 +104,12 @@ const CampaignCreate: React.FC = () => {
     setError(null);
     setIsSubmitting(true);
     try {
-      const crowdfundingService = createCrowdfundingService(userSession);
+      const campaignService = createCampaignService(userSession);
       const deadlineTimestamp = new Date(formData.deadline).getTime();
       const mediaUrls = formData.mediaUrls.filter(url => url.trim() !== '');
       const tags = formData.tags.filter(tag => tag.trim() !== '');
       console.log('[CampaignCreate] Submitting campaign:', formData);
-      const result = await crowdfundingService.createCampaign({
+      const result = await campaignService.createCampaign({
         title: formData.title,
         description: formData.description,
         targetAmount: formData.targetAmount,

@@ -1,0 +1,18 @@
+---
+id: 0
+name: Milestone-verification-2 deployment
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoind.testnet.stacks.co:18332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: milestone-verification-2
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 4080026
+            path: "contracts\\milestone-verification-2.clar"
+            anchor-block-only: true
+            clarity-version: 2
+      epoch: "2.5"

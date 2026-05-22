@@ -21,7 +21,7 @@ export default function ContractCallExample() {
 
   // Contract Details 
   const contractAddress = 'ST2VTFJEEJQN93Z6P3AFF6QN7M3WXY85ZPNDR3G51';
-  const contractName = 'crowdfunding-module';
+  const contractName = 'campaign-module';
   const functionName = 'contribute-to-campaign'; // Verify this is the function name in your .clar file
 
   const handleContractCall = async () => {

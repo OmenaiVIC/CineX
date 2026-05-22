@@ -1,79 +1,51 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { ApiWalletService } from '../../services/apiServices';
-import type { WalletBalance as WalletBalanceType } from '../../services/apiServices';
+import { useState, useCallback } from 'react';
+import { useAuth } from '@contexts/StacksAuthContext';
 
 interface WalletBalanceProps {
-  userId: string;
   compact?: boolean;
 }
 
-function WalletBalance({ userId, compact = false }: WalletBalanceProps) {
-  const [balance, setBalance] = useState<WalletBalanceType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function WalletBalance({ compact = false }: WalletBalanceProps) {
+  const { isAuthenticated, userData, stxBalance, fetchStxBalance, isLoadingBalance, getAddressFromUserData } = useAuth();
+  const [copied, setCopied] = useState(false);
 
-  const walletService = new ApiWalletService();
+  const address = userData ? getAddressFromUserData(userData) : '';
 
-  const fetchBalance = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const res = await walletService.getBalance(userId);
-    if (res.success && res.data) {
-      setBalance(res.data);
-    } else {
-      setError(res.error || 'Failed to load balance');
-    }
-    setLoading(false);
-  }, [userId]);
+  const copyAddress = useCallback(() => {
+    if (!address) return;
+    navigator.clipboard.writeText(address).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  }, [address]);
 
-  useEffect(() => {
-    fetchBalance();
-    const interval = setInterval(fetchBalance, 30000);
-    return () => clearInterval(interval);
-  }, [fetchBalance]);
-
-  if (loading && !balance) {
+  if (!isAuthenticated || !userData) {
     return (
       <div className="glass-card p-6 text-center">
-        <div className="animate-pulse text-gray-400">Loading balance...</div>
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m0 0v2m0-2h2m-2 0H10m21-7a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-gray-400 text-sm">Connect wallet to view balance</p>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="glass-card p-6 text-center">
-        <p className="text-red-400 text-sm mb-2">{error}</p>
-        <button onClick={fetchBalance} className="text-[#4ade80] text-sm hover:underline">
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (!balance) return null;
-
-  const primaryBalance = balance.preferredCurrency === 'NGN'
-    ? `₦${balance.ngn.toLocaleString()}`
-    : `$${balance.usd.toLocaleString()}`;
-
-  const secondaryLabel = balance.preferredCurrency === 'NGN' ? 'USD' : 'NGN';
-  const secondaryValue = balance.preferredCurrency === 'NGN'
-    ? `$${balance.usdEquivalent.toLocaleString()}`
-    : `₦${balance.ngnEquivalent.toLocaleString()}`;
 
   if (compact) {
     return (
       <div className="glass-card p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-400 text-xs">Balance</p>
-            <p className="text-2xl font-bold text-white">{primaryBalance}</p>
+            <p className="text-gray-500 text-xs">STX Balance</p>
+            <p className="text-2xl font-bold text-white">
+              {stxBalance ? `${stxBalance}` : '—'}
+              <span className="text-sm text-gray-500 ml-1">STX</span>
+            </p>
           </div>
-          <div className="text-right">
-            <p className="text-gray-400 text-xs">{secondaryLabel}</p>
-            <p className="text-sm text-gray-300">{secondaryValue}</p>
-          </div>
+          <button onClick={copyAddress} className="text-xs text-gray-500 hover:text-green-400 font-mono truncate max-w-[140px]" title={address}>
+            {copied ? 'Copied!' : `${address.slice(0, 6)}…${address.slice(-4)}`}
+          </button>
         </div>
       </div>
     );
@@ -82,35 +54,39 @@ function WalletBalance({ userId, compact = false }: WalletBalanceProps) {
   return (
     <div className="glass-card p-8">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Wallet Balance</h3>
+        <h3 className="text-lg font-semibold text-white">STX Wallet</h3>
         <button
-          onClick={fetchBalance}
-          className="text-xs text-gray-400 hover:text-[#4ade80] transition-colors"
-          disabled={loading}
+          onClick={fetchStxBalance}
+          className="text-xs text-gray-500 hover:text-green-400 transition-colors"
+          disabled={isLoadingBalance}
         >
-          {loading ? 'Refreshing...' : 'Refresh'}
+          {isLoadingBalance ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[rgba(74,222,128,0.05)] border border-[rgba(74,222,128,0.1)] rounded-2xl p-5">
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Preferred Currency</p>
-          <p className="text-3xl font-bold text-white">{primaryBalance}</p>
-          <p className="text-xs text-gray-400 mt-1">{balance.preferredCurrency} balance</p>
-        </div>
-
-        <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.1)] rounded-2xl p-5">
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Converted</p>
-          <p className="text-3xl font-bold text-[#f59e0b]">{secondaryValue}</p>
-          <p className="text-xs text-gray-400 mt-1">at rate ₦{balance.rates.ngnUsd.toFixed(2)}/$</p>
-        </div>
-
-        <div className="bg-[rgba(0,229,255,0.05)] border border-[rgba(0,229,255,0.1)] rounded-2xl p-5">
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">sBTC Backing</p>
-          <p className="text-3xl font-bold text-[#00e5ff]">
-            {parseInt(balance.sbtc || '0') > 0 ? `${(parseInt(balance.sbtc) / 1e8).toFixed(8)}` : '0.00000000'}
+        <div className="bg-green-500/5 border border-green-500/10 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">STX Balance</p>
+          <p className="text-3xl font-bold text-white">
+            {stxBalance || '—'}
           </p>
-          <p className="text-xs text-gray-400 mt-1">~${balance.usd > 0 ? (balance.usd / 96000).toFixed(4) : '0.0000'} BTC</p>
+          <p className="text-xs text-gray-500 mt-1">Stacks (STX)</p>
+        </div>
+
+        <div className="bg-cyan-400/5 border border-cyan-400/10 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Address</p>
+          <p className="text-sm font-mono text-cyan-400 break-all">{address}</p>
+          <button onClick={copyAddress} className="text-xs text-gray-500 hover:text-green-400 mt-1">
+            {copied ? '✓ Copied' : 'Copy address'}
+          </button>
+        </div>
+
+        <div className="bg-amber-400/5 border border-amber-400/10 rounded-2xl p-5">
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Network</p>
+          <p className="text-3xl font-bold text-amber-400">
+            {address?.startsWith('ST') ? 'Testnet' : address?.startsWith('SP') ? 'Mainnet' : '—'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">{address ? 'Hiro API' : 'Not connected'}</p>
         </div>
       </div>
     </div>

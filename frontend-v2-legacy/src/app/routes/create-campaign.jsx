@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createCrowdfundingService } from '../../services/crowdfundingService';
+import { createCampaignService } from '../../services/campaignService';
 import { useAuth } from '../../auth/StacksAuthContext';
 import { useLocation } from 'react-router-dom';
 import DashboardLayout from '@components/dashboard/DashboardLayout';
@@ -58,7 +58,7 @@ export default function CreateCampaign() {
         setIsSubmitting(false);
         return;
       }
-      const crowdfundingService = createCrowdfundingService(userSession);
+      const campaignService = createCampaignService(userSession);
       // Allowed categories
       const allowedCategories = [
         'short-film', 'feature', 'documentary', 'music-video', 'web-series', 'animation', 'podcast', 'other'
@@ -67,7 +67,7 @@ export default function CreateCampaign() {
       if (!allowedCategories.includes(category)) {
         category = 'feature';
       }
-      const result = await crowdfundingService.createCampaign({
+      const result = await campaignService.createCampaign({
         title: formData.title,
         description: formData.description,
         targetAmount: formData.targetAmount,

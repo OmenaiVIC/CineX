@@ -72,34 +72,35 @@ clarinet test
 
 ## Project Status
 
-We are in late-stage development preparing for testnet deployment.
+**All 29 smart contracts deployed on Stacks testnet. Frontend live at https://cine-x-main.vercel.app**
 
 **Completed:**
-- 9 smart contracts fully developed and tested
+- 29 Clarity smart contracts across 9 layers fully developed, tested, and deployed
 - Dual-currency wallet system (NGN + USD) backed by Bitcoin smart contracts
 - Milestone verification system with backer voting
 - Yield distribution (70% backers / 20% platform / 10% creator bonus)
 - Funding pools for collaborative projects
 - Emergency systems and admin controls
+- 50 unit/integration tests pass
+- Frontend deployed to Vercel (testnet)
 
 **In Progress:**
-- End-to-end integration testing across all contracts
-- Frontend wallet abstraction UI
-- Testnet deployment
+- Backend deployment to Render (node.js + SQLite)
+- Production mainnet launch
 
 ## Core Smart Contracts (Overview)
 
-| Contract | What It Does |
-|----------|-------------|
-| **`crowdfunding-module.clar`** | Create campaigns, accept funds, manage milestones |
-| **`milestone-escrow.clar`** | Hold funds securely and release in stages |
-| **`milestone-verification.clar`** | Backer-weighted voting to confirm milestones |
-| **`yield-escrow.clar`** | Generate and distribute returns (70/20/10 split) |
-| **`funding-pool.clar`** | Pooled funding for collaborative projects |
-| **`bitflow-strategy.clar`** | DeFi yield strategy for deployed capital |
-| **`cinex-multisig.clar`** | 2-of-3 admin control for emergency situations |
-| **`cinex-timelock.clar`** | Delay on admin actions for transparency |
-| **`project-verification-module.clar`** | Verify creator identity across any sector |
+| Layer | Contracts | What It Does |
+|-------|-----------|-------------|
+| **Campaign** | `campaign-module` / `campaign-module-2` | Create campaigns, accept funds, manage milestones |
+| **Milestone Escrow** | `milestone-escrow` | Hold funds securely and release in stages |
+| **Milestone Verification** | `milestone-verification` / `milestone-verification-2` | Endorser-weighted verification to confirm milestones |
+| **Yield Escrow** | `yield-escrow` | Generate and distribute returns (70/20/10 split) |
+| **Funding Pool** | `funding-pool` | Pooled funding for collaborative projects |
+| **Strategy** | `bitflow-strategy` / `mock-strategy` | DeFi yield strategy for deployed capital |
+| **Admin** | `cinex-multisig` / `timelock` / `emergency-module` | 2-of-3 admin control + timelocked actions |
+| **Oracle/Reputation** | `oracle-proxy` / `reputation` / `project-verification-module` | Verify creator identity and track reputation |
+| **Module Base** | `module-base` / `module-base-trait` | Reusable module framework for all contracts |
 
 ## Learn More
 
@@ -107,6 +108,15 @@ We are in late-stage development preparing for testnet deployment.
 - **[Backend Guide](./BACKEND_README.md)** — API and database
 - **[Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md)** — How dual-currency works
 - **[Deployment Workplan](./DEPLOYMENT_1DAY_WORKPLAN_SMARTCONTRACT_AND_FRONTEND.md)** — Path to testnet
+- **[Deployment Config](./render.yaml)** — Render blueprint for backend
+
+## Deployment
+
+| Component | URL | Status |
+|-----------|-----|--------|
+| Frontend | https://cine-x-main.vercel.app | ✅ Live (testnet) |
+| Backend | Render (set up via `render.yaml`) | 🔧 Configured, deploy via Render dashboard |
+| Contracts | ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM | ✅ 29/29 deployed on testnet |
 
 ## Contributing
 

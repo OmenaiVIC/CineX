@@ -1,15 +1,18 @@
-/**
- * milestoneService.ts
- * ===================
- * Campaign milestone tracking.
- *
- * Public methods:
- *   getMilestones(campaignId)    — all milestones for a campaign
- *   createMilestone(params)      — add a new milestone
- *   completeMilestone(id)        — mark as completed (mock only)
- *   getCampaignProgress(id)      — % funded per milestone
- */
-
+import {
+  uintCV,
+  fetchCallReadOnlyFunction,
+  cvToValue,
+} from '@stacks/transactions';
+import {
+  getNetwork,
+  getContractAddress,
+  getContractName,
+} from '../utils/network';
+import {
+  getMilestone,
+  getCreatorStanding,
+  getBonusRetentionRate,
+} from './milestoneVerificationService';
 import type { ServiceResponse, Milestone } from "../types";
 
 interface UserSession {
@@ -17,16 +20,13 @@ interface UserSession {
   loadUserData(): { profile: { stxAddress: { testnet: string; mainnet: string } } };
 }
 
-// ---------------------------------------------------------------------------
-// Sample data
-// ---------------------------------------------------------------------------
 const MOCK_MILESTONES: Milestone[] = [
   {
     id: "ms-1",
     campaignId: "campaign-7",
     title: "Pre-production",
     description: "Script finalisation, storyboarding, location scouting.",
-    fundingRequired: "10000000000",    // 10 000 STX
+    fundingRequired: "10000000000",
     deadline: Date.now() + 86_400_000 * 14,
     status: "completed",
     deliverables: ["Final script", "Storyboard PDF", "Location permits"],
@@ -37,7 +37,7 @@ const MOCK_MILESTONES: Milestone[] = [
     campaignId: "campaign-7",
     title: "Principal Photography",
     description: "Main shooting phase (14 days).",
-    fundingRequired: "25000000000",    // 25 000 STX
+    fundingRequired: "25000000000",
     deadline: Date.now() + 86_400_000 * 45,
     status: "active",
     deliverables: ["Raw footage archive", "Daily rushes"],
@@ -47,7 +47,7 @@ const MOCK_MILESTONES: Milestone[] = [
     campaignId: "campaign-7",
     title: "Post-production",
     description: "Editing, colour grading, sound design, VFX.",
-    fundingRequired: "15000000000",    // 15 000 STX
+    fundingRequired: "15000000000",
     deadline: Date.now() + 86_400_000 * 90,
     status: "pending",
   },
@@ -60,24 +60,26 @@ export class MilestoneService {
     this.userSession = userSession;
   }
 
-  /**
-   * getMilestones
-   * -------------
-   * Return all milestones for a campaign, sorted by deadline ascending.
-   * @param campaignId - The campaign to query
-   */
   async getMilestones(campaignId: string): Promise<ServiceResponse<Milestone[]>> {
     const ms = MOCK_MILESTONES.filter((m) => m.campaignId === campaignId)
       .sort((a, b) => a.deadline - b.deadline);
+
+    const numericId = parseInt(campaignId.replace(/\D/g, ''), 10);
+    if (!isNaN(numericId)) {
+      try {
+        const onChainMs = await getMilestone(numericId, 0);
+        if (onChainMs) {
+          const standing = await getCreatorStanding(numericId);
+          const retention = await getBonusRetentionRate(numericId);
+          (ms as any)._onChainStanding = standing;
+          (ms as any)._bonusRetentionRate = retention;
+        }
+      } catch {}
+    }
+
     return { success: true, data: ms };
   }
 
-  /**
-   * createMilestone
-   * ---------------
-   * Add a new milestone to a campaign.
-   * @param params - Milestone fields (id is auto-generated)
-   */
   async createMilestone(params: Omit<Milestone, "id">): Promise<ServiceResponse<Milestone>> {
     const milestone: Milestone = {
       ...params,
@@ -86,12 +88,6 @@ export class MilestoneService {
     return { success: true, data: milestone, transactionId: `mock_tx_${Date.now()}` };
   }
 
-  /**
-   * completeMilestone
-   * -----------------
-   * Mark a milestone as completed.  Mock only.
-   * @param milestoneId - The id to complete
-   */
   async completeMilestone(milestoneId: string): Promise<ServiceResponse<Milestone>> {
     const ms = MOCK_MILESTONES.find((m) => m.id === milestoneId);
     if (!ms) return { success: false, error: "Milestone not found" };
@@ -99,12 +95,6 @@ export class MilestoneService {
     return { success: true, data: updated, transactionId: `mock_tx_${Date.now()}` };
   }
 
-  /**
-   * getCampaignProgress
-   * -------------------
-   * Return the fraction of total funding represented by completed milestones.
-   * @param campaignId - The campaign to evaluate
-   */
   async getCampaignProgress(campaignId: string): Promise<ServiceResponse<{ completed: number; total: number; percent: number }>> {
     const ms = MOCK_MILESTONES.filter((m) => m.campaignId === campaignId);
     const totalRequired = ms.reduce((s, m) => s + BigInt(m.fundingRequired), 0n);
