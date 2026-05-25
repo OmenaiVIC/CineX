@@ -99,6 +99,18 @@ nav.scrolled{background:rgba(5,5,5,.85);backdrop-filter:blur(14px);border-bottom
   font-weight:600!important;font-size:.8rem!important;
 }
 
+/* HAMBURGER */
+.nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;z-index:101}
+.nav-toggle span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s ease;transform-origin:center}
+.nav-toggle.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle.active span:nth-child(2){opacity:0}
+.nav-toggle.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{position:fixed;inset:0;z-index:99;background:rgba(5,5,5,.97);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity .35s ease}
+.mobile-menu.active{opacity:1;pointer-events:all}
+.mobile-menu a{color:var(--text-muted);font-family:var(--font-display);font-size:1.3rem;font-weight:500;letter-spacing:.02em;transition:color .2s}
+.mobile-menu a:hover{color:#fff}
+.mobile-menu .nav-cta{font-size:1rem!important;padding:12px 32px}
+
 /* HERO */
 .hero{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -455,7 +467,8 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
   .investor-grid{grid-template-columns:1fr;}
   .advisors-grid{grid-template-columns:1fr;}
   .rain-flip-grid{grid-template-columns:repeat(2,1fr);}
-  .nav-links a:not(.nav-cta){display:none;}
+  .nav-links{display:none;}
+  .nav-toggle{display:flex;}
 }
 @media(max-width:550px){
   .stats-grid{grid-template-columns:1fr;}
@@ -481,7 +494,20 @@ footer p{color:var(--text-muted);font-size:.82rem;margin-bottom:12px;}
     <a href="/litepaper.html">Our Economic Litepaper</a>
     <a href="#investor" class="nav-cta">Invest</a>
   </div>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#gatekeeper" onclick="closeMobileMenu()">Strategy</a>
+  <a href="#features" onclick="closeMobileMenu()">Product</a>
+  <a href="#pilots" onclick="closeMobileMenu()">Pilots</a>
+  <a href="#team" onclick="closeMobileMenu()">Team</a>
+  <a href="/litepaper.html" onclick="closeMobileMenu()">Litepaper</a>
+  <a href="#investor" class="nav-cta" onclick="closeMobileMenu()">Invest</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -985,6 +1011,25 @@ function openLightbox(id) {
 // NAV SCROLL
 const nav=document.getElementById('navbar');
 window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60);});
+
+// HAMBURGER
+const toggle=document.getElementById('nav-toggle');
+const mobMenu=document.getElementById('mobile-menu');
+if(toggle){
+  toggle.addEventListener('click',()=>{
+    const active=mobMenu.classList.toggle('active');
+    toggle.classList.toggle('active');
+    document.body.style.overflow=active?'hidden':'';
+  });
+}
+function closeMobileMenu(){
+  if(mobMenu)mobMenu.classList.remove('active');
+  if(toggle)toggle.classList.remove('active');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){closeMobileMenu();}
+});
 
 // SCROLL ANIMATIONS
 const observer=new IntersectionObserver((entries)=>{
