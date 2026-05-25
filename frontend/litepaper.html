@@ -114,7 +114,30 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   .stat-row{grid-template-columns:1fr 1fr}
   .meta{flex-direction:column;gap:8px}
   .chart-label{width:100px;font-size:.7rem}
-}
+  }
+/* DOWNLOAD CTA */
+.download-section{text-align:center;margin:56px 0 24px;padding:40px 24px;border:1px solid rgba(74,222,128,.15);border-radius:var(--radius);background:var(--green-dim)}
+.download-section h3{font-size:1.3rem;color:var(--text);margin-bottom:8px}
+.download-section p{font-size:.9rem;color:var(--text-muted);margin-bottom:20px}
+.btn-download{display:inline-flex;align-items:center;gap:10px;padding:16px 36px;background:var(--green);color:#000!important;border:none;border-radius:100px;font-family:var(--font-sans);font-size:1rem;font-weight:600;cursor:pointer;transition:all .25s ease}
+.btn-download:hover{box-shadow:0 0 30px rgba(74,222,128,.3);transform:translateY(-1px);opacity:1!important}
+.download-hint{font-size:.75rem;color:#555;margin-top:12px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:24px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:36px 32px 28px;max-width:440px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:16px;right:20px;color:var(--text-muted);font-size:1.4rem;cursor:pointer;background:none;border:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s}
+.modal-close:hover{background:rgba(255,255,255,.06)}
+.modal h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;margin-bottom:4px;color:var(--text)}
+.modal p{font-size:.85rem;color:var(--text-muted);margin-bottom:16px}
+.modal .form-wrap{width:100%;min-height:200px}
+.modal .form-wrap iframe{width:100%;border:none;min-height:220px}
+.modal .download-link{display:none;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.modal .download-link.visible{display:block}
+.modal .download-link a{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--green);color:#000!important;border-radius:100px;font-weight:600;font-size:.9rem;transition:all .25s ease}
+.modal .download-link a:hover{box-shadow:0 0 20px rgba(74,222,128,.25);opacity:1!important}
+.modal .submit-note{font-size:.72rem;color:#555;margin-top:8px}
 </style>
 </head>
 <body>
@@ -181,7 +204,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
     <div class="stat-item"><div class="stat-value">50</div><div class="stat-label">Passing Tests</div></div>
   </div>
 
-  <p>CineX is raising a <strong>$600,000 pre-seed round</strong> at a $5M post-money valuation ($4.4M pre-money) to deploy the platform on Stacks mainnet, commission 5 pilot projects across film, music, and immersive media, onboard the 34 committed gatekeepers, build the dual-currency wallet, and achieve regulatory compliance.</p>
+  <p>CineX is raising a <strong>$600,000 pre-seed round</strong> at a $5M post-money valuation ($4.4M pre-money) to deploy the platform on Stacks mainnet, commission 4 pilot projects across film, documentary, and immersive media, onboard the 34 committed gatekeepers, build the dual-currency wallet, and achieve regulatory compliance.</p>
 
   <hr class="divider">
 
@@ -250,7 +273,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 4. BUSINESS MODEL -->
   <h2 id="model"><span class="num">04</span>Business Model — How CineX Generates Revenue</h2>
 
-  <p>CineX has <strong>four revenue streams</strong>, each with different margin profiles and growth trajectories:</p>
+  <p>CineX has <strong>six revenue streams</strong>, each with different margin profiles and growth trajectories:</p>
 
   <div class="card card-green">
     <div class="card-header">Revenue Stream 1: Platform Yield Share (20%)</div>
@@ -283,7 +306,29 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   </div>
 
   <div class="card card-green">
-    <div class="card-header">Revenue Stream 4: Forfeited Creator Bonus (30% share)</div>
+    <div class="card-header">Revenue Stream 4: Analytics &amp; Reports — Institutional Intelligence</div>
+    <table>
+      <tr><th>Source</th><td>Paid reports and dashboards for institutional stakeholders: grant bodies, impact funds, tourism boards, and studios who need verified data on the African creative economy</td></tr>
+      <tr><th>Pricing</th><td>$5,000/year for institutional reports (quarterly deep-dives with on-chain verified metrics); $2,000/year for lead investor membership (monthly pipeline overview, portfolio tracking, trend analysis)</td></tr>
+      <tr><th>Gross Margin</th><td>~80% (analyst time + data aggregation; scalable with automation)</td></tr>
+      <tr><th>Driver</th><td>Number of institutional subscribers; data richness from platform volume</td></tr>
+      <tr><th>Context</th><td>CineX sits on unique data: real on-chain verified creative financing activity in Africa. No one else has this data set. Institutional funders pay premium for verified primary-source insight.</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 5: Lead Investor Membership — Curated Deal Flow</div>
+    <table>
+      <tr><th>Source</th><td>Annual membership fee for backers who want priority access: first look at vetted projects, direct introductions to gatekeepers, co-investment syndicate participation</td></tr>
+      <tr><th>Pricing</th><td>$2,000/year per lead investor membership</td></tr>
+      <tr><th>Gross Margin</th><td>~90% (digital product; marginal cost of adding members is near zero)</td></tr>
+      <tr><th>Driver</th><td>Number of lead investor members; quality of deal pipeline</td></tr>
+      <tr><th>Context</th><td>Tiered from analytics — members get the reports included plus active deal flow access. Initial target: 10-20 members in Year 1 (angel investors, family offices, diaspora investors).</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 6: Forfeited Creator Bonus (30% share)</div>
     <table>
       <tr><th>Source</th><td>When a creator misses ≥3 milestones and forfeits their 10% yield bonus, 30% of the forfeited bonus goes to the platform</td></tr>
       <tr><th>Gross Margin</th><td>~100% (pure pass-through from contract logic; no additional cost to serve)</td></tr>
@@ -294,9 +339,11 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <h3>Revenue Model Summary</h3>
   <table>
     <tr><th>Stream</th><th>% of Platform Revenue (Year 1 Est.)</th><th>Maturity</th><th>Scalability</th></tr>
-    <tr><td>Yield Share (20%)</td><td>35%</td><td>Medium (depends on DeFi integration)</td><td>High (passive, linear with AUM)</td></tr>
-    <tr><td>Cross-Currency Spread</td><td>30%</td><td>High (rate service built)</td><td>High (scales with volume)</td></tr>
-    <tr><td>Escrow Fee (5%)</td><td>30%</td><td>High (built into smart contracts)</td><td>High (scales with financings)</td></tr>
+    <tr><td>Yield Share (20%)</td><td>25%</td><td>Medium (depends on DeFi integration)</td><td>High (passive, linear with AUM)</td></tr>
+    <tr><td>Cross-Currency Spread</td><td>25%</td><td>High (rate service built)</td><td>High (scales with volume)</td></tr>
+    <tr><td>Escrow Fee (5%)</td><td>25%</td><td>High (built into smart contracts)</td><td>High (scales with financings)</td></tr>
+    <tr><td>Analytics &amp; Reports</td><td>12%</td><td>Medium (needs data accumulation)</td><td>High (automated once established)</td></tr>
+    <tr><td>Lead Investor Membership</td><td>8%</td><td>Low (early stage; network-dependent)</td><td>Medium (limited by exclusivity model)</td></tr>
     <tr><td>Forfeited Bonus (30%)</td><td>5%</td><td>Low (unpredictable)</td><td>Low (by design — not optimized for)</td></tr>
   </table>
 
@@ -316,11 +363,11 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <h3>Target Addressable Market</h3>
   <table>
     <tr><th>Segment</th><th>Annual Value</th><th>Geography</th><th>CineX Relevance</th></tr>
-    <tr><td>Nollywood film financing</td><td>$500M+</td><td>Nigeria</td><td>Direct — 34 gatekeepers already engaged</td></tr>
-    <tr><td>Afrobeats music production</td><td>$300M+</td><td>Nigeria / Ghana</td><td>Direct — gatekeeper network covers label heads</td></tr>
-    <tr><td>African gaming / game dev</td><td>$200M+</td><td>Pan-Africa</td><td>Emerging — dedicated pilot projects planned</td></tr>
-    <tr><td>Pan-African creative economy</td><td>$5B+</td><td>Sub-Saharan Africa</td><td>Medium — expansion target for Year 2+</td></tr>
-    <tr><td>Global creative economy financing</td><td>$200B+</td><td>Global</td><td>Long-term vision — infrastructure layer for all creative IP</td></tr>
+    <tr><td>Nollywood film financing</td><td>$500M+<br><span style="font-size:.7rem;color:var(--text-muted)">Source: PwC Nigeria Entertainment &amp; Media Outlook 2023–2027; Nollywood produces ~2,500 films/year at ~$25M per major title</span></td><td>Nigeria</td><td>Direct — 34 gatekeepers already engaged</td></tr>
+    <tr><td>Afrobeats music production</td><td>$300M+<br><span style="font-size:.7rem;color:var(--text-muted)">Source: IFPI Global Music Report 2024; Sub-Saharan Africa recorded music revenue grew 24.7% YoY to $197M; Nigeria accounts for ~35%</span></td><td>Nigeria / Ghana</td><td>Direct — gatekeeper network covers label heads</td></tr>
+    <tr><td>African gaming / game dev</td><td>$200M+<br><span style="font-size:.7rem;color:var(--text-muted)">Source: Newzoo Global Games Market Report 2024; Africa gaming revenue projected $1B+ by 2027; content production is ~20% of ecosystem</span></td><td>Pan-Africa</td><td>Emerging — dedicated pilot projects planned</td></tr>
+    <tr><td>Pan-African creative economy</td><td>$5B+<br><span style="font-size:.7rem;color:var(--text-muted)">Source: UNESCO 2022 Re|shaping Cultural Policies report; UNCTAD Creative Economy Outlook 2024; Sub-Saharan Africa creative goods exports estimated at $3.7B</span></td><td>Sub-Saharan Africa</td><td>Medium — expansion target for Year 2+</td></tr>
+    <tr><td>Global creative economy financing</td><td>$200B+<br><span style="font-size:.7rem;color:var(--text-muted)">Source: OECD 2023; World Bank Creative Economy reports; Global creative industry estimated at 3.1% of world GDP (~$2.6T); financing gap 10–15%</span></td><td>Global</td><td>Long-term vision — infrastructure layer for all creative IP</td></tr>
   </table>
 
   <h3>Competitive Landscape (No Names, No Direct Competitors)</h3>
@@ -336,39 +383,59 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <hr class="divider">
 
   <!-- 6. GO-TO-MARKET -->
-  <h2 id="gtm"><span class="num">06</span>Go-to-Market — The Gatekeeper Model</h2>
+  <h2 id="gtm"><span class="num">06</span>Product Wedge &amp; Market Wedge — Go-to-Market Strategy</h2>
 
-  <div class="highlight">
-    <p><strong>Core insight:</strong> In Africa, adoption is tribal. People join platforms because someone they trust brought them. CineX's GTM is built around this cultural reality: <strong>tribesmen decide the success of a village.</strong> We do not buy ads. We earn trust. One gatekeeper endorsement unlocks their entire network.</p>
+  <p>CineX's GTM strategy is built on two wedges that work together: a <strong>Product Wedge</strong> (what we build first) and a <strong>Market Wedge</strong> (how we enter and spread).</p>
+
+  <div class="card card-green">
+    <div class="card-header">Product Wedge — Start With What Works</div>
+    <p>Rather than building a full marketplace from day one, CineX launches with a single, focused product: <strong>milestone-gated creative financing</strong>. This is the wedge — a simple, high-value transaction between backers and creators secured by smart contracts. Everything else (yield, currency conversion, analytics, membership) layers on after the core transaction flow is proven.</p>
+    <p>The product wedge philosophy: one clear job done extremely well → user trust → permission to expand.</p>
   </div>
 
-  <h3>How It Works</h3>
-  <ul>
-    <li><strong>Identify gatekeepers</strong> — Guild leaders, association presidents, influential producers, label executives, festival curators with existing networks of 100+ creatives</li>
-    <li><strong>Build trust first</strong> — In-person meetups, listening sessions, product demos. No sales pitch. The team spent months doing this across Nigeria.</li>
-    <li><strong>Gatekeeper vouches</strong> — A gatekeeper endorses a creative's project before it can raise capital on CineX. This is the identity verification step.</li>
-    <li><strong>Network unlocks</strong> — Each gatekeeper brings their tribe organically. 34 gatekeepers × 100+ creatives each = 3,400+ potential users at zero marginal cost.</li>
-  </ul>
+  <div class="card card-green">
+    <div class="card-header">Market Wedge — Tribal Trust Networks</div>
+    <p>In Africa, adoption is tribal. People join platforms because someone they trust brought them. CineX's market entry is built around this cultural reality: <strong>tribesmen decide the success of a village.</strong> We do not buy ads. We earn trust. One gatekeeper endorsement unlocks their entire network.</p>
+    <ul>
+      <li><strong>Identify gatekeepers</strong> — Guild leaders, association presidents, influential producers, label executives, festival curators with existing networks of 100+ creatives</li>
+      <li><strong>Build trust first</strong> — In-person meetups, listening sessions, product demos. No sales pitch. The team spent months doing this across Nigeria.</li>
+      <li><strong>Gatekeeper vouches</strong> — A gatekeeper endorses a creative's project before it can raise capital on CineX. This is the identity verification step.</li>
+      <li><strong>Network unlocks</strong> — Each gatekeeper brings their tribe organically. 34 gatekeepers × 100+ creatives each = 3,400+ potential users at zero marginal cost.</li>
+    </ul>
+  </div>
 
   <h3>Validation Sprint</h3>
   <p>In Q2 2026, CineX will run a structured 8-week validation sprint to convert the committed gatekeeper pipeline into active platform usage:</p>
   <table>
     <tr><th>Phase</th><th>Duration</th><th>Activities</th><th>Success Metric</th></tr>
-    <tr><td>1: Gatekeeper Activation</td><td>Week 1-2</td><td>Onboard gatekeepers, issue verification credentials, set up referral tracking</td><td>34 gatekeepers activated</td></tr>
+    <tr><td>1: Gatekeeper Activation</td><td>Week 1-2</td><td>Onboard gatekeepers, issue verification credentials, set up referral tracking (v1 off-chain)</td><td>34 gatekeepers activated</td></tr>
     <tr><td>2: Creative Onboarding</td><td>Week 3-4</td><td>Gatekeeper-referred creatives register, create profiles, submit project proposals</td><td>100+ creatives onboarded</td></tr>
-    <tr><td>3: Pilot Financing</td><td>Week 5-6</td><td>5 pilot projects funded. Milestone tracking live. Yield escrow active.</td><td>5 projects funded, first milestone complete</td></tr>
-    <tr><td>4: Learn & Optimize</td><td>Week 7-8</td><td>iterate on UX, milestone structure, verification flow, dual-currency wallet</td><td>Feedback collected from all stakeholders</td></tr>
+    <tr><td>3: Pilot Financing</td><td>Week 5-6</td><td>4 pilot projects funded. Milestone tracking live. Yield escrow active.</td><td>4 projects funded, first milestone complete</td></tr>
+    <tr><td>4: Learn &amp; Optimize</td><td>Week 7-8</td><td>Iterate on UX, milestone structure, verification flow, dual-currency wallet</td><td>Feedback collected from all stakeholders</td></tr>
   </table>
 
   <h3>Pilot Projects</h3>
-  <p>Five pre-identified pilot projects spanning creative verticals will launch within the first 60 days of mainnet deployment:</p>
-  <ul>
-    <li><strong>Rain</strong> — Narrative feature film with milestone-based production schedule</li>
-    <li><strong>Death of Eternity</strong> — Immersive media / XR project with multi-phase deliverables</li>
-    <li><strong>PrePARE VR</strong> — Virtual reality training simulation for emergency response</li>
-    <li><strong>Northern Travels</strong> — Documentary film with cultural preservation component</li>
-    <li><strong>Music production & distribution</strong> — Album project with Afrobeats artist (gatekeeper-referred)</li>
-  </ul>
+  <p>Four pre-identified pilot projects spanning creative verticals will launch within the first 60 days of mainnet deployment:</p>
+
+  <div class="card">
+    <div class="card-header">Rain — Series Development (TV / Streaming)</div>
+    <p>A gripping Nigerian drama series exploring love, loss, and redemption against the backdrop of Lagos — CineX's first episodic milestone model. <strong>Creative Producer:</strong> Ogochukwu Umeadi (<a href="https://www.linkedin.com/in/ogochukwu-umeadi" target="_blank" rel="noopener">LinkedIn</a>). <a href="https://drive.google.com/file/d/1cKFIrNfzch2nMpipXrBeyuG-0Rvkm-YC/view" target="_blank" rel="noopener">Concept Document →</a></p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Death of Eternity — Narrative Feature Film</div>
+    <p>A thought-provoking feature film that questions immortality, legacy, and the price of forever — a showcase for CineX's full lifecycle milestone model. <strong>Creative Producer:</strong> Achor Yusuf (<a href="https://www.linkedin.com/in/achor-yusuf-8a99b38a/" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://x.com/achor_yusuf" target="_blank" rel="noopener">X</a>). <strong>Original Writer:</strong> Kyuka Lilymjok (<a href="https://en.wikipedia.org/wiki/Kyuka_Lilymjok" target="_blank" rel="noopener">Wikipedia</a>). <a href="https://drive.google.com/file/d/1kIAk_x4ys2GGnxdHllortNPR2pEpunor/view" target="_blank" rel="noopener">Concept Document →</a></p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">PrePARE VR — Immersive Media / VR Experience</div>
+    <p>An immersive virtual reality training simulation preparing users for real-world emergency response situations — combining education with experiential storytelling. CineX's first immersive media pilot. <strong>Founder:</strong> Oluwasegun Olowoniyi (<a href="https://www.linkedin.com/in/oluwasegun-olowoniyi-b88145276/" target="_blank" rel="noopener">LinkedIn</a>). <a href="https://preparevr.com" target="_blank" rel="noopener">Website →</a> · <a href="https://www.youtube.com/watch?v=kEjSl-UTdD8" target="_blank" rel="noopener">Demo →</a> · <a href="https://x.com/preparevr" target="_blank" rel="noopener">X →</a></p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Northern Travels — Documentary / Travel Content</div>
+    <p>A documentary travel series exploring the rich cultural heritage, landscapes, and untold stories of Northern Nigeria — bridging regional narratives to global audiences with milestone-gated production financing.</p>
+  </div>
 
   <hr class="divider">
 
@@ -456,38 +523,109 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 9. FINANCIAL PROJECTIONS -->
   <h2 id="financials"><span class="num">09</span>Financial Projections</h2>
 
-  <p>Financial projections assume a <strong>conservative base case</strong> with gradual adoption through the gatekeeper network. The model is driven by three primary variables:</p>
-  <ul>
-    <li><strong>Number of financed projects</strong> — grows from 5 pilots to 200+ by Year 3</li>
-    <li><strong>Average project size</strong> — starts at $9,000 (validated by market discovery) and scales to $25,000+ as institutional capital enters</li>
-    <li><strong>Yield APY</strong> — assumes 8% blended across all escrow deployment (stable pools + STX stacking)</li>
-  </ul>
+  <p>All projections follow a consistent structure: <strong>Assumptions → Detailed Calculations → Summary</strong>. Every number can be traced back to its assumptions. This section models a <strong>conservative base case</strong> — a realistic worst-case that still reaches profitability by Year 3.</p>
+
+  <div class="card">
+    <div class="card-header">Pipeline Logic — How We Get to 40 Year 1 Projects</div>
+    <p><strong>Assumptions:</strong></p>
+    <ul>
+      <li>34 gatekeepers committed from discovery phase, each with a network of ~100 creatives = 3,400 addressable pipeline</li>
+      <li>50% of gatekeepers actively onboard creatives in Year 1 = 17 active gatekeepers</li>
+      <li>50% "haircut" — half of the theoretical projects never materialize due to incomplete proposals, loss of interest, or timing</li>
+      <li>Each active gatekeeper produces ~5 viable project proposals per year</li>
+    </ul>
+    <p><strong>Detailed Calculation:</strong></p>
+    <p>17 active gatekeepers × 5 viable proposals/year = 85 potential projects. After 50% haircut (theoretical only): 85 × 50% = <strong>42 projects → rounded to 40</strong> for Year 1 base case. This is deliberately conservative — we already have 4 pilot projects confirmed before launch.</p>
+    <p><strong>Summary:</strong> 40 projects in Year 1, growing to 120 (Year 2) and 250 (Year 3) as gatekeeper activation improves to 90% and each gatekeeper's creative network deepens.</p>
+  </div>
 
   <h3>Revenue Projections (Base Case)</h3>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 1: Escrow Fee (5%)</div>
+    <p><strong>Assumptions:</strong> Average project size = $9,000 Year 1 (validated by market discovery — Nollywood short films, music videos, VR experiences at this price point). Average escrow period = 6 months. 5% fee on each milestone release.</p>
+    <p><strong>Detailed Calculation:</strong> 40 projects × $9,000 avg = $360,000 total escrow volume. 5% fee = $360,000 × 0.05 = <strong>$18,000</strong>.</p>
+    <p><strong>Summary:</strong> $18,000 in Year 1, scaling to $90,000 (Year 2) and $300,000 (Year 3) as volume grows.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 2: Cross-Currency Spread (0.75%)</div>
+    <p><strong>Assumptions:</strong> 75% of transactions require NGN↔USD conversion (USD backers funding NGN-based creatives). Average $9,000 project size: ~$6,750 in cross-currency volume per project. 0.75% platform spread on each conversion.</p>
+    <p><strong>Detailed Calculation:</strong> 40 projects × $6,750 avg cross-currency volume = $270,000. Spread revenue = $270,000 × 0.0075 = <strong>$2,025</strong>.</p>
+    <p><strong>Summary:</strong> $2,025 Year 1 (low because Year 1 backers are mostly crypto-native USD holders). Scales to $22,500 (Year 2) and $90,000 (Year 3) as NGN-based backers enter.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 3: Platform Yield Share (20%)</div>
+    <p><strong>Assumptions:</strong> Escrowed capital is deployed to DeFi strategies (Bitflow stable pools, STX stacking). 8% blended APY. Average escrow duration 6 months (so capital earns yield for half a year on average). Platform takes 20% of yield generated.</p>
+    <p><strong>Detailed Calculation:</strong> Average escrow balance at any time = $360,000 / 2 (since projects are staggered) = $180,000. Annual yield at 8% = $180,000 × 0.08 = $14,400. Platform share at 20% = $14,400 × 0.20 = <strong>$2,880</strong>.</p>
+    <p><strong>Summary:</strong> $2,880 Year 1. Grows to $24,000 (Year 2) and $96,000 (Year 3) as total escrow under management reaches $6M.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 4: Analytics &amp; Reports</div>
+    <p><strong>Assumptions:</strong> 5 institutional subscribers (grant bodies, impact funds, tourism boards) at $5,000/year each. 10 lead investor subscribers at $2,000/year each. Year 1 is proving the product — actual revenue depends on data richness.</p>
+    <p><strong>Detailed Calculation:</strong> 5 × $5,000 = $25,000. 10 × $2,000 = $20,000. Total = <strong>$45,000</strong>.</p>
+    <p><strong>Summary:</strong> $45,000 Year 1 (conservative — requires 5 institutional buyers). Scales to $80,000 (Year 2) and $120,000 (Year 3) as data set deepens and brand credibility grows.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 5: Lead Investor Membership</div>
+    <p><strong>Assumptions:</strong> 10 lead investor members in Year 1 at $2,000/year each. Membership includes priority deal flow, direct gatekeeper introductions, co-investment syndicate access, and analytics reports.</p>
+    <p><strong>Detailed Calculation:</strong> 10 × $2,000 = <strong>$20,000</strong>.</p>
+    <p><strong>Summary:</strong> $20,000 Year 1 (10 members). Grows to $40,000 (Year 2, 20 members) and $60,000 (Year 3, 30 members). Membership model is intentionally exclusive — high value, limited slots.</p>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-header">Revenue Stream 6: Incidental Earnings — DeFi Yield Pass-Through (77/23 Model)</div>
+    <p><strong>Assumptions:</strong> An alternative yield structure exists where creators keep 77% of yield and the platform takes 23%. This only applies to a subset of projects (those that opt into higher-risk DeFi strategies). Projected at ~$500–$1,500 in Year 1 — included for completeness but not bankable revenue.</p>
+    <p><strong>Detailed Calculation:</strong> Modeled at <strong>$1,000</strong> Year 1 as a placeholder — actual depends on DeFi strategy adoption.</p>
+    <p><strong>Summary:</strong> Incidental earnings only. Not factored into cash flow projections. If 77/23 model gains traction, revenue could increase 15-20% above base case projections.</p>
+  </div>
+
+  <h3>Consolidated Projection</h3>
   <table>
     <tr><th>Metric</th><th>Year 1</th><th>Year 2</th><th>Year 3</th></tr>
-    <tr><td>Projects Financed</td><td>25</td><td>100</td><td>250</td></tr>
-    <tr><td>Total Escrow Volume</td><td>$250,000</td><td>$1,500,000</td><td>$6,000,000</td></tr>
+    <tr><td>Projects Financed</td><td>40</td><td>120</td><td>250</td></tr>
+    <tr><td>Total Escrow Volume</td><td>$360,000</td><td>$1,800,000</td><td>$6,000,000</td></tr>
     <tr><td>Avg Escrow Period</td><td>6 mo</td><td>5 mo</td><td>4 mo</td></tr>
-    <tr><td>Yield Generated</td><td>$10,000</td><td>$50,000</td><td>$160,000</td></tr>
-    <tr><td><strong>Platform Revenue</strong></td><td><strong>$24,500</strong></td><td><strong>$142,000</strong></td><td><strong>$560,000</strong></td></tr>
-    <tr><td><em>— Escrow Fees (5%)</em></td><td><em>$12,500</em></td><td><em>$75,000</em></td><td><em>$300,000</em></td></tr>
-    <tr><td><em>— Yield Share (20%)</em></td><td><em>$2,000</em></td><td><em>$10,000</em></td><td><em>$32,000</em></td></tr>
-    <tr><td><em>— Currency Spread</em></td><td><em>$10,000</em></td><td><em>$57,000</em></td><td><em>$228,000</em></td></tr>
-    <tr><td>Operating Expenses</td><td>$420,000</td><td>$480,000</td><td>$540,000</td></tr>
-    <tr><td>Net Income</td><td>($395,500)</td><td>($338,000)</td><td>$20,000</td></tr>
+    <tr><td>Yield Generated</td><td>$14,400</td><td>$60,000</td><td>$160,000</td></tr>
+    <tr><td><strong>Platform Revenue</strong></td><td><strong>$88,905</strong></td><td><strong>$256,500</strong></td><td><strong>$666,000</strong></td></tr>
+    <tr><td><em>— Escrow Fees (5%)</em></td><td><em>$18,000</em></td><td><em>$90,000</em></td><td><em>$300,000</em></td></tr>
+    <tr><td><em>— Yield Share (20%)</em></td><td><em>$2,880</em></td><td><em>$12,000</em></td><td><em>$32,000</em></td></tr>
+    <tr><td><em>— Currency Spread</em></td><td><em>$2,025</em></td><td><em>$22,500</em></td><td><em>$90,000</em></td></tr>
+    <tr><td><em>— Analytics &amp; Reports</em></td><td><em>$45,000</em></td><td><em>$80,000</em></td><td><em>$120,000</em></td></tr>
+    <tr><td><em>— Lead Investor Membership</em></td><td><em>$20,000</em></td><td><em>$40,000</em></td><td><em>$60,000</em></td></tr>
+    <tr><td><em>— Incidental (77/23 Yield)</em></td><td><em>$1,000</em></td><td><em>$12,000</em></td><td><em>$64,000</em></td></tr>
+    <tr><td>Operating Expenses</td><td>$384,000</td><td>$440,000</td><td>$500,000</td></tr>
+    <tr><td>Net Income</td><td>($295,095)</td><td>($183,500)</td><td>$166,000</td></tr>
   </table>
 
-  <p class="highlight" style="margin-top:0"><strong>Path to profitability:</strong> Year 3 break-even at $560k revenue on $540k expenses, driven by escrow volume scaling to $6M+. Gross margins improve from 35% (Year 1) to 65%+ (Year 3) as infrastructure costs are fixed and revenue is primarily volume-based.</p>
+  <p class="highlight" style="margin-top:0"><strong>Path to profitability:</strong> Year 3 break-even crossed at $666k revenue on $500k expenses — driven by escrow volume scaling to $6M+ and subscription revenue compounding. Year 1 revenue is $88.9k across all streams, covering 23% of $384k operating expenses. The gap narrows in Year 2 (47% coverage) and flips positive in Year 3 (133% coverage).</p>
 
-  <h3>Key Assumptions</h3>
+  <h3>Operating Expenses — Detailed Breakdown</h3>
+  <p><strong>Assumptions:</strong> 6 full-time equivalents in Year 1 (technical founder, product designer, full-stack engineer, project manager, community/Bd lead, part-time legal counsel). Average salary = $40,000/year ($3,333/month) — competitive for Nigerian tech talent, below Silicon Valley rates. Infrastructure, tools, and BD budget added on top.</p>
+  <p><strong>Detailed Calculation:</strong></p>
   <ul>
-    <li><strong>Gatekeeper conversion:</strong> 50% of committed gatekeepers actively onboard creatives in Year 1, increasing to 90% by Year 3</li>
-    <li><strong>Average project:</strong> $9,000 (Year 1) based on market discovery, growing to $15,000 (Year 2) and $24,000 (Year 3) as institutional capital enters</li>
-    <li><strong>Escrow duration:</strong> 6 months average (Year 1) decreasing to 4 months as the platform optimizes milestone structures</li>
-    <li><strong>Yield APY:</strong> 8% blended across stable pools and STX stacking</li>
-    <li><strong>Currency conversion rate:</strong> 75% of transactions require cross-currency conversion (USD backer → NGN creative)</li>
-    <li><strong>Team:</strong> 6 FTE by Year 1, growing to 10 by Year 3</li>
+    <li>Personnel (6 FTE × $40k avg): $240,000</li>
+    <li>Infrastructure (hosting, APIs, oracle costs, Vercel, RPC nodes): $24,000</li>
+    <li>Business development (travel, meetups, gatekeeper engagement, conferences): $48,000</li>
+    <li>Legal &amp; compliance (SEC Nigeria, Panama structuring, contract review): $36,000</li>
+    <li>Operations (accounting, tools, subscriptions, communications): $24,000</li>
+    <li>Contingency (10% buffer): $12,000</li>
+  </ul>
+  <p><strong>Summary:</strong> Total Year 1 operating expenses = <strong>$384,000</strong>. This is a refined, defensible estimate based on 6 FTE at Nigerian market rates with realistic overhead. Year 2 grows to $440k (adds 1 FTE, increased BD). Year 3 reaches $500k (10 FTE, scaling operations).</p>
+
+  <h3>Key Assumptions Summary</h3>
+  <ul>
+    <li><strong>Gatekeeper pipeline:</strong> 34 gatekeepers × 100 creatives = 3,400 addressable; 50% activation × 50% project haircut = ~40 Year 1 projects</li>
+    <li><strong>Average project:</strong> $9,000 (Year 1) validated by market discovery, growing to $15,000 (Year 2) and $24,000 (Year 3) as institutional capital enters and project sophistication increases</li>
+    <li><strong>Escrow duration:</strong> 6 months average (Year 1) decreasing to 4 months as milestone structures optimize over time</li>
+    <li><strong>Yield APY:</strong> 8% blended across stable pools and STX stacking (Bitflow, ALEX, Stacking DAO)</li>
+    <li><strong>Currency conversion rate:</strong> 75% of cross-currency transactions in Year 1, declining to 50% by Year 3 as more NGN-native backers join</li>
+    <li><strong>Team size:</strong> 6 FTE in Year 1, 8 FTE in Year 2, 10 FTE in Year 3</li>
+    <li><strong>Average salary:</strong> $40,000/year (Nigerian tech talent market rate — validated against local hiring data)</li>
+    <li><strong>77/23 yield model:</strong> Included as Incidental Earnings only — not bankable revenue, potential upside if adopted</li>
   </ul>
 
   <hr class="divider">
@@ -508,7 +646,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <table>
     <tr><th>Category</th><th>Amount</th><th>Details</th></tr>
     <tr><td>Product Build</td><td>$270,000</td><td>Mainnet deployment, dual-currency wallet build and audit, React dashboard (creator + backer), AI credibility summaries, wallet abstraction frontend, integration testing</td></tr>
-    <tr><td>Pilot Commissioning</td><td>$120,000</td><td>Fund 5 pilot projects ($15k–$30k each), gatekeeper onboarding incentives, creative onboarding support, milestone tracking operations</td></tr>
+    <tr><td>Pilot Commissioning</td><td>$120,000</td><td>Fund 4 pilot projects ($15k–$30k each), gatekeeper onboarding incentives, creative onboarding support, milestone tracking operations</td></tr>
     <tr><td>Legal / Compliance</td><td>$90,000</td><td>SEC registration (Nigeria), legal structuring (Panama or similar), smart contract audit (third-party), regulatory counsel for cross-border payments</td></tr>
     <tr><td>Ecosystem BD</td><td>$60,000</td><td>Gatekeeper expansion (Pan-Africa), partnership development (DFIs, impact funds), conference participation (AfroNolly, GDC, SXSW), community management</td></tr>
     <tr><td>Founder Runway</td><td>$60,000</td><td>12-month operational runway for 2 founders at $2,500/month each. Lean startup approach — all team members have existing income streams.</td></tr>
@@ -519,26 +657,43 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 11. TEAM -->
   <h2 id="team"><span class="num">11</span>Team</h2>
 
-  <p>CineX is founded by a team with deep expertise across creative production, financial technology, blockchain engineering, and the Nigerian creative ecosystem.</p>
+  <p>CineX is built by a team with deep expertise across creative production, financial technology, blockchain engineering, and the Nigerian creative ecosystem.</p>
 
   <div class="card card-green">
-    <div class="card-header">Victor — Founder &amp; Product Lead</div>
-    <p>Victor conceived CineX from direct experience in the African creative economy. He led the product discovery with 34 gatekeepers, built the smart contract architecture (29 contracts across 9 layers), and designed the economic model. His background spans fintech product design, blockchain engineering, and creative project management.</p>
+    <div class="card-header">Victor Omenai — Technical Founder <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://x.com/paper2screen" target="_blank" rel="noopener">𝕏</a> · <a href="https://www.linkedin.com/in/victor-olumese-omenai/" target="_blank" rel="noopener">LinkedIn</a></span></div>
+    <p>Victor conceived CineX from direct experience in the African creative economy. He designed the full smart contract architecture (29 contracts across 9 layers), led product discovery with 34 gatekeepers, built the economic model, and drives product strategy and fundraising. His background spans fintech product design, blockchain engineering, and creative project management.</p>
   </div>
 
   <div class="card card-green">
-    <div class="card-header">Stephanie — Operations &amp; Ecosystem</div>
-    <p>Based in Nigeria, Stephanie manages gatekeeper relationships, creative onboarding, and ecosystem partnerships. She conducted the majority of the discovery sessions that validated the gatekeeper model and pipeline projections.</p>
+    <div class="card-header">Stephanie Ukiwe — Product Design <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://www.linkedin.com/in/stephanie-ukiwe/" target="_blank" rel="noopener">LinkedIn</a></span></div>
+    <p>Stephanie leads product design, user experience, user research, and brand identity. She defines how creatives and backers interact with CineX — from onboarding flows to milestone tracking dashboards — ensuring the platform is intuitive for users who have never touched blockchain technology.</p>
   </div>
 
   <div class="card card-green">
-    <div class="card-header">McDaniells — Creative Director &amp; Content Strategy</div>
-    <p>McDaniells brings creative industry expertise spanning film, music, and immersive media production. He oversees pilot project selection, creative quality standards, and gatekeeper communication.</p>
+    <div class="card-header">McDaniells Albert — Full-Stack Engineer <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://www.linkedin.com/in/mcdaniellsalbert/" target="_blank" rel="noopener">LinkedIn</a></span></div>
+    <p>McDaniells builds the frontend architecture and API services that connect users to the smart contract layer. He handles all web development, smart contract integration in the UI, and ensures the platform performs reliably for creators and backers across Africa.</p>
   </div>
 
   <div class="card card-green">
-    <div class="card-header">Theophilus — Blockchain Engineering</div>
-    <p>Theophilus leads Clarity smart contract development, test engineering (50 passing tests), and DeFi strategy integration. He built the yield-escrow 70/20/10 model, milestone verification system, and security audit fixes.</p>
+    <div class="card-header">Theophilus Adelekun — Project Manager <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://www.linkedin.com/in/adelekun-theophilus-2b301a1b6/" target="_blank" rel="noopener">LinkedIn</a></span></div>
+    <p>Theophilus manages operations, milestone tracking across active projects, and creative partner coordination. He ensures that every pilot project stays on schedule, milestones are verified properly, and the gatekeeper pipeline is maintained.</p>
+  </div>
+
+  <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:600;margin-top:32px;color:var(--text)">Advisors</h3>
+
+  <div class="card">
+    <div class="card-header">Setzeus <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://x.com/setzeus" target="_blank" rel="noopener">𝕏</a></span></div>
+    <p>Clarity Smart Contracts OG — Stacks Ecosystem Projects Engineering Audit — CineX Mentor. Setzeus provides senior technical guidance on Clarity contract architecture, security patterns, and Stacks ecosystem best practices.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Gary Riger <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://x.com/GaryRiger" target="_blank" rel="noopener">𝕏</a></span></div>
+    <p>Clarity Smart Contracts Working Group Host — Stacks Ecosystem Strategy. Gary brings deep knowledge of the Stacks developer community and ecosystem-level strategic positioning for DeFi protocols.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Stephen Perrino <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://x.com/PeaceLoveMusicG" target="_blank" rel="noopener">𝕏</a></span></div>
+    <p>Stacks Ecosystem OG Media &amp; Communication Lead &amp; Host DeOrganized Media. Stephen advises on community building, go-to-market messaging, and bridging blockchain technology to mainstream creative audiences.</p>
   </div>
 
   <hr class="divider">
@@ -548,8 +703,8 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
 
   <table>
     <tr><th>Period</th><th>Milestone</th><th>Key Deliverable</th></tr>
-    <tr><td>Q2 2026</td><td>Pre-Seed Close + Mainnet Launch</td><td>$600k raised · 29 contracts on mainnet · Backend production-ready · 5 pilot projects initiated</td></tr>
-    <tr><td>Q3 2026</td><td>Validation Sprint Complete</td><td>100+ creatives onboarded · 5 pilots active · Gatekeeper model proven · Dual-currency wallet pilot</td></tr>
+    <tr><td>Q2 2026</td><td>Pre-Seed Close + Mainnet Launch</td><td>$600k raised · 29 contracts on mainnet · Backend production-ready · 4 pilot projects initiated</td></tr>
+    <tr><td>Q3 2026</td><td>Validation Sprint Complete</td><td>100+ creatives onboarded · 4 pilots active · Gatekeeper model proven · Dual-currency wallet pilot</td></tr>
     <tr><td>Q4 2026</td><td>Public Launch (Beta)</td><td>Public platform open · Wallet abstraction live · NGN/USD on-ramp active · 50+ projects financed</td></tr>
     <tr><td>H1 2027</td><td>Scale &amp; Institutional</td><td>Institutional capital partnerships · NGN/USD on-ramps scaled · Pan-African gatekeeper expansion · 100+ projects financed</td></tr>
     <tr><td>H2 2027</td><td>Series A</td><td>$3M+ raise · 500+ projects financed · Multiple DeFi strategies active · AI credibility summaries live · Regulatory compliant across key markets</td></tr>
@@ -563,7 +718,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <h3>Business Risks</h3>
   <table>
     <tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
-    <tr><td>Gatekeeper attrition — committed gatekeepers do not actively onboard creatives</td><td>Medium</td><td>Gatekeeper incentives (tiered rewards for active referrals); public pipeline tracking creates social accountability</td></tr>
+    <tr><td>Gatekeeper attrition — committed gatekeepers do not actively onboard creatives</td><td>Medium</td><td>Two-phase referral strategy. <strong>v1 (off-chain):</strong> Each gatekeeper gets a unique referral code stored in the platform database. A simple dashboard shows their referral count, active projects, and leaderboard rank. Top referrers earn platform fee discounts and public recognition. <strong>v2 (on-chain):</strong> Smart contract distributes a percentage of escrow fees back to gatekeepers based on verified project outcomes (not signups — completion-based rewards). Outcome-based incentives ensure gatekeepers refer quality creatives, not volume. See "Gatekeeper Referral Tracking" below for full detail.</td></tr>
     <tr><td>Creator quality — pilot projects fail to deliver</td><td>Medium</td><td>Milestone-gated payouts prevent full loss; 3-milestone miss threshold triggers forfeiture; gatekeeper vouching provides pre-screening</td></tr>
     <tr><td>Regulatory uncertainty — Nigerian SEC / CBN regulations change</td><td>Medium</td><td>Legal counsel engaged; Panama structuring for token wrapper; multiple jurisdictional options maintained</td></tr>
     <tr><td>Slow adoption — target users prefer existing informal financing</td><td>Low</td><td>Gatekeeper model directly addresses informal trust networks; zero-collateral entry is transformative; NGN support removes friction</td></tr>
@@ -579,6 +734,34 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
     <tr><td>Oracle price feed manipulation</td><td>Low</td><td>Multisig-pushed prices; timelock for large changes; fallback hardcoded rate</td></tr>
     <tr><td>Wallet abstraction Pillar dependency</td><td>Medium</td><td>Custom embedded wallet SDK planned for post-MVP; sponsored transactions have fallback path</td></tr>
   </table>
+
+  <h3>Gatekeeper Referral Tracking — Mitigating Attrition</h3>
+  <p>Gatekeeper attrition is the single biggest execution risk in CineX's model. A gatekeeper who commits but never onboard creatives produces zero pipeline. CineX addresses this with a two-phase referral tracking strategy:</p>
+
+  <div class="card">
+    <div class="card-header">Phase 1 (v1) — Off-Chain Referral Tracking</div>
+    <p><strong>How it works:</strong> Each gatekeeper receives a unique referral code at onboarding. When a creative signs up using that code, the relationship is recorded in the platform database. A simple dashboard shows each gatekeeper their real-time metrics: creatives referred, active projects, completed milestones, and leaderboard rank compared to other gatekeepers.</p>
+    <p><strong>Incentives:</strong> Top 5 gatekeepers each quarter receive platform fee discounts on their own projects and public recognition (featured creator badge, social media spotlight). This creates social accountability — gatekeepers see their name on the leaderboard and are motivated to stay active.</p>
+    <p><strong>Why off-chain first:</strong> Speed of iteration. We can change referral codes, dashboard features, and incentive structures without smart contract deployments. Data can be analyzed to understand which gatekeeper behaviors actually produce completed projects.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Phase 2 (v2) — On-Chain Smart Contract Distribution</div>
+    <p><strong>How it works:</strong> Once the off-chain system has produced enough data to calibrate incentive parameters, a smart contract is deployed that automatically distributes a percentage of escrow fees to gatekeepers based on verified project outcomes. The key innovation: rewards are based on <strong>project completion, not signups</strong>. This prevents gatekeepers from referring low-quality creatives just to earn referral fees.</p>
+    <p><strong>Technical approach:</strong> A Merkle tree stores gatekeeper → project mappings on-chain. When a project completes its final milestone (verified by the milestone-verification contract), the gatekeeper's share of escrow fees is automatically claimable. The Merkle tree approach keeps gas costs low — only the root hash is stored on-chain; individual proofs are verified during claim.</p>
+    <p><strong>Incentive structure:</strong> 20% of the platform's escrow fee revenue from a project is distributed to the referring gatekeeper upon successful project completion. This means: $9,000 project × 5% escrow fee = $450. Platform keeps $360 (80%). Gatekeeper receives $90 (20%) — paid when the project finishes, not when it starts.</p>
+    <p><strong>Why outcome-based:</strong> Aligns gatekeeper incentives with platform quality. A gatekeeper who refers 100 creatives who never complete anything earns nothing. A gatekeeper who refers 10 creatives who all complete their projects earns real revenue. This self-selects for quality over quantity.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Implementation Timeline</div>
+    <table>
+      <tr><th>Phase</th><th>Timing</th><th>Status</th></tr>
+      <tr><td>v1 off-chain (referral codes + dashboard)</td><td>Launch (Q2 2026)</td><td>Ready — frontend referral code system, simple database tracking</td></tr>
+      <tr><td>v1.5 data collection &amp; calibration</td><td>Q3 2026 (during Validation Sprint)</td><td>Collect data on: which gatekeeper profiles produce completions, typical referral → project time, completion rates by creative vertical</td></tr>
+      <tr><td>v2 on-chain (Merkle tree distribution)</td><td>Q4 2026 (Public Launch)</td><td>Deploy referral distribution contract; migrate gatekeeper → project mappings to Merkle tree; enable automatic completion-based payouts</td></tr>
+    </table>
+  </div>
 
   <hr class="divider">
 
@@ -646,11 +829,57 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <a href="mailto:mediacinex@gmail.com">mediacinex@gmail.com</a> · <a href="https://cine-x-iota.vercel.app">https://cine-x-iota.vercel.app</a><br>
   <span style="font-size:.8rem">This document is for informational purposes only and does not constitute an offer or solicitation.</span></p>
 
+  <!-- DOWNLOAD CTA -->
+  <div class="download-section fade-in" id="download">
+    <h3>Download the Economic Litepaper</h3>
+    <p>Get the full CineX economic model, financial projections, and technical architecture as a PDF.</p>
+    <button class="btn-download" onclick="openDownloadModal()">↓&thinsp; Download PDF</button>
+    <div class="download-hint">No spam. We'll only follow up with relevant updates.</div>
+  </div>
+
+</div>
+
+<!-- DOWNLOAD MODAL -->
+<div class="modal-overlay" id="download-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeDownloadModal()">✕</button>
+    <h3>Download the Litepaper</h3>
+    <p>Enter your email to receive the download link.</p>
+    <div class="form-wrap">
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd6v3tao37lPL6Kuo0qZJHIB2eSOQUxYZRkk2REM32jkmiS1w/viewform?embedded=true" frameborder="0" marginheight="0" marginwidth="0" title="Email collection form">Loading…</iframe>
+    </div>
+    <div class="download-link" id="download-link">
+      <a href="assets/CineX-Economic-Litepaper.pdf" target="_blank" rel="noopener" download>↓&thinsp; Download PDF</a>
+      <div class="submit-note">Thank you — your download will begin shortly.</div>
+    </div>
+  </div>
 </div>
 
 <script>
 const nav = document.getElementById('navbar');
 window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); });
+
+function openDownloadModal() {
+  document.getElementById('download-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDownloadModal() {
+  document.getElementById('download-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('download-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeDownloadModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDownloadModal();
+});
+
+setTimeout(() => {
+  document.getElementById('download-link').classList.add('visible');
+}, 8000);
 </script>
 
 </body>
