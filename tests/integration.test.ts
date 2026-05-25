@@ -78,6 +78,11 @@ function createLinkedCampaigns() {
     desc, Cl.uint(0), Cl.uint(TARGET_AMOUNT), Cl.uint(CAMPAIGN_DURATION), Cl.uint(2), rewardDesc,
     Cl.principal(PVM),
   ], creator);
+  // 3. campaign-module-2 (separate instance, same id=1 — needed by milestone-verification)
+  simnet.callPublicFn("campaign-module-2", "create-campaign", [
+    desc, Cl.uint(0), Cl.uint(TARGET_AMOUNT), Cl.uint(CAMPAIGN_DURATION), Cl.uint(2), rewardDesc,
+    Cl.principal(PVM),
+  ], creator);
 }
 
 // ============================================================
@@ -226,7 +231,7 @@ describe("Flow 3: Milestone-verification lifecycle", () => {
     const d = Cl.uint(FAR_FUTURE);
     simnet.callPublicFn("milestone-verification", "create-milestones", [Cl.uint(1), Cl.list([d, d, d])], creator);
 
-    simnet.callPublicFn("campaign-module", "contribute-to-campaign", [
+    simnet.callPublicFn("campaign-module-2", "contribute-to-campaign", [
       Cl.uint(1), Cl.uint(500000), Cl.principal(ME), Cl.principal(PVM),
     ], backer1);
 

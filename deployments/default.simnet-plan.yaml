@@ -45,20 +45,16 @@ genesis:
       balance: "100000000000000"
       sbtc-balance: "1000000000"
   contracts:
-    - genesis
-    - lockup
-    - bns
-    - cost-voting
     - costs
     - pox
-    - costs-2
     - pox-2
-    - costs-3
     - pox-3
     - pox-4
-    - signers
-    - signers-voting
-    - costs-4
+    - lockup
+    - costs-2
+    - costs-3
+    - cost-voting
+    - bns
 plan:
   batches:
     - id: 0
@@ -118,6 +114,11 @@ plan:
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: campaign-module
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/campaign-module.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: campaign-module-2
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/campaign-module.clar
             clarity-version: 2
@@ -187,6 +188,14 @@ plan:
             path: contracts/milestone-verification.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: milestone-verification-2
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/milestone-verification-2.clar
+            clarity-version: 2
+      epoch: "2.5"
+    - id: 2
+      transactions:
+        - emulated-contract-publish:
             contract-name: mock-strategy
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/mock-strategy.clar
@@ -196,9 +205,6 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/module-base.clar
             clarity-version: 2
-      epoch: "2.5"
-    - id: 2
-      transactions:
         - emulated-contract-publish:
             contract-name: yield-escrow-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM

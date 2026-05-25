@@ -3,7 +3,7 @@
 ## Architecture
 
 - **27 contracts** across 9 layers: Admin, Oracle/Reputation/Verification, Campaign, Escrow, Yield, Strategy, Milestone Verification, Funding Pool, Base.
-- **campaign-module** (renamed from crowdfunding-module) manages crowdfunding lifecycle (create, contribute, claim).
+- **campaign-module** (renamed from crowdfunding-module) manages campaign lifecycle (create, contribute, claim).
 - **milestone-escrow** holds deposited STX and manages milestone-based release. Uses **separate campaign ID space** from campaign-module.
   - Both must have a campaign with the same numeric ID for cross-contract flows.
 - **milestone-verification** handles endorser sign-off on milestones.
@@ -30,7 +30,7 @@
 - campaign-module: u300–u322
 - milestone-escrow: u5400–u5423
 - milestone-verification: u5600–u5618
-- funding-pool: u5200–u5299
+- funding-pool: u5700–u5722
 
 ## Deployment
 
