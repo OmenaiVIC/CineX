@@ -6,7 +6,7 @@ const router = Router();
 // Demo campaign configuration — IDs are aligned after script runs
 const DEMO_CAMPAIGNS = [
   {
-    id: 1,
+    id: 21,
     title: 'Rain',
     description: 'A cinematic exploration of urban isolation',
     goal: 200000000,
@@ -18,7 +18,7 @@ const DEMO_CAMPAIGNS = [
     creator: 'Maria Chen',
   },
   {
-    id: 2,
+    id: 22,
     title: 'Death of Eternity',
     description: 'A sci-fi thriller about mortality',
     goal: 150000000,
@@ -30,7 +30,7 @@ const DEMO_CAMPAIGNS = [
     creator: 'James Okafor',
   },
   {
-    id: 3,
+    id: 23,
     title: 'PrePARE VR',
     description: 'VR training for emergency responders',
     goal: 300000000,
@@ -42,7 +42,7 @@ const DEMO_CAMPAIGNS = [
     creator: 'Akira Tanaka',
   },
   {
-    id: 4,
+    id: 24,
     title: 'Northern Travels',
     description: 'A documentary on Arctic indigenous communities',
     goal: 120000000,

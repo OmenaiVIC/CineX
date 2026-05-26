@@ -254,10 +254,11 @@ async function main() {
   console.log(`  campaign-module-2 next ID: ${cmNext}\n`);
 
   for (const camp of DEMO_CAMPAIGNS) {
-    const eid = camp.id;
+    // Effective ID = max(camp.id, cmNext) to handle auto-increment overflow
+    const eid = Math.max(camp.id, cmNext);
     console.log(`── Campaign ${eid}: ${camp.title} ──`);
 
-    // Check if escrow campaign already exists
+    // Create escrow campaign at the effective ID
     const escrowExists = await escrowCampaignExists(eid);
     if (!escrowExists) {
       console.log(`  Creating milestone-escrow campaign ${eid}...`);
@@ -272,60 +273,39 @@ async function main() {
         `escrow-create-${eid}`
       );
     } else {
-      console.log(`  milestone-escrow campaign ${eid} already exists — skipping\n`);
+      console.log(`  milestone-escrow campaign ${eid} already exists`);
     }
 
-    // Check if CM campaign already exists
+    // Create CM campaign (auto-increments to eid since cmNext === eid)
     const cmExists = await cmCampaignExists(eid);
-    if (cmExists) {
-      console.log(`  campaign-module-2 campaign ${eid} already exists — skipping\n`);
-      continue;
-    }
-
-    // Advance CM counter up to eid if needed
-    for (let id = cmNext; id < eid; id++) {
-      console.log(`  → Dummy CM campaign ${id}...`);
+    if (!cmExists) {
+      console.log(`  Creating campaign-module-2 campaign ${eid}...`);
       await callContract(
         creator.privateKey,
         "campaign-module-2",
         "create-campaign",
         [
-          stringAsciiCV("Dummy"),
+          stringAsciiCV(camp.description.substring(0, 500)),
           uintCV(0),
-          uintCV(1000000),
-          uintCV(1000),
-          uintCV(1),
-          stringAsciiCV("None"),
+          uintCV(camp.goal),
+          uintCV(5000),
+          uintCV(3),
+          stringAsciiCV("Digital Postcard + Credits"),
           contractPrincipalCV(DEPLOYER, "project-verification-module"),
         ],
-        `cm-dummy-${id}`
+        `cm-create-${eid}`
       );
+    } else {
+      console.log(`  campaign-module-2 campaign ${eid} already exists`);
     }
 
-    // Create real CM campaign — will get ID = eid
-    console.log(`  Creating campaign-module-2 campaign ${eid}...`);
-    await callContract(
-      creator.privateKey,
-      "campaign-module-2",
-      "create-campaign",
-      [
-        stringAsciiCV(camp.description.substring(0, 500)),
-        uintCV(0),
-        uintCV(camp.goal),
-        uintCV(5000),
-        uintCV(3),
-        stringAsciiCV("Digital Postcard + Credits"),
-        contractPrincipalCV(DEPLOYER, "project-verification-module"),
-      ],
-      `cm-create-${eid}`
-    );
-
+    console.log(`  → ID ${eid}: escrow ✅  cm ✅\n`);
     cmNext = eid + 1;
-    console.log();
   }
 
   console.log("════════════════════════");
   console.log("✅ All demo campaigns created!");
+  console.log(`   Actual IDs: ${DEMO_CAMPAIGNS.map((_, i) => 16 + i + 1).join(', ')}`);
   console.log("   Update backend DEMO_CAMPAIGNS config if IDs differ.");
   console.log("   Fund backer wallet before demo: contribute(amount)");
 }
