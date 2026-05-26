@@ -141,6 +141,50 @@ async function getTxStatus(txHash) {
   };
 }
 
+// Diagnostic: test the broadcast path without a real contract call
+async function testBroadcast() {
+  const result = {};
+  try {
+    result.step1 = 'wallets check';
+    result.hasWallets = (_wallets !== null && _wallets.backer !== undefined);
+    if (!result.hasWallets) return { ...result, error: 'No wallets' };
+    
+    result.step2 = 'network check';
+    result.hasNetwork = (_network !== null && _network.coreApiUrl !== undefined);
+    if (!result.hasNetwork) return { ...result, error: 'No network' };
+    
+    result.step3 = 'nonce fetch';
+    const address = _wallets.backer.address;
+    const nonceResp = await fetch(`https://api.testnet.hiro.so/v2/accounts/${address}?proof=0`);
+    const nonceData = await nonceResp.json();
+    result.chainNonce = Number(nonceData.nonce);
+    result.balance = nonceData.balance;
+    
+    result.step4 = 'make simple tx';
+    const tx = await makeContractCall({
+      contractAddress: DEPLOYER,
+      contractName: 'milestone-escrow',
+      functionName: 'get-campaign-balance',
+      functionArgs: [uintCV(21)],
+      senderKey: _wallets.backer.privateKey,
+      network: _network,
+      anchorMode: AnchorMode.Any,
+      postConditionMode: PostConditionMode.Allow,
+      fee: 10000,
+      nonce: result.chainNonce,
+    });
+    result.txCreated = true;
+    
+    result.step5 = 'broadcast';
+    const broadcastResp = await broadcastTransaction(tx, _network);
+    result.broadcastResult = JSON.stringify(broadcastResp).substring(0, 300);
+    
+    return result;
+  } catch (err) {
+    return { ...result, error: (err && err.message) ? err.message : String(err), errorStack: (err && err.stack) ? err.stack.split('\n').slice(0,3).join('|') : '' };
+  }
+}
+
 async function contribute(campaignId, amountUstx) {
   const pk = _wallets.backer.privateKey;
   const txHash = await callContract(pk, 'campaign-module-2', 'contribute-to-campaign', [
@@ -238,6 +282,7 @@ export default {
   init,
   getNetwork,
   getState,
+  testBroadcast,
   contribute,
   submitProof,
   approve,

@@ -107,17 +107,22 @@ router.post('/contribute', async (req, res) => {
     if (!campaignId || !amountUstx) {
       return res.status(400).json({ error: 'campaignId and amountUstx required' });
     }
-    const result = await contractService.contribute(campaignId, amountUstx);
-    res.json({ status: 'broadcast', ...result });
-  } catch (err) {
+    // Step-by-step: diagnose where it fails
+    res.setHeader('X-Debug-1', 'starting');
+    let result;
     try {
-      const msg = (err && err.message) ? err.message : String(err);
-      console.error('[demo] contribute error:', msg);
-      res.status(500).json({ error: msg });
-    } catch (err2) {
-      console.error('[demo] contribute catch crash:', err2, 'original error:', err);
-      res.status(500).json({ error: 'Unknown error (see server logs)' });
+      result = await contractService.contribute(campaignId, amountUstx);
+    } catch (callErr) {
+      const callMsg = (callErr && callErr.message) ? callErr.message : String(callErr);
+      res.setHeader('X-Debug-Err', callMsg.substring(0,200));
+      console.error('[demo] contribute call error:', callMsg);
+      return res.status(500).json({ error: callMsg });
     }
+    res.setHeader('X-Debug-2', 'success');
+    return res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    console.error('[demo] contribute outer fatal:', err);
+    try { res.status(500).json({ error: 'Outer fatal - see logs' }); } catch (e) {}
   }
 });
 
@@ -169,6 +174,27 @@ router.post('/release', async (req, res) => {
   } catch (err) {
     console.error('[demo] release error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/demo/ping-hiro — test Hiro API connectivity
+router.get('/ping-hiro', async (req, res) => {
+  try {
+    const resp = await fetch('https://api.testnet.hiro.so/v2/info');
+    const data = await resp.json();
+    res.json({ ok: true, peer_version: data.peer_version, burn_block_height: data.burn_block_height });
+  } catch (err) {
+    res.json({ ok: false, error: (err && err.message) ? err.message : String(err) });
+  }
+});
+
+// GET /api/demo/test-broadcast — test transaction broadcast
+router.get('/test-broadcast', async (req, res) => {
+  try {
+    const info = await contractService.testBroadcast();
+    res.json(info);
+  } catch (err) {
+    res.json({ error: (err && err.message) ? err.message : String(err) });
   }
 });
 
