@@ -11,43 +11,28 @@ import {
   getAddressFromPrivateKey,
 } from '@stacks/transactions';
 import { StacksTestnet } from '@stacks/network';
-import { mnemonicToSeed } from 'bip39';
-import { HDKey } from '@scure/bip32';
 
 const API_URL = 'https://api.testnet.hiro.so';
 const EXPLORER_URL = 'https://explorer.hiro.so/txid';
 const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-const STX_DERIVATION_PATH = "m/44'/5757'/0'/0";
 
 let _initialized = false;
 let _wallets = null;
 let _nonces = {};
 let _network = null;
 
-async function deriveKey(mnemonic, index) {
-  const seed = await mnemonicToSeed(mnemonic);
-  const root = HDKey.fromMasterSeed(new Uint8Array(seed));
-  const child = root.derive(STX_DERIVATION_PATH).deriveChild(index);
-  const pkBytes = child.privateKey;
-  const privateKey = pkBytes.length === 33
-    ? Buffer.from(pkBytes).toString('hex')
-    : Buffer.from(pkBytes).toString('hex') + '01';
-  const address = getAddressFromPrivateKey(privateKey, 'testnet');
-  return { privateKey, address };
-}
-
-async function init(mnemonic) {
+function init() {
   if (_initialized) return;
+  const creatorKey = process.env.CREATOR_KEY;
+  const backerKey = process.env.BACKER_KEY;
+  if (!creatorKey || !backerKey) {
+    console.warn('[contractService] CREATOR_KEY or BACKER_KEY not set');
+    return;
+  }
   _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
-  const [acct0, acct1, acct3] = await Promise.all([
-    deriveKey(mnemonic, 0),
-    deriveKey(mnemonic, 1),
-    deriveKey(mnemonic, 3),
-  ]);
   _wallets = {
-    creator: acct1,
-    backer: acct3,
-    deployer: acct0,
+    creator: { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, 'testnet') },
+    backer: { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, 'testnet') },
   };
   console.log(`[contractService] Creator: ${_wallets.creator.address}`);
   console.log(`[contractService] Backer:  ${_wallets.backer.address}`);
@@ -76,7 +61,7 @@ function advanceNonce(address) {
 
 function findWalletByKey(privateKey) {
   if (!_wallets) return null;
-  for (const role of ['creator', 'backer', 'deployer']) {
+  for (const role of ['creator', 'backer']) {
     if (_wallets[role].privateKey === privateKey) return _wallets[role];
   }
   return null;
@@ -142,8 +127,6 @@ async function getTxStatus(txHash) {
   };
 }
 
-// ─── Demo Actions ─────────────────────────────────────────────────────────
-
 async function contribute(campaignId, amountUstx) {
   const pk = _wallets.backer.privateKey;
   const txHash = await callContract(pk, 'campaign-module-2', 'contribute-to-campaign', [
@@ -195,8 +178,6 @@ async function release(campaignId, milestoneIndex) {
     explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
   };
 }
-
-// ─── Read State ───────────────────────────────────────────────────────────
 
 async function getEscrowCampaign(campaignId) {
   return readOnlyCall('milestone-escrow', 'get-campaign', [uintCV(campaignId)]);
