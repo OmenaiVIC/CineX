@@ -56,7 +56,7 @@ const DEMO_CAMPAIGNS = [
 ];
 
 // GET /api/demo/campaigns — fetch live state from chain for all campaigns
-router.get('/campaigns', async (req, res) => {
+router.get('/campaigns', async (req, res, next) => {
   try {
     const results = await Promise.all(DEMO_CAMPAIGNS.map(async (camp) => {
       const [raised, escrowData] = await Promise.all([
@@ -95,39 +95,27 @@ router.get('/campaigns', async (req, res) => {
     }));
     res.json({ campaigns: results });
   } catch (err) {
-    console.error('[demo] Error fetching campaigns:', err);
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/demo/contribute
-router.post('/contribute', async (req, res) => {
+router.post('/contribute', async (req, res, next) => {
   try {
     const { campaignId, amountUstx } = req.body;
     if (!campaignId || !amountUstx) {
       return res.status(400).json({ error: 'campaignId and amountUstx required' });
     }
-    // Step-by-step: diagnose where it fails
-    res.setHeader('X-Debug-1', 'starting');
-    let result;
-    try {
-      result = await contractService.contribute(campaignId, amountUstx);
-    } catch (callErr) {
-      const callMsg = (callErr && callErr.message) ? callErr.message : String(callErr);
-      res.setHeader('X-Debug-Err', callMsg.substring(0,200));
-      console.error('[demo] contribute call error:', callMsg);
-      return res.status(500).json({ error: callMsg });
-    }
-    res.setHeader('X-Debug-2', 'success');
+    const result = await contractService.contribute(campaignId, amountUstx);
     return res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    console.error('[demo] contribute outer fatal:', err);
-    try { res.status(500).json({ error: 'Outer fatal - see logs' }); } catch (e) {}
+    console.error('[demo] contribute caught:', (err && err.message) ? err.message : String(err));
+    next(err);
   }
 });
 
 // POST /api/demo/submit-proof
-router.post('/submit-proof', async (req, res) => {
+router.post('/submit-proof', async (req, res, next) => {
   try {
     const { campaignId, milestoneIndex } = req.body;
     if (campaignId === undefined || milestoneIndex === undefined) {
@@ -136,19 +124,13 @@ router.post('/submit-proof', async (req, res) => {
     const result = await contractService.submitProof(campaignId, milestoneIndex);
     res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    try {
-      const msg = (err && err.message) ? err.message : String(err);
-      console.error('[demo] submit-proof error:', msg);
-      res.status(500).json({ error: msg });
-    } catch (err2) {
-      console.error('[demo] submit-proof catch crash:', err2);
-      res.status(500).json({ error: 'Unknown error (see server logs)' });
-    }
+    console.error('[demo] submit-proof caught:', (err && err.message) ? err.message : String(err));
+    next(err);
   }
 });
 
 // POST /api/demo/approve
-router.post('/approve', async (req, res) => {
+router.post('/approve', async (req, res, next) => {
   try {
     const { campaignId, milestoneIndex } = req.body;
     if (campaignId === undefined || milestoneIndex === undefined) {
@@ -157,8 +139,31 @@ router.post('/approve', async (req, res) => {
     const result = await contractService.approve(campaignId, milestoneIndex);
     res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    console.error('[demo] approve error:', err);
-    res.status(500).json({ error: err.message });
+    next(err);
+  }
+});
+
+// POST /api/demo/release
+router.post('/release', async (req, res, next) => {
+  try {
+    const { campaignId, milestoneIndex } = req.body;
+    if (campaignId === undefined || milestoneIndex === undefined) {
+      return res.status(400).json({ error: 'campaignId and milestoneIndex required' });
+    }
+    const result = await contractService.release(campaignId, milestoneIndex);
+    res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/demo/status/:txHash
+router.get('/status/:txHash', async (req, res, next) => {
+  try {
+    const result = await contractService.getTxStatus(req.params.txHash);
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
 });
 

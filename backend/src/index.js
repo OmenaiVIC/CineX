@@ -32,8 +32,11 @@ app.use('/api/wallets', walletsRouter);
 app.use('/api/demo', demoRouter);
 
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  const msg = (err && err.message) ? err.message : String(err);
+  const stack = (err && err.stack) ? err.stack.split('\n').slice(0,5).join(' | ') : '(no stack)';
+  console.error('[express] Unhandled error:', msg);
+  console.error('[express] Stack:', stack);
+  res.status(500).json({ error: msg });
 });
 
 async function start() {
