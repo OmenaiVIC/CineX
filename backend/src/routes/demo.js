@@ -1,0 +1,174 @@
+import { Router } from 'express';
+import contractService from '../services/contractService.js';
+
+const router = Router();
+
+// Demo campaign configuration — IDs are aligned after script runs
+const DEMO_CAMPAIGNS = [
+  {
+    id: 1,
+    title: 'Rain',
+    description: 'A cinematic exploration of urban isolation',
+    goal: 200000000,
+    milestones: [
+      { index: 0, name: 'Pre-production', amount: 50000000 },
+      { index: 1, name: 'Production', amount: 50000000 },
+      { index: 2, name: 'Post-production', amount: 100000000 },
+    ],
+    creator: 'Maria Chen',
+  },
+  {
+    id: 2,
+    title: 'Death of Eternity',
+    description: 'A sci-fi thriller about mortality',
+    goal: 150000000,
+    milestones: [
+      { index: 0, name: 'Script & Storyboard', amount: 30000000 },
+      { index: 1, name: 'Principal Photography', amount: 70000000 },
+      { index: 2, name: 'VFX & Editing', amount: 50000000 },
+    ],
+    creator: 'James Okafor',
+  },
+  {
+    id: 3,
+    title: 'PrePARE VR',
+    description: 'VR training for emergency responders',
+    goal: 300000000,
+    milestones: [
+      { index: 0, name: 'Prototype', amount: 60000000 },
+      { index: 1, name: 'User Testing', amount: 90000000 },
+      { index: 2, name: 'Production Release', amount: 150000000 },
+    ],
+    creator: 'Akira Tanaka',
+  },
+  {
+    id: 4,
+    title: 'Northern Travels',
+    description: 'A documentary on Arctic indigenous communities',
+    goal: 120000000,
+    milestones: [
+      { index: 0, name: 'Research', amount: 24000000 },
+      { index: 1, name: 'Expedition', amount: 48000000 },
+      { index: 2, name: 'Post-production', amount: 48000000 },
+    ],
+    creator: 'Elena Vasquez',
+  },
+];
+
+// GET /api/demo/campaigns — fetch live state from chain for all campaigns
+router.get('/campaigns', async (req, res) => {
+  try {
+    const results = await Promise.all(DEMO_CAMPAIGNS.map(async (camp) => {
+      const [raised, escrowData] = await Promise.all([
+        contractService.getTotalRaised(camp.id).catch(() => 0),
+        contractService.getEscrowCampaign(camp.id).catch(() => null),
+      ]);
+
+      const milestoneStates = await Promise.all(
+        camp.milestones.map(async (ms) => {
+          const state = await contractService.getMilestoneState(camp.id, ms.index).catch(() => null);
+          return {
+            index: ms.index,
+            name: ms.name,
+            amount: ms.amount,
+            approved: state?.approved || false,
+            released: state?.released || false,
+          };
+        })
+      );
+
+      const allReleased = milestoneStates.every((ms) => ms.released);
+      const anyApproved = milestoneStates.some((ms) => ms.approved);
+      const status = allReleased ? 'completed' : raised >= camp.goal ? 'milestones' : 'funding';
+
+      return {
+        id: camp.id,
+        title: camp.title,
+        description: camp.description,
+        creator: camp.creator,
+        goal: camp.goal,
+        raised,
+        milestones: milestoneStates,
+        status,
+        explorer_url: `https://explorer.hiro.so/address/${encodeURIComponent('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.campaign-module-2')}?chain=testnet`,
+      };
+    }));
+    res.json({ campaigns: results });
+  } catch (err) {
+    console.error('[demo] Error fetching campaigns:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/demo/contribute
+router.post('/contribute', async (req, res) => {
+  try {
+    const { campaignId, amountUstx } = req.body;
+    if (!campaignId || !amountUstx) {
+      return res.status(400).json({ error: 'campaignId and amountUstx required' });
+    }
+    const result = await contractService.contribute(campaignId, amountUstx);
+    res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    console.error('[demo] contribute error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/demo/submit-proof
+router.post('/submit-proof', async (req, res) => {
+  try {
+    const { campaignId, milestoneIndex } = req.body;
+    if (campaignId === undefined || milestoneIndex === undefined) {
+      return res.status(400).json({ error: 'campaignId and milestoneIndex required' });
+    }
+    const result = await contractService.submitProof(campaignId, milestoneIndex);
+    res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    console.error('[demo] submit-proof error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/demo/approve
+router.post('/approve', async (req, res) => {
+  try {
+    const { campaignId, milestoneIndex } = req.body;
+    if (campaignId === undefined || milestoneIndex === undefined) {
+      return res.status(400).json({ error: 'campaignId and milestoneIndex required' });
+    }
+    const result = await contractService.approve(campaignId, milestoneIndex);
+    res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    console.error('[demo] approve error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/demo/release
+router.post('/release', async (req, res) => {
+  try {
+    const { campaignId, milestoneIndex } = req.body;
+    if (campaignId === undefined || milestoneIndex === undefined) {
+      return res.status(400).json({ error: 'campaignId and milestoneIndex required' });
+    }
+    const result = await contractService.release(campaignId, milestoneIndex);
+    res.json({ status: 'broadcast', ...result });
+  } catch (err) {
+    console.error('[demo] release error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/demo/status/:txHash
+router.get('/status/:txHash', async (req, res) => {
+  try {
+    const result = await contractService.getTxStatus(req.params.txHash);
+    res.json(result);
+  } catch (err) {
+    console.error('[demo] status error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;
