@@ -9,6 +9,7 @@ import {
   bufferCV,
   cvToHex,
   getAddressFromPrivateKey,
+  TransactionVersion,
 } from '@stacks/transactions';
 import { StacksTestnet } from '@stacks/network';
 
@@ -31,8 +32,8 @@ function init() {
   }
   _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
   _wallets = {
-    creator: { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, 'testnet') },
-    backer: { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, 'testnet') },
+    creator: { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) },
+    backer: { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) },
   };
   console.log(`[contractService] Creator: ${_wallets.creator.address}`);
   console.log(`[contractService] Backer:  ${_wallets.backer.address}`);
