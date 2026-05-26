@@ -37,12 +37,11 @@ app.use((err, req, res, next) => {
 });
 
 async function start() {
-  const mnemonic = process.env.TESTNET_MNEMONIC;
-  if (!mnemonic) {
-    console.warn('⚠️  TESTNET_MNEMONIC not set — demo routes will fail');
-  } else {
-    await contractService.init(mnemonic);
+  contractService.init();
+  if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
     console.log('✅ Contract service initialized');
+  } else {
+    console.warn('⚠️  CREATOR_KEY or BACKER_KEY not set — demo write routes will fail');
   }
   app.listen(PORT, () => {
     console.log(`CineX backend running on http://localhost:${PORT}`);
