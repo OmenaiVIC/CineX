@@ -110,8 +110,9 @@ router.post('/contribute', async (req, res) => {
     const result = await contractService.contribute(campaignId, amountUstx);
     res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    console.error('[demo] contribute error:', err);
-    res.status(500).json({ error: err.message });
+    const msg = err.message || String(err);
+    console.error('[demo] contribute error:', msg, err.stack?.split('\n').slice(0,4).join('|'));
+    res.status(500).json({ error: msg });
   }
 });
 
