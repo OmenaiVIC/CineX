@@ -61,7 +61,18 @@ async function ensureNonce(address) {
   const resp = await fetch(`${API_URL}/v2/accounts/${address}?proof=0`, {
     headers: { Accept: 'application/json' },
   });
-  const data = await resp.json();
+  if (!resp.ok) {
+    console.warn('[contractService] nonce fetch failed:', resp.status, resp.statusText);
+    if (_nonces[address] !== undefined) return _nonces[address];
+    throw new Error(`Nonce fetch returned ${resp.status}`);
+  }
+  const text = await resp.text();
+  let data;
+  try { data = JSON.parse(text); } catch (e) {
+    console.warn('[contractService] nonce fetch non-JSON response:', text.substring(0, 200));
+    if (_nonces[address] !== undefined) return _nonces[address];
+    throw new Error('Nonce fetch returned non-JSON response');
+  }
   const chainNonce = Number(data.nonce);
   if (!(address in _nonces) || chainNonce > _nonces[address]) {
     _nonces[address] = chainNonce;
@@ -99,6 +110,9 @@ async function callContract(privateKey, contractName, functionName, functionArgs
   });
   const result = await broadcastTransaction(tx, _network);
   advanceNonce(account.address);
+  if (!result || result.error) {
+    throw new Error(result?.reason || result?.error || 'Transaction broadcast failed');
+  }
   return `0x${result.txid}`;
 }
 
@@ -114,7 +128,11 @@ async function readOnlyCall(contractName, functionName, functionArgs) {
       }),
     }
   );
-  return resp.json();
+  if (!resp.ok) throw new Error(`Hiro API ${resp.status} for ${contractName}.${functionName}`);
+  const text = await resp.text();
+  try { return JSON.parse(text); } catch (e) {
+    throw new Error(`Hiro API non-JSON response for ${contractName}.${functionName}: ${text.substring(0,100)}`);
+  }
 }
 
 async function getTxStatus(txHash) {
@@ -122,7 +140,11 @@ async function getTxStatus(txHash) {
     headers: { Accept: 'application/json' },
   });
   if (!resp.ok) return { status: 'pending', tx_hash: txHash };
-  const data = await resp.json();
+  const text = await resp.text();
+  let data;
+  try { data = JSON.parse(text); } catch (e) {
+    return { status: 'pending', tx_hash: txHash };
+  }
   if (data.tx_status === 'success') {
     return {
       status: 'confirmed',
@@ -186,6 +208,7 @@ async function testBroadcast() {
 }
 
 async function contribute(campaignId, amountUstx) {
+  if (!_wallets?.backer) throw new Error('Wallet not initialized (check CREATOR_KEY/BACKER_KEY)');
   const pk = _wallets.backer.privateKey;
   const txHash = await callContract(pk, 'campaign-module-2', 'contribute-to-campaign', [
     uintCV(campaignId),
