@@ -1,6 +1,5 @@
 import {
   makeContractCall,
-  broadcastTransaction,
   AnchorMode,
   PostConditionMode,
   contractPrincipalCV,
@@ -58,20 +57,22 @@ function getState() {
 }
 
 async function ensureNonce(address) {
-  const resp = await fetch(`${API_URL}/v2/accounts/${address}?proof=0`, {
-    headers: { Accept: 'application/json' },
-  });
-  if (!resp.ok) {
-    console.warn('[contractService] nonce fetch failed:', resp.status, resp.statusText);
+  let resp;
+  try {
+    resp = await fetch(`${API_URL}/v2/accounts/${address}?proof=0`, {
+      headers: { Accept: 'application/json' },
+    });
+  } catch (e) {
+    console.warn('[contractService] nonce fetch network error:', e.message);
     if (_nonces[address] !== undefined) return _nonces[address];
-    throw new Error(`Nonce fetch returned ${resp.status}`);
+    throw new Error(`Nonce fetch network error: ${e.message}`);
   }
   const text = await resp.text();
   let data;
   try { data = JSON.parse(text); } catch (e) {
-    console.warn('[contractService] nonce fetch non-JSON response:', text.substring(0, 200));
+    console.warn('[contractService] nonce fetch non-JSON:', text.substring(0, 200));
     if (_nonces[address] !== undefined) return _nonces[address];
-    throw new Error('Nonce fetch returned non-JSON response');
+    throw new Error(`Nonce fetch returned non-JSON (HTTP ${resp.status}): ${text.substring(0, 80)}`);
   }
   const chainNonce = Number(data.nonce);
   if (!(address in _nonces) || chainNonce > _nonces[address]) {
@@ -96,22 +97,59 @@ async function callContract(privateKey, contractName, functionName, functionArgs
   const account = findWalletByKey(privateKey);
   if (!account) throw new Error('Unknown private key');
   const nonce = await ensureNonce(account.address);
-  const tx = await makeContractCall({
-    contractAddress: DEPLOYER,
-    contractName,
-    functionName,
-    functionArgs,
-    senderKey: privateKey,
-    network: _network,
-    anchorMode: AnchorMode.Any,
-    postConditionMode: PostConditionMode.Allow,
-    fee: 10000,
-    nonce,
-  });
-  const result = await broadcastTransaction(tx, _network);
+  let tx;
+  try {
+    tx = await makeContractCall({
+      contractAddress: DEPLOYER,
+      contractName,
+      functionName,
+      functionArgs,
+      senderKey: privateKey,
+      network: _network,
+      anchorMode: AnchorMode.Any,
+      postConditionMode: PostConditionMode.Allow,
+      fee: 10000,
+      nonce,
+    });
+  } catch (e) {
+    throw new Error(`makeContractCall failed: ${e.message}`);
+  }
+
+  // Custom broadcast with robust error handling (bypass @stacks/transactions broadcastTransaction)
+  const serializedTx = tx.serialize().toString('hex');
+  const broadcastUrl = `${_network.coreApiUrl}/v2/transactions`;
+  let broadcastResp;
+  try {
+    broadcastResp = await fetch(broadcastUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: serializedTx,
+    });
+  } catch (e) {
+    throw new Error(`broadcast network error: ${e.message}`);
+  }
+
+  const responseText = await broadcastResp.text();
+  if (!broadcastResp.ok) {
+    const snippet = responseText.substring(0, 200);
+    throw new Error(`Hiro API ${broadcastResp.status}: ${snippet}`);
+  }
+
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    // response was not JSON — might be plain txid or HTML
+    if (/^[0-9a-f]{64}$/i.test(responseText.trim())) {
+      result = { txid: responseText.trim() };
+    } else {
+      throw new Error(`broadcast non-JSON response: ${responseText.substring(0, 200)}`);
+    }
+  }
+
   advanceNonce(account.address);
-  if (!result || result.error) {
-    throw new Error(result?.reason || result?.error || 'Transaction broadcast failed');
+  if (result.error) {
+    throw new Error(`transaction rejected: ${result.reason || result.error}`);
   }
   return `0x${result.txid}`;
 }
