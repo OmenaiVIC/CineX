@@ -120,16 +120,21 @@ async function callContract(privateKey, contractName, functionName, functionArgs
   const broadcastUrl = `${_network.coreApiUrl}/v2/transactions`;
   let broadcastResp;
   try {
+    console.error(`[callContract] POST ${broadcastUrl} (nonce=${nonce}, ${serializedTx.length} hex chars)`);
     broadcastResp = await fetch(broadcastUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/octet-stream' },
       body: serializedTx,
     });
+    console.error(`[callContract] response status=${broadcastResp.status}`);
   } catch (e) {
+    console.error(`[callContract] network error:`, e.message);
     throw new Error(`broadcast network error: ${e.message}`);
   }
 
   const responseText = await broadcastResp.text();
+  console.error(`[callContract] response body (first 300): ${responseText.substring(0, 300)}`);
+
   if (!broadcastResp.ok) {
     const snippet = responseText.substring(0, 200);
     throw new Error(`Hiro API ${broadcastResp.status}: ${snippet}`);
@@ -139,6 +144,7 @@ async function callContract(privateKey, contractName, functionName, functionArgs
   try {
     result = JSON.parse(responseText);
   } catch (e) {
+    console.error(`[callContract] JSON parse error: ${e.message}; body: ${responseText.substring(0, 200)}`);
     // response was not JSON — might be plain txid or HTML
     if (/^[0-9a-f]{64}$/i.test(responseText.trim())) {
       result = { txid: responseText.trim() };
