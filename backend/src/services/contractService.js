@@ -44,6 +44,19 @@ function getNetwork() {
   return _network;
 }
 
+function getState() {
+  return {
+    initialized: _initialized,
+    hasWallets: _wallets !== null && Object.keys(_wallets).length > 0,
+    walletKeys: _wallets ? Object.keys(_wallets) : [],
+    walletAddresses: _wallets ? {
+      creator: _wallets.creator?.address || null,
+      backer: _wallets.backer?.address || null,
+    } : null,
+    nonces: { ..._nonces },
+  };
+}
+
 async function ensureNonce(address) {
   const resp = await fetch(`${API_URL}/v2/accounts/${address}?proof=0`, {
     headers: { Accept: 'application/json' },
@@ -224,6 +237,7 @@ async function getTotalRaised(campaignId) {
 export default {
   init,
   getNetwork,
+  getState,
   contribute,
   submitProof,
   approve,

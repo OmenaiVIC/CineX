@@ -110,9 +110,14 @@ router.post('/contribute', async (req, res) => {
     const result = await contractService.contribute(campaignId, amountUstx);
     res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    const msg = err.message || String(err);
-    console.error('[demo] contribute error:', msg, err.stack?.split('\n').slice(0,4).join('|'));
-    res.status(500).json({ error: msg });
+    try {
+      const msg = (err && err.message) ? err.message : String(err);
+      console.error('[demo] contribute error:', msg);
+      res.status(500).json({ error: msg });
+    } catch (err2) {
+      console.error('[demo] contribute catch crash:', err2, 'original error:', err);
+      res.status(500).json({ error: 'Unknown error (see server logs)' });
+    }
   }
 });
 
@@ -126,8 +131,14 @@ router.post('/submit-proof', async (req, res) => {
     const result = await contractService.submitProof(campaignId, milestoneIndex);
     res.json({ status: 'broadcast', ...result });
   } catch (err) {
-    console.error('[demo] submit-proof error:', err);
-    res.status(500).json({ error: err.message });
+    try {
+      const msg = (err && err.message) ? err.message : String(err);
+      console.error('[demo] submit-proof error:', msg);
+      res.status(500).json({ error: msg });
+    } catch (err2) {
+      console.error('[demo] submit-proof catch crash:', err2);
+      res.status(500).json({ error: 'Unknown error (see server logs)' });
+    }
   }
 });
 
@@ -159,6 +170,20 @@ router.post('/release', async (req, res) => {
     console.error('[demo] release error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+// GET /api/demo/debug — diagnostic endpoint
+router.get('/debug', (req, res) => {
+  const state = {
+    initialized: contractService.getState ? contractService.getState() : null,
+    creatorKeySet: !!process.env.CREATOR_KEY,
+    backerKeySet: !!process.env.BACKER_KEY,
+    creatorKeyLen: process.env.CREATOR_KEY ? process.env.CREATOR_KEY.length : 0,
+    backerKeyLen: process.env.BACKER_KEY ? process.env.BACKER_KEY.length : 0,
+    hasNetwork: !!contractService.getNetwork(),
+  };
+  state.networkInfo = contractService.getNetwork() ? { hasNetwork: true } : { hasNetwork: false };
+  res.json(state);
 });
 
 // GET /api/demo/status/:txHash
