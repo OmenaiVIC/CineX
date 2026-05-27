@@ -14,9 +14,9 @@ export default function WalletBalance({ address, onFund, onSend }: Props) {
   const [balance, setBalance] = useState<WalletBalanceType | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setLoading(true);
-    const res = getWalletBalance(address);
+    const res = await getWalletBalance(address);
     if (res.success && res.data) setBalance(res.data);
     setLoading(false);
   }, [address]);

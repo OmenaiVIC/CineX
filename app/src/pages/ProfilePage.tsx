@@ -55,36 +55,37 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!address) return;
     setLoading(true);
-    const pRes = getProfile(address);
-    if (pRes.success && pRes.data) setProfile(pRes.data);
-    const rRes = getRatingsForUser(address);
-    if (rRes.success && rRes.data) setRatings(rRes.data);
-    const aRes = getAverageRating(address);
-    if (aRes.success && aRes.data) setAvgRating(aRes.data);
-    const bRes = getRatingBreakdown(address);
-    if (bRes.success && bRes.data) setBreakdown(bRes.data);
-    const cRes = getCreatorCampaigns(address);
-    if (cRes.success && cRes.data) setCampaigns(cRes.data);
-    setLoading(false);
+    Promise.all([
+      getProfile(address),
+      getRatingsForUser(address),
+      getAverageRating(address),
+      getRatingBreakdown(address),
+      getCreatorCampaigns(address),
+    ]).then(([p, r, a, b, c]) => {
+      if (p.success && p.data) setProfile(p.data);
+      if (r.success && r.data) setRatings(r.data);
+      if (a.success && a.data) setAvgRating(a.data);
+      if (b.success && b.data) setBreakdown(b.data);
+      if (c.success && c.data) setCampaigns(c.data);
+      setLoading(false);
+    });
   }, [address]);
 
-  const handleSubmitRating = () => {
+  const handleSubmitRating = async () => {
     if (!currentUser || !address || newRating === 0) return;
     tx.open('Submitting Rating', `Rating ${profile?.displayName || address.slice(0, 10)}...`);
-    setTimeout(() => {
-      const res = addRating(currentUser.address, address, newRating, newReview || undefined, newCategory);
+    setTimeout(async () => {
+      const res = await addRating(currentUser.address, address, newRating, newReview || undefined, newCategory);
       if (res.success) {
         addFeedEvent('rating_received', currentUser.address, `Rated ${profile?.displayName || address.slice(0, 10)}... ${newRating}/5`, address);
         tx.succeed(res.transactionId);
-        setTimeout(() => {
+        setTimeout(async () => {
           tx.close();
           setNewRating(0);
           setNewReview('');
-          const rRes = getRatingsForUser(address);
+          const [rRes, aRes, bRes] = await Promise.all([getRatingsForUser(address), getAverageRating(address), getRatingBreakdown(address)]);
           if (rRes.success && rRes.data) setRatings(rRes.data);
-          const aRes = getAverageRating(address);
           if (aRes.success && aRes.data) setAvgRating(aRes.data);
-          const bRes = getRatingBreakdown(address);
           if (bRes.success && bRes.data) setBreakdown(bRes.data);
         }, 1000);
       } else {
@@ -93,9 +94,9 @@ export default function ProfilePage() {
     }, 600);
   };
 
-  const handleRefreshCredibility = () => {
+  const handleRefreshCredibility = async () => {
     if (!address) return;
-    const res = refreshCredibilitySummary(address);
+    const res = await refreshCredibilitySummary(address);
     if (res.success && res.data) setCredibility(res.data);
   };
 

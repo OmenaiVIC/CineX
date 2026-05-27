@@ -8,21 +8,23 @@ export function useFeed(limit = 20) {
   const [hasMore, setHasMore] = useState(true);
 
   const refresh = useCallback(() => {
-    const res = getFeed(limit, 0);
-    if (res.success && res.data) {
-      setItems(res.data);
-      setOffset(limit);
-      setHasMore(res.data.length >= limit);
-    }
+    getFeed(limit, 0).then(res => {
+      if (res.success && res.data) {
+        setItems(res.data);
+        setOffset(limit);
+        setHasMore(res.data.length >= limit);
+      }
+    });
   }, [limit]);
 
   const loadMore = useCallback(() => {
-    const res = getFeed(limit, offset);
-    if (res.success && res.data) {
-      setItems(prev => [...prev, ...res.data]);
-      setOffset(prev => prev + limit);
-      if (res.data.length < limit) setHasMore(false);
-    }
+    getFeed(limit, offset).then(res => {
+      if (res.success && res.data) {
+        setItems(prev => [...prev, ...res.data]);
+        setOffset(prev => prev + limit);
+        if (res.data.length < limit) setHasMore(false);
+      }
+    });
   }, [limit, offset]);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -33,8 +35,9 @@ export function useFeed(limit = 20) {
 export function useUserFeed(address: string, limit = 20) {
   const [items, setItems] = useState<FeedEvent[]>([]);
   const refresh = useCallback(() => {
-    const res = getUserFeed(address, limit);
-    if (res.success && res.data) setItems(res.data);
+    getUserFeed(address, limit).then(res => {
+      if (res.success && res.data) setItems(res.data);
+    });
   }, [address, limit]);
   useEffect(() => { refresh(); }, [refresh]);
   return { items, refresh };

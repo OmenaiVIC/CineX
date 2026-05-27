@@ -1,21 +1,28 @@
 import type { VerificationApplication, VerifiedFilmmaker, ServiceResponse } from '../types';
-import { getAll, addItem, updateItem, getById, findItems } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getVerificationStatus(address: string): ServiceResponse<{ applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker }> {
-  const apps = findItems<VerificationApplication>('verificationApplications', a => a.applicant === address);
-  const verified = findItems<VerifiedFilmmaker>('verifiedFilmmakers', f => f.address === address);
+interface StatusResponse {
+  applied: boolean;
+  applications: VerificationApplication[];
+  verified: boolean;
+  filmmaker: VerifiedFilmmaker | null;
+}
+
+export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker }>> {
+  const res = await api.get<StatusResponse>(`/verification/status/${address}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to get verification status' };
   return {
     success: true,
     data: {
-      applied: apps.length > 0,
-      status: apps[0]?.status,
-      verified: verified.length > 0,
-      filmmaker: verified[0],
+      applied: res.data.applied,
+      status: res.data.applications?.[0]?.status,
+      verified: res.data.verified,
+      filmmaker: res.data.filmmaker || undefined,
     },
   };
 }
 
-export function applyForVerification(
+export async function applyForVerification(
   applicant: string,
   name: string,
   bio: string,
@@ -23,14 +30,8 @@ export function applyForVerification(
   previousWorks?: string[],
   socialMedia?: { twitter?: string; linkedin?: string; instagram?: string; website?: string },
   bondAmount?: string
-): ServiceResponse<VerificationApplication> {
-  const existingApps = findItems<VerificationApplication>('verificationApplications', a => a.applicant === applicant);
-  if (existingApps.some(a => a.status === 'pending' || a.status === 'under-review')) {
-    return { success: false, error: 'You already have a pending application' };
-  }
-
-  const app: VerificationApplication = {
-    id: '',
+): Promise<ServiceResponse<VerificationApplication>> {
+  const res = await api.post<VerificationApplication>('/verification/apply', {
     applicant,
     name,
     bio,
@@ -38,58 +39,29 @@ export function applyForVerification(
     previousWorks: previousWorks || [],
     socialMedia: socialMedia || {},
     bondAmount: bondAmount || '0',
-    documents: { identityProof: 'demo-id-upload' },
-    status: 'pending',
-    submittedAt: Date.now(),
-  };
-  const created = addItem('verificationApplications', app);
-  return { success: true, data: created, transactionId: `tx_vapp_${created.id}` };
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to apply' };
+  return { success: true, data: res.data, transactionId: `tx_vapp_${res.data.id}` };
 }
 
-export function getPendingApplications(): ServiceResponse<VerificationApplication[]> {
-  const items = findItems<VerificationApplication>('verificationApplications', a => a.status === 'pending' || a.status === 'under-review');
-  return { success: true, data: items };
+export async function getPendingApplications(): Promise<ServiceResponse<VerificationApplication[]>> {
+  const res = await api.get<VerificationApplication[]>('/verification/pending');
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch pending applications' };
+  return { success: true, data: res.data || [] };
 }
 
-export function reviewApplication(id: string, reviewer: string, approved: boolean, rejectionReason?: string): ServiceResponse<VerificationApplication> {
-  const app = getById<VerificationApplication>('verificationApplications', id);
-  if (!app) return { success: false, error: 'Application not found' };
-
-  const now = Date.now();
-  if (approved) {
-    const updateApp = updateItem<VerificationApplication>('verificationApplications', id, {
-      status: 'approved',
-      reviewedAt: now,
-      reviewer,
-    } as Partial<VerificationApplication>);
-
-    const filmmaker: VerifiedFilmmaker = {
-      address: app.applicant,
-      name: app.name,
-      bio: app.bio,
-      portfolioUrl: app.portfolioUrl,
-      previousWorks: app.previousWorks,
-      socialMedia: app.socialMedia,
-      verifiedAt: now,
-      credibilityScore: 75,
-      completedCampaigns: 0,
-      totalFundedAmount: '0',
-    };
-    addItem('verifiedFilmmakers', filmmaker);
-
-    return { success: true, data: updateApp!, transactionId: `tx_vapp_approve_${id}` };
-  }
-
-  const updateApp = updateItem<VerificationApplication>('verificationApplications', id, {
-    status: 'rejected',
-    reviewedAt: now,
+export async function reviewApplication(id: string, reviewer: string, approved: boolean, rejectionReason?: string): Promise<ServiceResponse<VerificationApplication>> {
+  const res = await api.post<VerificationApplication>(`/verification/${id}/review`, {
     reviewer,
+    approved,
     rejectionReason,
-  } as Partial<VerificationApplication>);
-  return { success: true, data: updateApp! };
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to review application' };
+  return { success: true, data: res.data, transactionId: approved ? `tx_vapp_approve_${id}` : undefined };
 }
 
-export function getAllVerifiedFilmmakers(): ServiceResponse<VerifiedFilmmaker[]> {
-  const all = getAll<VerifiedFilmmaker>('verifiedFilmmakers');
-  return { success: true, data: all };
+export async function getAllVerifiedFilmmakers(): Promise<ServiceResponse<VerifiedFilmmaker[]>> {
+  const res = await api.get<VerifiedFilmmaker[]>('/verification/filmmakers');
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch filmmakers' };
+  return { success: true, data: res.data || [] };
 }

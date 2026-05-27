@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -17,11 +17,15 @@ export default function CurrencyConverter() {
   const [amount, setAmount] = useState('');
   const [result, setResult] = useState<{ amount: string; rate: string; fee: string } | null>(null);
 
-  const rates = getConversionRates();
+  const [rates, setRates] = useState<{ ngnPerUsd: number; spread: number; usdPerStx: number } | null>(null);
 
-  const handleConvert = () => {
+  useEffect(() => {
+    getConversionRates().then(r => { if (r.success && r.data) setRates(r.data); });
+  }, []);
+
+  const handleConvert = async () => {
     if (!amount || isNaN(Number(amount))) return;
-    const res = convertCurrency(from as any, to as any, amount);
+    const res = await convertCurrency(from as any, to as any, amount);
     if (res.success && res.data) setResult(res.data);
   };
 
@@ -79,8 +83,8 @@ export default function CurrencyConverter() {
             <p className="text-xs text-gray-500">Fee: {result.fee} {from.toUpperCase()} (0.75%)</p>
           </div>
         )}
-        {rates.success && rates.data && (
-          <p className="text-xs text-gray-600">Market rate: ₦{rates.data.ngnPerUsd}/$ · Spread: {(rates.data.spread * 100)}%</p>
+        {rates && (
+          <p className="text-xs text-gray-600">Market rate: ₦{rates.ngnPerUsd}/$ · Spread: {(rates.spread * 100)}%</p>
         )}
       </div>
     </Card>

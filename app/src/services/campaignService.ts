@@ -1,92 +1,84 @@
 import type { Campaign, CampaignContribution, CreateCampaignParams, ContributeToCampaignParams, ServiceResponse } from '../types';
-import { getAll, addItem, updateItem, getById, findItems, getDemoData, setDemoData } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getCampaigns(status?: Campaign['status']): ServiceResponse<Campaign[]> {
-  const all = getAll<Campaign>('campaigns');
-  const items = status ? all.filter(c => c.status === status) : all;
-  return { success: true, data: items };
+export async function getCampaigns(status?: Campaign['status']): Promise<ServiceResponse<Campaign[]>> {
+  const qs = status ? `?status=${status}` : '';
+  const res = await api.get<{ campaigns: Campaign[] }>(`/campaigns${qs}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch campaigns' };
+  return { success: true, data: res.data.campaigns };
 }
 
-export function getCampaign(id: string): ServiceResponse<Campaign> {
-  const c = getById<Campaign>('campaigns', id);
-  if (!c) return { success: false, error: 'Campaign not found' };
-  return { success: true, data: c };
+export async function getCampaign(id: string): Promise<ServiceResponse<Campaign>> {
+  const res = await api.get<{ campaign: Campaign; contributions: CampaignContribution[] }>(`/campaigns/${id}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Campaign not found' };
+  return { success: true, data: res.data.campaign };
 }
 
-export function createCampaign(params: CreateCampaignParams, creator: string): ServiceResponse<Campaign> {
-  const now = Date.now();
-  const campaign: Campaign = {
-    id: '',
+export async function createCampaign(params: CreateCampaignParams, creator: string): Promise<ServiceResponse<Campaign>> {
+  const res = await api.post<Campaign>('/campaigns', {
     title: params.title,
     description: params.description,
     creator,
     targetAmount: params.targetAmount,
-    currentAmount: '0',
     deadline: params.deadline,
     category: params.category,
-    status: 'active',
-    createdAt: now,
-    updatedAt: now,
     mediaUrls: params.mediaUrls,
     tags: params.tags,
-  };
-  const created = addItem('campaigns', campaign);
-  return { success: true, data: created, transactionId: `tx_create_${created.id}` };
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to create campaign' };
+  return { success: true, data: res.data, transactionId: `tx_create_${res.data.id}` };
 }
 
-export function getCreatorCampaigns(address: string): ServiceResponse<Campaign[]> {
-  const items = findItems<Campaign>('campaigns', c => c.creator === address);
-  return { success: true, data: items };
+export async function getCreatorCampaigns(address: string): Promise<ServiceResponse<Campaign[]>> {
+  const res = await api.get<Campaign[]>(`/campaigns/creator/${address}`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch creator campaigns' };
+  return { success: true, data: res.data || [] };
 }
 
-export function getBackerContributions(address: string): ServiceResponse<CampaignContribution[]> {
-  const items = findItems<CampaignContribution>('contributions', c => c.contributor === address);
-  return { success: true, data: items };
+export async function getBackerContributions(address: string): Promise<ServiceResponse<CampaignContribution[]>> {
+  const res = await api.get<CampaignContribution[]>(`/campaigns/contributor/${address}`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch contributions' };
+  return { success: true, data: res.data || [] };
 }
 
-export function getCampaignContributions(campaignId: string): ServiceResponse<CampaignContribution[]> {
-  const items = findItems<CampaignContribution>('contributions', c => c.campaignId === campaignId);
-  return { success: true, data: items };
+export async function getCampaignContributions(campaignId: string): Promise<ServiceResponse<CampaignContribution[]>> {
+  const res = await api.get<CampaignContribution[]>(`/campaigns/${campaignId}/contributions`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch contributions' };
+  return { success: true, data: res.data || [] };
 }
 
-export function contributeToCampaign(params: ContributeToCampaignParams, contributor: string): ServiceResponse<CampaignContribution> {
-  const campaign = getById<Campaign>('campaigns', params.campaignId);
-  if (!campaign) return { success: false, error: 'Campaign not found' };
-
-  const now = Date.now();
+export async function contributeToCampaign(params: ContributeToCampaignParams, contributor: string): Promise<ServiceResponse<CampaignContribution>> {
+  const res = await api.post<{ txId: string }>(`/campaigns/${params.campaignId}/contribute`, {
+    contributor,
+    amount: params.amount,
+    message: params.message,
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Contribution failed' };
   const contribution: CampaignContribution = {
     campaignId: params.campaignId,
     contributor,
     amount: params.amount,
-    timestamp: now,
-    txId: `tx_cont_${now}_${Math.random().toString(36).slice(2, 8)}`,
+    timestamp: Date.now(),
+    txId: res.data.txId,
     message: params.message,
   };
-
-  const newAmount = (Number(campaign.currentAmount) + Number(params.amount)).toString();
-  updateItem('campaigns', params.campaignId, {
-    currentAmount: newAmount,
-    updatedAt: now,
-    status: Number(newAmount) >= Number(campaign.targetAmount) ? 'funded' : campaign.status,
-  } as Partial<Campaign>);
-
-  const created = addItem('contributions', contribution);
-  return { success: true, data: created, transactionId: contribution.txId };
+  return { success: true, data: contribution, transactionId: res.data.txId };
 }
 
-export function getTotalFundsRaised(): ServiceResponse<string> {
-  const all = getAll<Campaign>('campaigns');
-  const total = all.reduce((sum, c) => sum + Number(c.currentAmount), 0);
-  return { success: true, data: total.toString() };
+export async function getTotalFundsRaised(): Promise<ServiceResponse<string>> {
+  const res = await api.get<{ total: string }>('/campaigns/total-raised');
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch total' };
+  return { success: true, data: res.data.total };
 }
 
-export function getActiveCampaignCount(): ServiceResponse<number> {
-  const all = getAll<Campaign>('campaigns');
-  return { success: true, data: all.filter(c => c.status === 'active').length };
+export async function getActiveCampaignCount(): Promise<ServiceResponse<number>> {
+  const res = await api.get<{ count: number }>('/campaigns/active-count');
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch count' };
+  return { success: true, data: res.data.count };
 }
 
-export function getTotalContributedByUser(address: string): ServiceResponse<string> {
-  const items = findItems<CampaignContribution>('contributions', c => c.contributor === address);
-  const total = items.reduce((sum, c) => sum + Number(c.amount), 0);
-  return { success: true, data: total.toString() };
+export async function getTotalContributedByUser(address: string): Promise<ServiceResponse<string>> {
+  const res = await api.get<{ total: string }>(`/campaigns/user/${address}/total-contributed`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch total' };
+  return { success: true, data: res.data.total };
 }

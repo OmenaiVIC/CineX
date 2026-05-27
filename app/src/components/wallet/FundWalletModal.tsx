@@ -17,15 +17,15 @@ export default function FundWalletModal({ isOpen, address, onClose, onSuccess }:
 
   if (!isOpen) return null;
 
-  const handleFund = () => {
+  const handleFund = async () => {
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) {
       tx.fail('Please enter a valid amount');
       return;
     }
     tx.open('Funding Wallet', `Depositing ${amt} STX to your wallet`);
-    setTimeout(() => {
-      const res = creditWallet(address, amt.toString());
+    setTimeout(async () => {
+      const res = await creditWallet(address, amt.toString());
       if (res.success) {
         tx.succeed(`tx_fund_${Date.now()}`);
         setTimeout(() => {

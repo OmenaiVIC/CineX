@@ -57,7 +57,7 @@ async function runMigrations() {
   const client = await pool.connect();
   try {
     const dir = join(__dirname, 'migrations');
-    const files = ['001_initial.sql'];
+    const files = ['001_initial.sql', '002_campaigns.sql'];
     for (const file of files) {
       const fp = join(dir, file);
       if (!existsSync(fp)) { console.warn(`  Migration ${file} not found`); continue; }

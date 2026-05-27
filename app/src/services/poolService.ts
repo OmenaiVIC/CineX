@@ -1,19 +1,30 @@
 import type { Pool, ServiceResponse } from '../types';
-import { getAll, addItem, updateItem, getById, findItems } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getPools(status?: Pool['status']): ServiceResponse<Pool[]> {
-  const all = getAll<Pool>('pools');
-  const items = status ? all.filter(p => p.status === status) : all;
-  return { success: true, data: items };
+interface PoolsResponse {
+  pools: Pool[];
+  pagination: { offset: number; limit: number; total: number };
 }
 
-export function getPool(id: string): ServiceResponse<Pool> {
-  const p = getById<Pool>('pools', id);
-  if (!p) return { success: false, error: 'Pool not found' };
-  return { success: true, data: p };
+interface PoolDetailResponse {
+  pool: Pool;
+  members: unknown[];
 }
 
-export function createPool(
+export async function getPools(status?: Pool['status']): Promise<ServiceResponse<Pool[]>> {
+  const qs = status ? `?status=${status}` : '';
+  const res = await api.get<PoolsResponse>(`/pools${qs}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch pools' };
+  return { success: true, data: res.data.pools };
+}
+
+export async function getPool(id: string): Promise<ServiceResponse<Pool>> {
+  const res = await api.get<PoolDetailResponse>(`/pools/${id}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Pool not found' };
+  return { success: true, data: res.data.pool };
+}
+
+export async function createPool(
   creator: string,
   name: string,
   description: string,
@@ -22,42 +33,29 @@ export function createPool(
   maxMembers: number,
   category: string,
   deadline: number
-): ServiceResponse<Pool> {
-  const pool: Pool = {
-    id: '',
+): Promise<ServiceResponse<Pool>> {
+  const res = await api.post<Pool>('/pools', {
     name,
     description,
     creator,
-    maxMembers,
-    currentMembers: 1,
-    contributionAmount,
-    category,
-    status: 'open',
-    deadline,
     targetAmount,
-    currentAmount: '0',
-  };
-  const created = addItem('pools', pool);
-  return { success: true, data: created, transactionId: `tx_pool_${created.id}` };
+    minCommitment: contributionAmount,
+    maxMembers,
+    deadline,
+    category,
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to create pool' };
+  return { success: true, data: res.data, transactionId: `tx_pool_${res.data.id}` };
 }
 
-export function joinPool(poolId: string, address: string, amount: string): ServiceResponse<Pool> {
-  const pool = getById<Pool>('pools', poolId);
-  if (!pool) return { success: false, error: 'Pool not found' };
-  if (pool.status !== 'open') return { success: false, error: 'Pool is not open' };
-  if (pool.currentMembers >= pool.maxMembers) return { success: false, error: 'Pool is full' };
-
-  const newAmount = (Number(pool.currentAmount) + Number(amount)).toString();
-  const updated = updateItem<Pool>('pools', poolId, {
-    currentMembers: pool.currentMembers + 1,
-    currentAmount: newAmount,
-    status: Number(newAmount) >= Number(pool.targetAmount) ? 'funded' : pool.status,
-  } as Partial<Pool>);
-
-  return { success: true, data: updated!, transactionId: `tx_pool_join_${poolId}` };
+export async function joinPool(poolId: string, address: string, amount: string): Promise<ServiceResponse<Pool>> {
+  const res = await api.post<{ id: number }>(`/pools/${poolId}/join`, { address, amount });
+  if (!res.success) return { success: false, error: res.error || 'Failed to join pool' };
+  return getPool(poolId);
 }
 
-export function getCreatorPools(address: string): ServiceResponse<Pool[]> {
-  const items = findItems<Pool>('pools', p => p.creator === address);
-  return { success: true, data: items };
+export async function getCreatorPools(address: string): Promise<ServiceResponse<Pool[]>> {
+  const res = await getPools();
+  if (!res.success || !res.data) return res;
+  return { success: true, data: res.data.filter(p => p.creator === address) };
 }

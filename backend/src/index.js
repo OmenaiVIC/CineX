@@ -7,6 +7,9 @@ import aiRouter from './routes/ai.js';
 import poolsRouter from './routes/pools.js';
 import walletsRouter from './routes/wallets.js';
 import demoRouter from './routes/demo.js';
+import campaignsRouter from './routes/campaigns.js';
+import milestonesRouter from './routes/milestones.js';
+import verificationRouter from './routes/verification.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
@@ -32,6 +35,9 @@ app.use('/api/ai', aiRouter);
 app.use('/api/pools', poolsRouter);
 app.use('/api/wallets', walletsRouter);
 app.use('/api/demo', demoRouter);
+app.use('/api/campaigns', campaignsRouter);
+app.use('/api/milestones', milestonesRouter);
+app.use('/api/verification', verificationRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);

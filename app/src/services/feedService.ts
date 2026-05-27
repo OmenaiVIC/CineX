@@ -1,28 +1,65 @@
 import type { FeedEvent, ServiceResponse } from '../types';
-import { getAll, addItem, findItems } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getFeed(limit = 20, offset = 0): ServiceResponse<FeedEvent[]> {
-  const all = getAll<FeedEvent>('feed');
-  const sorted = all.sort((a, b) => b.createdAt - a.createdAt);
-  const page = sorted.slice(offset, offset + limit);
-  return { success: true, data: page };
+interface BackendFeedEvent {
+  id: number;
+  eventType: string;
+  eventData: string;
+  actor: string;
+  poolId?: number;
+  campaignId?: number;
+  createdAt: number;
 }
 
-export function getUserFeed(address: string, limit = 20): ServiceResponse<FeedEvent[]> {
-  const items = findItems<FeedEvent>('feed', e => e.actor === address || e.targetId === address);
-  const sorted = items.sort((a, b) => b.createdAt - a.createdAt);
-  return { success: true, data: sorted.slice(0, limit) };
+interface FeedResponse {
+  events: BackendFeedEvent[];
+  pagination: { offset: number; limit: number; total: number };
 }
 
-export function addFeedEvent(
+function toFeedEvent(e: BackendFeedEvent): FeedEvent {
+  let eventData: Record<string, unknown> = {};
+  try { eventData = JSON.parse(typeof e.eventData === 'string' ? e.eventData : '{}'); } catch { /* ignore */ }
+  const timestamp = typeof e.createdAt === 'number' && e.createdAt < 1e12 ? e.createdAt * 1000 : e.createdAt;
+  return {
+    id: String(e.id),
+    type: (e.eventType as FeedEvent['type']) || 'system',
+    actor: e.actor || '',
+    targetId: e.campaignId ? String(e.campaignId) : e.poolId ? `pool_${e.poolId}` : undefined,
+    summary: (eventData?.summary as string) || `${e.eventType} event`,
+    metadata: eventData,
+    createdAt: timestamp,
+  };
+}
+
+export async function getFeed(limit = 20, offset = 0): Promise<ServiceResponse<FeedEvent[]>> {
+  const res = await api.get<FeedResponse>(`/feed/global?limit=${limit}&offset=${offset}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch feed' };
+  const events = (res.data.events || []).map(toFeedEvent);
+  return { success: true, data: events };
+}
+
+export async function getUserFeed(address: string, limit = 20): Promise<ServiceResponse<FeedEvent[]>> {
+  const res = await api.get<FeedResponse>(`/feed/user/${address}?limit=${limit}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch feed' };
+  const events = (res.data.events || []).map(toFeedEvent);
+  return { success: true, data: events };
+}
+
+export async function addFeedEvent(
   type: FeedEvent['type'],
   actor: string,
   summary: string,
   targetId?: string,
   metadata?: Record<string, unknown>
-): ServiceResponse<FeedEvent> {
+): Promise<ServiceResponse<FeedEvent>> {
+  const res = await api.post<{ id: number }>('/feed/event', {
+    eventType: type,
+    eventData: JSON.stringify({ summary, ...metadata }),
+    actor,
+  });
+  if (!res.success) return { success: false, error: res.error || 'Failed to create feed event' };
   const event: FeedEvent = {
-    id: '',
+    id: String(res.data?.id || Date.now()),
     type,
     actor,
     targetId,
@@ -30,6 +67,5 @@ export function addFeedEvent(
     metadata,
     createdAt: Date.now(),
   };
-  const created = addItem('feed', event);
-  return { success: true, data: created };
+  return { success: true, data: event };
 }

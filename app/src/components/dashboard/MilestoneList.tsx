@@ -88,10 +88,10 @@ export default function MilestoneList({
     }, 600);
   };
 
-  const completeMilestone = (mileId: string) => {
+  const completeMilestone = async (mileId: string) => {
     tx.open('Completing Milestone', 'Marking milestone as completed');
-    setTimeout(() => {
-      const res = updateMilestoneStatus(mileId, 'completed');
+    setTimeout(async () => {
+      const res = await updateMilestoneStatus(mileId, 'completed');
       if (res.success) {
         const mile = milestones.find(m => m.id === mileId);
         addFeedEvent('milestone_reached', currentUserAddress, `Completed milestone: ${mile?.title || mileId}`, mileId);

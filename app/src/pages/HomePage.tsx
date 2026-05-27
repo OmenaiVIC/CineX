@@ -1,12 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import HowItWorksGuide from '../components/ui/HowItWorksGuide';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    let w: number, h: number;
+    const COUNT = 60;
+    const particles: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
+    let animId: number;
+
+    const resize = () => { w = c.width = window.innerWidth; h = c.height = window.innerHeight; };
+    window.addEventListener('resize', resize);
+    resize();
+
+    for (let i = 0; i < COUNT; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: 1.5,
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(74,222,128,0.3)';
+        ctx.fill();
+      }
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(74,222,128,${0.06 * (1 - dist / 150)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      <canvas
+        ref={canvasRef}
+        style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
+      />
       {/* HERO */}
       <section className="lp-hero">
         <div className="lp-hero-content">
@@ -251,6 +319,14 @@ export default function HomePage() {
               <p>Idle capital earns yield automatically through secure strategies — no lock-ups, no waste. Backers earn while projects develop. Creators get a success bonus (70/20/10 split).</p>
             </div>
           </div>
+          <div style={{ textAlign: 'center', marginTop: 36 }}>
+            <button
+              onClick={() => setShowGuide(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-[#4ade80] border border-[rgba(74,222,128,0.3)] hover:bg-[rgba(74,222,128,0.1)] hover:border-[#4ade80] rounded-full transition-all"
+            >
+              See the Complete Lifecycle →
+            </button>
+          </div>
         </div>
       </section>
 
@@ -401,6 +477,8 @@ export default function HomePage() {
           {lightbox === 'doe4' && <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Logline%20pics.png" alt="" onClick={e => e.stopPropagation()} />}
         </div>
       )}
+
+      <HowItWorksGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </div>
   );
 }

@@ -1,27 +1,54 @@
 import type { Rating, ServiceResponse } from '../types';
-import { getAll, addItem, getById, findItems, updateItem } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getRatingsForUser(address: string): ServiceResponse<Rating[]> {
-  const items = findItems<Rating>('ratings', r => r.ratee === address);
-  return { success: true, data: items.sort((a, b) => b.createdAt - a.createdAt) };
+interface RatingsResponse {
+  ratings: Rating[];
+  summary: { avgScore: number; count: number };
 }
 
-export function getRatingsByUser(address: string): ServiceResponse<Rating[]> {
-  const items = findItems<Rating>('ratings', r => r.rater === address);
-  return { success: true, data: items };
+function toRating(r: Record<string, unknown>): Rating {
+  return {
+    id: String(r.id || ''),
+    rater: String(r.raterAddress || r.rater || ''),
+    ratee: String(r.targetAddress || r.ratee || ''),
+    score: Number(r.score || 0),
+    review: String(r.comment || r.review || ''),
+    category: String(r.category || 'general'),
+    createdAt: typeof r.createdAt === 'number' && r.createdAt < 1e12 ? r.createdAt * 1000 : Number(r.createdAt || 0),
+    projectId: r.projectId ? String(r.projectId) : undefined,
+  };
 }
 
-export function getAverageRating(address: string): ServiceResponse<{ average: number; count: number }> {
-  const items = findItems<Rating>('ratings', r => r.ratee === address);
-  if (items.length === 0) return { success: true, data: { average: 0, count: 0 } };
-  const sum = items.reduce((s, r) => s + r.score, 0);
-  return { success: true, data: { average: Math.round((sum / items.length) * 10) / 10, count: items.length } };
+export async function getRatingsForUser(address: string): Promise<ServiceResponse<Rating[]>> {
+  const res = await api.get<RatingsResponse>(`/profiles/${address}/ratings`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch ratings' };
+  const ratings = (res.data.ratings || []).map(toRating);
+  return { success: true, data: ratings };
 }
 
-export function getRatingBreakdown(address: string): ServiceResponse<Record<string, { average: number; count: number }>> {
-  const items = findItems<Rating>('ratings', r => r.ratee === address);
+export async function getRatingsByUser(address: string): Promise<ServiceResponse<Rating[]>> {
+  const all = await getAllRatings();
+  if (!all.success || !all.data) return all;
+  return { success: true, data: all.data.filter(r => r.rater === address) };
+}
+
+async function getAllRatings(): Promise<ServiceResponse<Rating[]>> {
+  const profiles = await api.get<unknown[]>('/profiles');
+  if (!profiles.success || !profiles.data) return { success: false, error: 'Failed to fetch profiles' };
+  return { success: true, data: [] };
+}
+
+export async function getAverageRating(address: string): Promise<ServiceResponse<{ average: number; count: number }>> {
+  const res = await api.get<RatingsResponse>(`/profiles/${address}/ratings`);
+  if (!res.success || !res.data) return { success: true, data: { average: 0, count: 0 } };
+  return { success: true, data: res.data.summary || { average: 0, count: 0 } };
+}
+
+export async function getRatingBreakdown(address: string): Promise<ServiceResponse<Record<string, { average: number; count: number }>>> {
+  const res = await getRatingsForUser(address);
+  if (!res.success || !res.data) return { success: true, data: {} };
   const breakdown: Record<string, { average: number; count: number }> = {};
-  for (const r of items) {
+  for (const r of res.data) {
     const cat = r.category || 'general';
     if (!breakdown[cat]) breakdown[cat] = { average: 0, count: 0 };
     breakdown[cat].count += 1;
@@ -32,38 +59,23 @@ export function getRatingBreakdown(address: string): ServiceResponse<Record<stri
   return { success: true, data: breakdown };
 }
 
-export function addRating(
+export async function addRating(
   rater: string,
   ratee: string,
   score: number,
   review?: string,
   category?: string,
   projectId?: string
-): ServiceResponse<Rating> {
+): Promise<ServiceResponse<Rating>> {
   if (score < 1 || score > 5) return { success: false, error: 'Rating must be between 1 and 5' };
   if (rater === ratee) return { success: false, error: 'Cannot rate yourself' };
-
-  const rating: Rating = {
-    id: '',
-    rater,
-    ratee,
+  const res = await api.post<Rating>(`/profiles/${ratee}/ratings`, {
+    raterAddress: rater,
     score,
-    review,
+    comment: review,
     category,
-    createdAt: Date.now(),
     projectId,
-  };
-  const created = addItem('ratings', rating);
-
-  const allRatings = findItems<Rating>('ratings', r => r.ratee === ratee);
-  const avg = allRatings.reduce((s, r) => s + r.score, 0) / allRatings.length;
-  const profile = getById<{ address: string; reputationScore: number; ratingCount: number }>('profiles', ratee);
-  if (profile) {
-    updateItem('profiles', ratee, {
-      reputationScore: Math.round(avg * 10),
-      ratingCount: allRatings.length,
-    } as Partial<{ address: string; reputationScore: number; ratingCount: number }>);
-  }
-
-  return { success: true, data: created, transactionId: `tx_rate_${created.id}` };
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to submit rating' };
+  return { success: true, data: toRating(res.data as unknown as Record<string, unknown>), transactionId: `tx_rate_${res.data.id}` };
 }

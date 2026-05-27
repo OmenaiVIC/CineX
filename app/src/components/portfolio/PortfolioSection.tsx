@@ -16,20 +16,21 @@ export default function PortfolioSection({ address, isOwnProfile }: PortfolioSec
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const res = getPortfolioForUser(address);
-    if (res.success && res.data) setItems(res.data);
+    getPortfolioForUser(address).then(res => {
+      if (res.success && res.data) setItems(res.data);
+    });
   }, [address]);
 
-  const handleAdd = (item: Omit<PortfolioItem, 'id'>) => {
-    const res = createPortfolioItem(item);
+  const handleAdd = async (item: Omit<PortfolioItem, 'id'>) => {
+    const res = await createPortfolioItem(item);
     if (res.success && res.data) {
       setItems(prev => [res.data!, ...prev]);
       setShowForm(false);
     }
   };
 
-  const handleDelete = (id: string) => {
-    const res = deletePortfolioItem(id);
+  const handleDelete = async (id: string) => {
+    const res = await deletePortfolioItem(id, address);
     if (res.success) {
       setItems(prev => prev.filter(i => i.id !== id));
     }

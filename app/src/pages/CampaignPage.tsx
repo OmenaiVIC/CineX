@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import Card from '../components/ui/Card';
@@ -11,6 +11,7 @@ import { useCampaign, useCampaignContributions } from '../hooks/useCampaigns';
 import { contributeToCampaign } from '../services/campaignService';
 import { getCampaignMilestones } from '../services/milestoneService';
 import { addFeedEvent } from '../services/feedService';
+import type { Milestone } from '../types';
 
 export default function CampaignPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,20 +25,22 @@ export default function CampaignPage() {
   const [contributeAmount, setContributeAmount] = useState('');
   const [contributeMessage, setContributeMessage] = useState('');
 
-  const milestones = useMemo(() => {
-    if (!id) return [];
-    const res = getCampaignMilestones(id);
-    return res.success && res.data ? res.data : [];
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  useEffect(() => {
+    if (!id) return;
+    getCampaignMilestones(id).then(res => {
+      if (res.success && res.data) setMilestones(res.data);
+    });
   }, [id]);
 
-  const handleContribute = () => {
+  const handleContribute = async () => {
     if (!currentUser || !id) return;
     const amt = parseFloat(contributeAmount);
     if (isNaN(amt) || amt <= 0) { tx.fail('Enter a valid amount'); return; }
 
     tx.open('Contributing', `Depositing ₦${amt.toLocaleString()} to ${campaign?.title}`);
-    setTimeout(() => {
-      const res = contributeToCampaign({ campaignId: id, amount: amt.toString(), message: contributeMessage }, currentUser.address);
+    setTimeout(async () => {
+      const res = await contributeToCampaign({ campaignId: id, amount: amt.toString(), message: contributeMessage }, currentUser.address);
       if (res.success) {
         addFeedEvent('campaign_funded', currentUser.address, `Contributed ₦${amt.toLocaleString()} to ${campaign?.title}`, id);
         tx.succeed(res.transactionId);

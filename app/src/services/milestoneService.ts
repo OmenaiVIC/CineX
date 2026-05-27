@@ -1,62 +1,75 @@
 import type { Milestone, ServiceResponse } from '../types';
-import { getAll, addItem, updateItem, getById, findItems } from '../contexts/DemoStorage';
+import * as api from './api';
 
-export function getCampaignMilestones(campaignId: string): ServiceResponse<Milestone[]> {
-  const items = findItems<Milestone>('milestones', m => m.campaignId === campaignId);
-  return { success: true, data: items.sort((a, b) => {
-    const aNum = parseInt(a.id.split('_')[1] || '0', 10);
-    const bNum = parseInt(b.id.split('_')[1] || '0', 10);
-    return aNum - bNum;
-  }) };
+interface ProgressResponse {
+  completed: number;
+  total: number;
+  percent: number;
 }
 
-export function getMilestone(id: string): ServiceResponse<Milestone> {
-  const m = getById<Milestone>('milestones', id);
-  if (!m) return { success: false, error: 'Milestone not found' };
-  return { success: true, data: m };
+function toMilestone(m: Record<string, unknown>): Milestone {
+  return {
+    id: String(m.id || ''),
+    campaignId: String(m.campaignId || ''),
+    title: String(m.title || ''),
+    description: String(m.description || ''),
+    fundingRequired: String(m.fundingRequired || '0'),
+    deadline: typeof m.deadline === 'number' && m.deadline < 1e12 ? m.deadline * 1000 : Number(m.deadline || 0),
+    status: (m.status as Milestone['status']) || 'pending',
+    deliverables: Array.isArray(m.deliverables) ? m.deliverables : [],
+    completedAt: m.completedAt
+      ? (typeof m.completedAt === 'number' && m.completedAt < 1e12 ? m.completedAt * 1000 : Number(m.completedAt))
+      : undefined,
+  };
 }
 
-export function createMilestone(
+export async function getCampaignMilestones(campaignId: string): Promise<ServiceResponse<Milestone[]>> {
+  const res = await api.get<Record<string, unknown>[]>(`/milestones/campaign/${campaignId}`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch milestones' };
+  const milestones = (res.data || []).map(toMilestone);
+  return { success: true, data: milestones };
+}
+
+export async function getMilestone(id: string): Promise<ServiceResponse<Milestone>> {
+  const res = await api.get<Record<string, unknown>>(`/milestones/${id}`);
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Milestone not found' };
+  return { success: true, data: toMilestone(res.data) };
+}
+
+export async function createMilestone(
   campaignId: string,
   title: string,
   description: string,
   fundingRequired: string,
   deadline: number,
   deliverables?: string[]
-): ServiceResponse<Milestone> {
-  const milestone: Milestone = {
-    id: '',
+): Promise<ServiceResponse<Milestone>> {
+  const res = await api.post<Record<string, unknown>>('/milestones', {
     campaignId,
     title,
     description,
     fundingRequired,
-    deadline,
-    status: 'pending',
-    deliverables,
-  };
-  const created = addItem('milestones', milestone);
-  return { success: true, data: created, transactionId: `tx_mile_${created.id}` };
+    deadline: Math.floor(deadline / 1000),
+    deliverables: deliverables || [],
+  });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to create milestone' };
+  return { success: true, data: toMilestone(res.data), transactionId: `tx_mile_${res.data.id}` };
 }
 
-export function updateMilestoneStatus(id: string, status: Milestone['status']): ServiceResponse<Milestone> {
-  const updates: Partial<Milestone> = { status };
-  if (status === 'completed') {
-    updates.completedAt = Date.now();
-  }
-  const updated = updateItem<Milestone>('milestones', id, updates);
-  if (!updated) return { success: false, error: 'Milestone not found' };
-  return { success: true, data: updated, transactionId: `tx_mile_update_${id}` };
+export async function updateMilestoneStatus(id: string, status: Milestone['status']): Promise<ServiceResponse<Milestone>> {
+  const res = await api.put<Record<string, unknown>>(`/milestones/${id}/status`, { status });
+  if (!res.success || !res.data) return { success: false, error: res.error || 'Milestone not found' };
+  return { success: true, data: toMilestone(res.data), transactionId: `tx_mile_update_${id}` };
 }
 
-export function getCompletedCount(campaignId: string): ServiceResponse<number> {
-  const items = findItems<Milestone>('milestones', m => m.campaignId === campaignId && m.status === 'completed');
-  return { success: true, data: items.length };
+export async function getCompletedCount(campaignId: string): Promise<ServiceResponse<number>> {
+  const res = await api.get<ProgressResponse>(`/milestones/campaign/${campaignId}/progress`);
+  if (!res.success || !res.data) return { success: true, data: 0 };
+  return { success: true, data: res.data.completed };
 }
 
-export function getMilestoneProgress(campaignId: string): ServiceResponse<{ completed: number; total: number; percent: number }> {
-  const all = findItems<Milestone>('milestones', m => m.campaignId === campaignId);
-  const completed = all.filter(m => m.status === 'completed').length;
-  const total = all.length;
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-  return { success: true, data: { completed, total, percent } };
+export async function getMilestoneProgress(campaignId: string): Promise<ServiceResponse<{ completed: number; total: number; percent: number }>> {
+  const res = await api.get<ProgressResponse>(`/milestones/campaign/${campaignId}/progress`);
+  if (!res.success || !res.data) return { success: true, data: { completed: 0, total: 0, percent: 0 } };
+  return { success: true, data: res.data };
 }

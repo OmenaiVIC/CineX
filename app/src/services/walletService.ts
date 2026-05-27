@@ -1,112 +1,114 @@
 import type { ServiceResponse } from '../types';
-import { getDemoData, setDemoData } from '../contexts/DemoStorage';
-import type { WalletBalance } from '../contexts/DemoStorage';
+import * as api from './api';
 
-const NGN_PER_USD = 1400;
-const SPREAD = 0.0075;
-
-function round(n: number): string {
-  return Math.floor(n * 100) / 100 + '';
+export interface WalletBalance {
+  address: string;
+  stxBalance: string;
+  ngnBalance: string;
+  usdBalance: string;
+  lastUpdated: number;
 }
 
-export function getWalletBalance(address: string): ServiceResponse<WalletBalance> {
-  const data = getDemoData();
-  const bal = data.walletBalances.find(w => w.address === address);
-  if (!bal) {
-    const newBal: WalletBalance = {
-      address,
-      stxBalance: '0',
-      ngnBalance: '0',
-      usdBalance: '0',
-      lastUpdated: Date.now(),
-    };
-    data.walletBalances.push(newBal);
-    setDemoData(data);
-    return { success: true, data: newBal };
-  }
-  return { success: true, data: bal };
+interface BackendBalance {
+  address: string;
+  stxBalance: string;
+  ngnBalance: string;
+  usdBalance: string;
+  lastUpdated: number;
 }
 
-export function creditWallet(address: string, stxAmount: string): ServiceResponse<WalletBalance> {
-  const data = getDemoData();
-  const idx = data.walletBalances.findIndex(w => w.address === address);
-  const amt = Number(stxAmount);
+interface BackendWallet {
+  userId: string;
+  nairaBalance: number;
+  usdBalance: number;
+  sbtcBalance: string;
+  status: string;
+  preferredCurrency: string;
+  updatedAt: number;
+}
 
-  if (idx === -1) {
-    const newBal: WalletBalance = {
-      address,
-      stxBalance: stxAmount,
-      ngnBalance: round(amt * NGN_PER_USD),
-      usdBalance: round(amt),
-      lastUpdated: Date.now(),
-    };
-    data.walletBalances.push(newBal);
-  } else {
-    const current = Number(data.walletBalances[idx].stxBalance);
-    const total = current + amt;
-    data.walletBalances[idx].stxBalance = round(total);
-    data.walletBalances[idx].ngnBalance = round(total * NGN_PER_USD);
-    data.walletBalances[idx].usdBalance = round(total);
-    data.walletBalances[idx].lastUpdated = Date.now();
+function toBalance(wallet: BackendWallet): WalletBalance {
+  return {
+    address: wallet.userId,
+    stxBalance: wallet.sbtcBalance || '0',
+    ngnBalance: String(wallet.nairaBalance || 0),
+    usdBalance: String(wallet.usdBalance || 0),
+    lastUpdated: (wallet.updatedAt || Math.floor(Date.now() / 1000)) * 1000,
+  };
+}
+
+export async function getWalletBalance(address: string): Promise<ServiceResponse<WalletBalance>> {
+  const res = await api.get<{ wallet: BackendWallet }>(`/wallets/${address}`);
+  if (res.success && res.data?.wallet) {
+    return { success: true, data: toBalance(res.data.wallet) };
   }
-  setDemoData(data);
+  try {
+    const bal = await api.get<BackendBalance>(`/wallets/${address}/balance`);
+    if (bal.success && bal.data) return { success: true, data: bal.data };
+  } catch { /* fall through */ }
+  return {
+    success: true,
+    data: { address, stxBalance: '0', ngnBalance: '0', usdBalance: '0', lastUpdated: Date.now() },
+  };
+}
+
+export async function creditWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
+  const res = await api.post<{ wallet: BackendWallet }>('/wallets/deposit', {
+    userId: address,
+    amountSbtc: stxAmount,
+  });
+  if (res.success && res.data?.wallet) return { success: true, data: toBalance(res.data.wallet) };
   return getWalletBalance(address);
 }
 
-export function debitWallet(address: string, stxAmount: string): ServiceResponse<WalletBalance> {
-  const data = getDemoData();
-  const idx = data.walletBalances.findIndex(w => w.address === address);
-  if (idx === -1) return { success: false, error: 'Wallet not found' };
-
-  const amt = Number(stxAmount);
-  const current = Number(data.walletBalances[idx].stxBalance);
-  if (current < amt) return { success: false, error: 'Insufficient balance' };
-
-  const total = current - amt;
-  data.walletBalances[idx].stxBalance = round(total);
-  data.walletBalances[idx].ngnBalance = round(total * NGN_PER_USD);
-  data.walletBalances[idx].usdBalance = round(total);
-  data.walletBalances[idx].lastUpdated = Date.now();
-  setDemoData(data);
+export async function debitWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
+  const res = await api.post<{ wallet: BackendWallet }>('/wallets/send', {
+    userId: address,
+    amount: parseInt(stxAmount, 10),
+    counterpartyUserId: 'pool',
+  });
+  if (!res.success) return { success: false, error: res.error || 'Insufficient balance' };
   return getWalletBalance(address);
 }
 
-export function convertCurrency(
+export async function convertCurrency(
   from: 'stx' | 'usd' | 'ngn',
   to: 'stx' | 'usd' | 'ngn',
   amount: string
-): ServiceResponse<{ amount: string; rate: string; fee: string }> {
-  const amt = Number(amount);
-  let stxValue: number;
-
-  switch (from) {
-    case 'stx': stxValue = amt; break;
-    case 'usd': stxValue = amt; break;
-    case 'ngn': stxValue = amt / NGN_PER_USD; break;
-    default: return { success: false, error: 'Invalid source currency' };
+): Promise<ServiceResponse<{ amount: string; rate: string; fee: string }>> {
+  const res = await api.post<{ result: { amount: string; rate: string } }>('/wallets/rates/convert', { amount, from, to });
+  if (!res.success || !res.data) {
+    const fallback = localConvert(from, to, amount);
+    return { success: true, data: fallback };
   }
-
-  const fee = stxValue * SPREAD;
-  const netStx = stxValue - fee;
-  let result: number;
-
-  switch (to) {
-    case 'stx': result = netStx; break;
-    case 'usd': result = netStx; break;
-    case 'ngn': result = netStx * NGN_PER_USD; break;
-    default: return { success: false, error: 'Invalid target currency' };
-  }
-
   return {
     success: true,
     data: {
-      amount: round(result),
-      rate: to === 'ngn' ? NGN_PER_USD.toString() : '1',
-      fee: round(fee),
+      amount: res.data.result.amount,
+      rate: res.data.result.rate,
+      fee: (Number(amount) * 0.0075).toFixed(2),
     },
   };
 }
 
-export function getConversionRates(): ServiceResponse<{ ngnPerUsd: number; spread: number }> {
-  return { success: true, data: { ngnPerUsd: NGN_PER_USD, spread: SPREAD } };
+export async function getConversionRates(): Promise<ServiceResponse<{ ngnPerUsd: number; spread: number }>> {
+  const res = await api.get<{ ngnPerUsd: number; spread: number }>('/wallets/rates/all');
+  if (res.success && res.data) return { success: true, data: res.data };
+  return { success: true, data: { ngnPerUsd: 1400, spread: 0.0075 } };
+}
+
+const NGN_PER_USD = 1400;
+const SPREAD = 0.0075;
+
+function localConvert(from: string, to: string, amount: string): { amount: string; rate: string; fee: string } {
+  const amt = Number(amount);
+  let stxValue = from === 'ngn' ? amt / NGN_PER_USD : amt;
+  const fee = stxValue * SPREAD;
+  const netStx = stxValue - fee;
+  let result = to === 'ngn' ? netStx * NGN_PER_USD : netStx;
+  return {
+    amount: (Math.floor(result * 100) / 100).toString(),
+    rate: to === 'ngn' ? String(NGN_PER_USD) : '1',
+    fee: (Math.floor(fee * 100) / 100).toString(),
+  };
 }

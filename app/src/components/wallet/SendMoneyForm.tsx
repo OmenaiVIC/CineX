@@ -15,14 +15,14 @@ export default function SendMoneyForm({ address, onSuccess }: Props) {
   const [amount, setAmount] = useState('');
   const tx = useTxModal();
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!recipient.trim()) { tx.fail('Enter a recipient address'); return; }
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) { tx.fail('Enter a valid amount'); return; }
 
     tx.open('Sending Funds', `Transferring ${amt} STX to ${recipient.slice(0, 10)}...`);
-    setTimeout(() => {
-      const res = debitWallet(address, amt.toString());
+    setTimeout(async () => {
+      const res = await debitWallet(address, amt.toString());
       if (res.success) {
         const txId = `tx_send_${Date.now()}`;
         tx.succeed(txId);
