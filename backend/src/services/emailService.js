@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+
 let transporter = null;
 
 export function initEmail() {
@@ -8,15 +10,11 @@ export function initEmail() {
     return false;
   }
   try {
-    import('nodemailer').then(nodemailer => {
-      transporter = nodemailer.default.createTransport({
-        service: 'gmail',
-        auth: { user, pass },
-      });
-      console.log('✅ Email service initialized');
-    }).catch(() => {
-      console.warn('⚠️  nodemailer not installed — email sending disabled');
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass },
     });
+    console.log('✅ Email service initialized');
     return true;
   } catch {
     console.warn('⚠️  Failed to initialize email service');
