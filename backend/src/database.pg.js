@@ -64,6 +64,12 @@ async function runMigrations() {
       await client.query(readFileSync(fp, 'utf-8'));
       console.log(`  ✓ Migration ${file} applied`);
     }
+    // Post-migration: add columns that may have been added in later schema updates
+    for (const alter of [
+      "ALTER TABLE ratings ADD COLUMN IF NOT EXISTS category TEXT",
+    ]) {
+      try { await client.query(alter); } catch { /* column may already exist */ }
+    }
     console.log('✅ All migrations complete');
   } finally { client.release(); }
 }
