@@ -3,40 +3,38 @@ import { getDb } from '../database.js';
 
 const router = Router();
 
-router.get('/:address', (req, res) => {
-  const db = getDb();
-  const settings = db.prepare('SELECT * FROM user_settings WHERE address = ?').get(req.params.address);
-  if (!settings) {
-    return res.status(404).json({ error: 'User settings not found' });
-  }
-  res.json(settings);
+router.get('/:address', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const settings = await db.get('SELECT * FROM user_settings WHERE address = $1', [req.params.address]);
+    db.release();
+    if (!settings) return res.status(404).json({ error: 'User settings not found' });
+    res.json(settings);
+  } catch (err) { next(err); }
 });
 
-router.post('/', (req, res) => {
-  const db = getDb();
-  const { address, role } = req.body;
-  if (!address || !role) {
-    return res.status(400).json({ error: 'address and role required' });
-  }
-  if (role !== 'creative' && role !== 'backer') {
-    return res.status(400).json({ error: 'role must be creative or backer' });
-  }
+router.post('/', async (req, res, next) => {
   try {
-    db.prepare(`
+    const db = await getDb();
+    const { address, role } = req.body;
+    if (!address || !role) { db.release(); return res.status(400).json({ error: 'address and role required' }); }
+    if (role !== 'creative' && role !== 'backer') { db.release(); return res.status(400).json({ error: 'role must be creative or backer' }); }
+    const now = Math.floor(Date.now() / 1000);
+    const result = await db.run(`
       INSERT INTO user_settings (address, role, onboarding_completed, updated_at)
-      VALUES (?, ?, 1, unixepoch())
+      VALUES ($1, $2, 1, $3)
       ON CONFLICT(address) DO UPDATE SET
-        role = COALESCE(excluded.role, role),
+        role = COALESCE(EXCLUDED.role, role),
         onboarding_completed = 1,
-        updated_at = unixepoch()
-    `).run(address, role);
-    const created = db.prepare('SELECT * FROM user_settings WHERE address = ?').get(address);
-    res.status(201).json(created);
+        updated_at = $3
+    `, [address, role, now]);
+    db.release();
+    res.status(201).json(result.rows[0] || { address, role });
   } catch (err) {
-    if (err.message && err.message.includes('FOREIGN KEY')) {
+    if (err.message && (err.message.includes('FOREIGN KEY') || err.message.includes('foreign key'))) {
       return res.status(400).json({ error: 'Profile must exist before setting role. Create a profile first.' });
     }
-    res.status(500).json({ error: 'Failed to save user settings' });
+    next(err);
   }
 });
 

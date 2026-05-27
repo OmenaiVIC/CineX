@@ -3,120 +3,146 @@ import { getDb } from '../database.js';
 
 const router = Router();
 
-router.get('/:address', (req, res) => {
-  const db = getDb();
-  const profile = db.prepare('SELECT * FROM profiles WHERE address = ?').get(req.params.address);
-  if (!profile) {
-    return res.status(404).json({ error: 'Profile not found' });
-  }
-  const portfolio = db.prepare('SELECT * FROM portfolio_items WHERE address = ? ORDER BY year DESC').all(req.params.address);
-  const ratings = db.prepare('SELECT * FROM ratings WHERE target_address = ? ORDER BY created_at DESC').all(req.params.address);
-  const avg = db.prepare('SELECT COALESCE(AVG(score), 0) as avg_score, COUNT(*) as count FROM ratings WHERE target_address = ?').get(req.params.address);
-  res.json({ profile, portfolio, ratings, ratingSummary: avg });
-});
-
-router.put('/:address', (req, res) => {
-  const db = getDb();
-  const { username, bio, avatarUrl, portfolioUrl, socialTwitter, socialInstagram, socialWebsite } = req.body;
-  const stmt = db.prepare(`
-    INSERT INTO profiles (address, username, bio, avatar_url, portfolio_url, social_twitter, social_instagram, social_website, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, unixepoch())
-    ON CONFLICT(address) DO UPDATE SET
-      username = COALESCE(excluded.username, username),
-      bio = COALESCE(excluded.bio, bio),
-      avatar_url = COALESCE(excluded.avatar_url, avatar_url),
-      portfolio_url = COALESCE(excluded.portfolio_url, portfolio_url),
-      social_twitter = COALESCE(excluded.social_twitter, social_twitter),
-      social_instagram = COALESCE(excluded.social_instagram, social_instagram),
-      social_website = COALESCE(excluded.social_website, social_website),
-      updated_at = unixepoch()
-  `);
-  stmt.run(req.params.address, username, bio, avatarUrl, portfolioUrl, socialTwitter, socialInstagram, socialWebsite);
-  const updated = db.prepare('SELECT * FROM profiles WHERE address = ?').get(req.params.address);
-  res.json(updated);
-});
-
-router.get('/:address/ratings', (req, res) => {
-  const db = getDb();
-  const ratings = db.prepare('SELECT * FROM ratings WHERE target_address = ? ORDER BY created_at DESC').all(req.params.address);
-  const summary = db.prepare('SELECT COALESCE(AVG(score), 0) as avg_score, COUNT(*) as count FROM ratings WHERE target_address = ?').get(req.params.address);
-  res.json({ ratings, summary });
-});
-
-router.post('/:address/ratings', (req, res) => {
-  const db = getDb();
-  const { raterAddress, score, comment, commentHash, txId, projectId } = req.body;
-  if (!raterAddress || !score || score < 1 || score > 5) {
-    return res.status(400).json({ error: 'raterAddress and score (1-5) required' });
-  }
+router.get('/:address', async (req, res, next) => {
   try {
-    const result = db.prepare(`
+    const db = await getDb();
+    const profile = await db.get('SELECT * FROM profiles WHERE address = $1', [req.params.address]);
+    if (!profile) {
+      db.release();
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    const portfolio = await db.all('SELECT * FROM portfolio_items WHERE address = $1 ORDER BY year DESC', [req.params.address]);
+    const ratings = await db.all('SELECT * FROM ratings WHERE target_address = $1 ORDER BY created_at DESC', [req.params.address]);
+    const avg = await db.get('SELECT COALESCE(AVG(score), 0) as avg_score, COUNT(*) as count FROM ratings WHERE target_address = $1', [req.params.address]);
+    db.release();
+    res.json({ profile, portfolio, ratings, ratingSummary: avg });
+  } catch (err) { next(err); }
+});
+
+router.put('/:address', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const now = Math.floor(Date.now() / 1000);
+    const { username, bio, avatarUrl, portfolioUrl, socialTwitter, socialInstagram, socialWebsite } = req.body;
+    await db.run(`
+      INSERT INTO profiles (address, username, bio, avatar_url, portfolio_url, social_twitter, social_instagram, social_website, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT(address) DO UPDATE SET
+        username = COALESCE(EXCLUDED.username, username),
+        bio = COALESCE(EXCLUDED.bio, bio),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, avatar_url),
+        portfolio_url = COALESCE(EXCLUDED.portfolio_url, portfolio_url),
+        social_twitter = COALESCE(EXCLUDED.social_twitter, social_twitter),
+        social_instagram = COALESCE(EXCLUDED.social_instagram, social_instagram),
+        social_website = COALESCE(EXCLUDED.social_website, social_website),
+        updated_at = $9
+    `, [req.params.address, username, bio, avatarUrl, portfolioUrl, socialTwitter, socialInstagram, socialWebsite, now]);
+    const updated = await db.get('SELECT * FROM profiles WHERE address = $1', [req.params.address]);
+    db.release();
+    res.json(updated);
+  } catch (err) { next(err); }
+});
+
+router.get('/:address/ratings', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const ratings = await db.all('SELECT * FROM ratings WHERE target_address = $1 ORDER BY created_at DESC', [req.params.address]);
+    const summary = await db.get('SELECT COALESCE(AVG(score), 0) as avg_score, COUNT(*) as count FROM ratings WHERE target_address = $1', [req.params.address]);
+    db.release();
+    res.json({ ratings, summary });
+  } catch (err) { next(err); }
+});
+
+router.post('/:address/ratings', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { raterAddress, score, comment, commentHash, txId, projectId } = req.body;
+    if (!raterAddress || !score || score < 1 || score > 5) {
+      db.release();
+      return res.status(400).json({ error: 'raterAddress and score (1-5) required' });
+    }
+    const created = await db.run(`
       INSERT INTO ratings (rater_address, target_address, score, comment, comment_hash, tx_id, project_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(raterAddress, req.params.address, score, comment, commentHash, txId, projectId);
-    const created = db.prepare('SELECT * FROM ratings WHERE id = ?').get(Number(result.lastInsertRowid));
-    db.prepare(`
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [raterAddress, req.params.address, score, comment, commentHash, txId, projectId]);
+    await db.run(`
       INSERT INTO feed_events (event_type, event_data, actor, pool_id, tx_id)
-      VALUES ('rating_received', ?, ?, NULL, ?)
-    `).run(JSON.stringify({ score, summary: `${raterAddress.slice(0, 6)}… rated you ${score}/5` }), req.params.address, txId || null);
-    res.status(201).json(created);
+      VALUES ($1, $2, $3, NULL, $4)
+    `, ['rating_received', JSON.stringify({ score, summary: `${raterAddress.slice(0, 6)}… rated you ${score}/5` }), req.params.address, txId || null]);
+    db.release();
+    const row = created.rows[0];
+    res.status(201).json(row || { id: created.lastInsertRowid });
   } catch (err) {
-    if (err.message && err.message.includes('UNIQUE')) {
+    if (err.message && (err.message.includes('UNIQUE') || err.message.includes('duplicate'))) {
       return res.status(409).json({ error: 'Rating already exists for this rater+project' });
     }
-    res.status(500).json({ error: 'Failed to create rating' });
+    next(err);
   }
 });
 
-router.get('/:address/portfolio', (req, res) => {
-  const db = getDb();
-  const items = db.prepare('SELECT * FROM portfolio_items WHERE address = ? ORDER BY year DESC').all(req.params.address);
-  res.json(items);
+router.get('/:address/portfolio', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const items = await db.all('SELECT * FROM portfolio_items WHERE address = $1 ORDER BY year DESC', [req.params.address]);
+    db.release();
+    const parsed = items.map(i => ({ ...i, media_urls: tryParseJson(i.media_urls, []), awards: tryParseJson(i.awards, []) }));
+    res.json(parsed);
+  } catch (err) { next(err); }
 });
 
-router.post('/:address/portfolio', (req, res) => {
-  const db = getDb();
-  const { title, description, category, role, year, mediaUrls, awards } = req.body;
-  if (!title) {
-    return res.status(400).json({ error: 'title required' });
-  }
-  const result = db.prepare(`
-    INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(req.params.address, title, description, category, role, year, JSON.stringify(mediaUrls || []), JSON.stringify(awards || []));
-  const created = db.prepare('SELECT * FROM portfolio_items WHERE id = ?').get(Number(result.lastInsertRowid));
-  res.status(201).json(created);
+router.post('/:address/portfolio', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { title, description, category, role, year, mediaUrls, awards } = req.body;
+    if (!title) { db.release(); return res.status(400).json({ error: 'title required' }); }
+    const created = await db.run(`
+      INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `, [req.params.address, title, description, category, role, year, JSON.stringify(mediaUrls || []), JSON.stringify(awards || [])]);
+    db.release();
+    const row = created.rows[0];
+    if (row) {
+      row.media_urls = tryParseJson(row.media_urls, []);
+      row.awards = tryParseJson(row.awards, []);
+    }
+    res.status(201).json(row || { id: created.lastInsertRowid });
+  } catch (err) { next(err); }
 });
 
-router.put('/:address/portfolio/:id', (req, res) => {
-  const db = getDb();
-  const { title, description, category, role, year, mediaUrls, awards } = req.body;
-  const result = db.prepare(`
-    UPDATE portfolio_items
-    SET title = COALESCE(?, title),
-        description = COALESCE(?, description),
-        category = COALESCE(?, category),
-        role = COALESCE(?, role),
-        year = COALESCE(?, year),
-        media_urls = COALESCE(?, media_urls),
-        awards = COALESCE(?, awards),
-        updated_at = unixepoch()
-    WHERE id = ? AND address = ?
-  `).run(title, description, category, role, year, mediaUrls ? JSON.stringify(mediaUrls) : null, awards ? JSON.stringify(awards) : null, req.params.id, req.params.address);
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Portfolio item not found' });
-  }
-  const updated = db.prepare('SELECT * FROM portfolio_items WHERE id = ?').get(req.params.id);
-  res.json(updated);
+router.put('/:address/portfolio/:id', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const now = Math.floor(Date.now() / 1000);
+    const { title, description, category, role, year, mediaUrls, awards } = req.body;
+    const result = await db.run(`
+      UPDATE portfolio_items SET
+        title = COALESCE($1, title), description = COALESCE($2, description),
+        category = COALESCE($3, category), role = COALESCE($4, role),
+        year = COALESCE($5, year), media_urls = COALESCE($6, media_urls),
+        awards = COALESCE($7, awards), updated_at = $8
+      WHERE id = $9 AND address = $10
+    `, [title, description, category, role, year, mediaUrls ? JSON.stringify(mediaUrls) : null, awards ? JSON.stringify(awards) : null, now, req.params.id, req.params.address]);
+    if (result.changes === 0) { db.release(); return res.status(404).json({ error: 'Portfolio item not found' }); }
+    const updated = await db.get('SELECT * FROM portfolio_items WHERE id = $1', [req.params.id]);
+    db.release();
+    if (updated) { updated.media_urls = tryParseJson(updated.media_urls, []); updated.awards = tryParseJson(updated.awards, []); }
+    res.json(updated);
+  } catch (err) { next(err); }
 });
 
-router.delete('/:address/portfolio/:id', (req, res) => {
-  const db = getDb();
-  const result = db.prepare('DELETE FROM portfolio_items WHERE id = ? AND address = ?').run(req.params.id, req.params.address);
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Portfolio item not found' });
-  }
-  res.json({ deleted: true });
+router.delete('/:address/portfolio/:id', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const result = await db.run('DELETE FROM portfolio_items WHERE id = $1 AND address = $2', [req.params.id, req.params.address]);
+    db.release();
+    if (result.changes === 0) return res.status(404).json({ error: 'Portfolio item not found' });
+    res.json({ deleted: true });
+  } catch (err) { next(err); }
 });
+
+function tryParseJson(val, def) {
+  if (!val) return def;
+  try { return JSON.parse(val); } catch { return def; }
+}
 
 export default router;

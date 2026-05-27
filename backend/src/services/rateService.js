@@ -52,8 +52,9 @@ export async function getNgnUsdRate() {
     return { rate: rateCache.ngnUsd, source: 'stale-cache', stale: true, warning: 'Rate may be outdated' };
   }
 
-  const db = getDb();
-  const setting = db.prepare("SELECT value FROM admin_settings WHERE key = 'fallback_ngn_usd'").get();
+  const db = await getDb();
+  const setting = await db.get("SELECT value FROM admin_settings WHERE key = 'fallback_ngn_usd'");
+  db.release();
   const fallback = setting ? parseInt(setting.value) : 1400;
   return { rate: fallback, source: 'fallback', stale: true, warning: 'Using fallback rate. Update via admin.' };
 }

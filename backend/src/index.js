@@ -7,6 +7,8 @@ import aiRouter from './routes/ai.js';
 import poolsRouter from './routes/pools.js';
 import walletsRouter from './routes/wallets.js';
 import demoRouter from './routes/demo.js';
+import { initDb } from './database.js';
+import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
 
 const app = express();
@@ -40,6 +42,8 @@ app.use((err, req, res, next) => {
 });
 
 async function start() {
+  await initDb();
+  await seedIfEmpty();
   contractService.init();
   if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
     console.log('✅ Contract service initialized');
