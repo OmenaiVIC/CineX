@@ -127,6 +127,8 @@ body {
 .lp-btn-primary:hover { box-shadow: 0 0 30px rgba(74,222,128,.3); transform: translateY(-1px); }
 .lp-btn-secondary { background: rgba(255,255,255,.04); color: var(--text); border: 1px solid rgba(255,255,255,0.06); }
 .lp-btn-secondary:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); }
+.lp-btn-ghost { background: transparent; color: var(--gray); border: 1px solid rgba(255,255,255,0.08); }
+.lp-btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
 
 /* Stats */
 .lp-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }

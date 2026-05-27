@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import TransactionModal, { useTxModal } from '../common/TransactionModal';
 import type { Milestone, CampaignContribution } from '../../types';
-import { updateMilestoneStatus } from '../../services/milestoneService';
+import { updateMilestoneStatus, castVote as castVoteApi, getMilestoneVotes } from '../../services/milestoneService';
 import { addFeedEvent } from '../../services/feedService';
 
 interface Vote {
@@ -11,6 +11,13 @@ interface Vote {
   voter: string;
   weight: number;
   approved: boolean;
+}
+
+interface BackendVote {
+  milestone_id: number;
+  voter_address: string;
+  contribution_weight: number;
+  approved: number;
 }
 
 interface Props {
@@ -32,7 +39,30 @@ export default function MilestoneList({
 }: Props) {
   const tx = useTxModal();
   const [votes, setVotes] = useState<Vote[]>([]);
+  const [voteResults, setVoteResults] = useState<Record<string, { totalYes: number; grandTotal: number; percent: number; passed: boolean }>>({});
   const [voteAction, setVoteAction] = useState<{ mileId: string; approve: boolean } | null>(null);
+
+  useEffect(() => {
+    milestones.forEach(m => {
+      if (m.status === 'active') {
+        getMilestoneVotes(m.id).then(res => {
+          if (res.success && res.data) {
+            setVoteResults(prev => ({ ...prev, [m.id]: res.data.result }));
+            setVotes(prev => {
+              const apiVotes: Vote[] = res.data.votes.map((bv: BackendVote) => ({
+                milestoneId: String(bv.milestone_id),
+                voter: bv.voter_address,
+                weight: bv.contribution_weight,
+                approved: !!bv.approved,
+              }));
+              const merged = prev.filter(v => v.milestoneId !== m.id);
+              return [...merged, ...apiVotes];
+            });
+          }
+        });
+      }
+    });
+  }, [milestones]);
 
   const userContribution = useMemo(() => {
     const total = contributions
@@ -47,11 +77,12 @@ export default function MilestoneList({
 
   const isCreator = currentUserAddress === campaignCreator;
 
-  const getMilestoneVotes = (mileId: string) => votes.filter(v => v.milestoneId === mileId);
+  const getMilestoneVotesFor = (mileId: string) => votes.filter(v => v.milestoneId === mileId);
   const getUserVote = (mileId: string) => votes.find(v => v.milestoneId === mileId && v.voter === currentUserAddress);
 
   const getVoteResult = (mileId: string) => {
-    const mileVotes = getMilestoneVotes(mileId);
+    if (voteResults[mileId]) return voteResults[mileId];
+    const mileVotes = getMilestoneVotesFor(mileId);
     if (mileVotes.length === 0 || totalContributions === 0) return { passed: false, forWeight: 0, againstWeight: 0, totalWeight: 0 };
     const forWeight = mileVotes.filter(v => v.approved).reduce((s, v) => s + v.weight, 0);
     const againstWeight = mileVotes.filter(v => !v.approved).reduce((s, v) => s + v.weight, 0);
@@ -59,32 +90,33 @@ export default function MilestoneList({
     return { passed: pct > 50, forWeight, againstWeight, totalWeight: forWeight + againstWeight };
   };
 
-  const castVote = (mileId: string, approve: boolean) => {
+  const castVote = async (mileId: string, approve: boolean) => {
     setVoteAction({ mileId, approve });
     tx.open(
       approve ? 'Approving Milestone' : 'Rejecting Milestone',
       `Your vote weight: ${userContribution} STX`
     );
 
-    setTimeout(() => {
-      const newVote: Vote = {
-        milestoneId: mileId,
-        voter: currentUserAddress,
-        weight: userContribution,
-        approved: approve,
-      };
-      setVotes(prev => {
-        const filtered = prev.filter(v => !(v.milestoneId === mileId && v.voter === currentUserAddress));
-        return [...filtered, newVote];
-      });
-
-      const result = getVoteResult(mileId);
-      const mile = milestones.find(m => m.id === mileId);
-      const mileName = mile?.title || mileId;
-      addFeedEvent('milestone_reached', currentUserAddress, `${approve ? 'Approved' : 'Rejected'} milestone: ${mileName}`, mileId);
-
-      tx.succeed(`tx_vote_${mileId}_${Date.now()}`);
-      setTimeout(() => { tx.close(); setVoteAction(null); onUpdate?.(); }, 1000);
+    setTimeout(async () => {
+      const res = await castVoteApi(mileId, currentUserAddress, approve, userContribution);
+      if (res.success && res.data) {
+        setVotes(prev => {
+          const filtered = prev.filter(v => !(v.milestoneId === mileId && v.voter === currentUserAddress));
+          return [...filtered, { milestoneId: mileId, voter: currentUserAddress, weight: userContribution, approved: approve }];
+        });
+        if (res.data.autoCompleted) onUpdate?.();
+        setVoteResults(prev => ({
+          ...prev,
+          [mileId]: { totalYes: res.data.totalYes, grandTotal: res.data.grandTotal, percent: Math.round((res.data.totalYes / res.data.grandTotal) * 100), passed: res.data.thresholdMet },
+        }));
+        const mile = milestones.find(m => m.id === mileId);
+        const mileName = mile?.title || mileId;
+        addFeedEvent('milestone_reached', currentUserAddress, `${approve ? 'Approved' : 'Rejected'} milestone: ${mileName}`, mileId);
+        tx.succeed(res.data.autoCompleted ? 'Threshold met — milestone completed!' : `tx_vote_${mileId}_${Date.now()}`);
+        setTimeout(() => { tx.close(); setVoteAction(null); }, 1000);
+      } else {
+        tx.fail(res.error || 'Failed to cast vote');
+      }
     }, 600);
   };
 

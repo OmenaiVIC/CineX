@@ -10,9 +10,13 @@ import demoRouter from './routes/demo.js';
 import campaignsRouter from './routes/campaigns.js';
 import milestonesRouter from './routes/milestones.js';
 import verificationRouter from './routes/verification.js';
+import authRouter from './routes/auth.js';
+import contactRouter from './routes/contact.js';
+import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
+import { initEmail } from './services/emailService.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,9 +39,11 @@ app.use('/api/ai', aiRouter);
 app.use('/api/pools', poolsRouter);
 app.use('/api/wallets', walletsRouter);
 app.use('/api/demo', demoRouter);
-app.use('/api/campaigns', campaignsRouter);
-app.use('/api/milestones', milestonesRouter);
+app.use('/api/campaigns', requireAuth, campaignsRouter);
+app.use('/api/milestones', requireAuth, milestonesRouter);
 app.use('/api/verification', verificationRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/contact', contactRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);
@@ -51,6 +57,7 @@ async function start() {
   await initDb();
   await seedIfEmpty();
   contractService.init();
+  initEmail();
   if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
     console.log('✅ Contract service initialized');
   } else {

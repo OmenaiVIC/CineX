@@ -26,12 +26,16 @@ function deepConvertKeys<T>(obj: unknown, convert: (s: string) => string): T {
   return obj as T;
 }
 
+function getAuthToken(): string | null {
+  try { return localStorage.getItem('cinex_auth_token'); } catch { return null; }
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<ServiceResponse<T>> {
   try {
-    const options: RequestInit = {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-    };
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = getAuthToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const options: RequestInit = { method, headers };
     if (body !== undefined) {
       const snakeBody = deepConvertKeys(body, camelToSnake);
       options.body = JSON.stringify(snakeBody);

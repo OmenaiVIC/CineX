@@ -82,8 +82,9 @@ export default function HomePage() {
           <h1>Fintech Infrastructure for<br /><em>African Creative IP</em></h1>
           <p className="lp-hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative work investable, verifiable, and bankable — on a unified financial rail.</p>
           <div className="lp-hero-actions">
-            <button onClick={() => navigate('/demo')} className="lp-btn lp-btn-primary">Try Demo →</button>
-            <a href="#features" className="lp-btn lp-btn-secondary">Explore Model</a>
+            <button onClick={() => navigate('/signup')} className="lp-btn lp-btn-primary">Get Started →</button>
+            <button onClick={() => navigate('/demo')} className="lp-btn lp-btn-secondary">Try Demo</button>
+            <a href="#features" className="lp-btn lp-btn-ghost">Explore Model</a>
           </div>
         </div>
       </section>
@@ -297,7 +298,7 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="lp-section" style={{ background: 'radial-gradient(ellipse at center,rgba(74,222,128,.02),transparent 60%)' }}>
+      <section id="how-it-works" className="lp-section" style={{ background: 'radial-gradient(ellipse at center,rgba(74,222,128,.02),transparent 60%)' }}>
         <div className="lp-section-inner">
           <div className="lp-label" style={{ textAlign: 'center' }}>How It Works</div>
           <h2 className="lp-title" style={{ textAlign: 'center' }}>Three Steps to Bankable Creativity</h2>

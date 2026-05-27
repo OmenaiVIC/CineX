@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  address TEXT UNIQUE,
+  email TEXT UNIQUE,
+  password_hash TEXT,
+  display_name TEXT NOT NULL DEFAULT '',
+  role TEXT DEFAULT 'creative',
+  created_at INTEGER NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+  updated_at INTEGER NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);

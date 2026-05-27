@@ -202,6 +202,29 @@ function execSchema() {
       credibility_score INTEGER DEFAULT 0, completed_campaigns INTEGER DEFAULT 0,
       total_funded_amount TEXT DEFAULT '0'
     );
+    CREATE TABLE IF NOT EXISTS milestone_votes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, milestone_id INTEGER NOT NULL REFERENCES milestones(id) ON DELETE CASCADE,
+      voter_address TEXT NOT NULL, contribution_weight INTEGER NOT NULL, approved INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER DEFAULT (unixepoch()), UNIQUE(milestone_id, voter_address)
+    );
+    CREATE INDEX IF NOT EXISTS idx_milestone_votes_milestone ON milestone_votes(milestone_id);
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, address TEXT UNIQUE, email TEXT UNIQUE, password_hash TEXT,
+      display_name TEXT NOT NULL DEFAULT '', role TEXT DEFAULT 'creative',
+      created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch())
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token TEXT NOT NULL UNIQUE, expires_at INTEGER NOT NULL,
+      created_at INTEGER DEFAULT (unixepoch())
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'general', message TEXT NOT NULL,
+      created_at INTEGER DEFAULT (unixepoch())
+    );
     CREATE TABLE IF NOT EXISTS admin_settings (
       key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER DEFAULT (unixepoch())
     );

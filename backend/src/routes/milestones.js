@@ -73,6 +73,75 @@ router.get('/campaign/:campaignId/progress', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.post('/:id/vote', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { voterAddress, approved, contributionWeight } = req.body;
+    if (!voterAddress || approved === undefined) { db.release(); return res.status(400).json({ error: 'voterAddress and approved required' }); }
+
+    const milestone = await db.get('SELECT * FROM milestones WHERE id = $1', [req.params.id]);
+    if (!milestone) { db.release(); return res.status(404).json({ error: 'Milestone not found' }); }
+    if (milestone.status !== 'active') { db.release(); return res.status(400).json({ error: 'Milestone is not active' }); }
+
+    const weight = contributionWeight || 0;
+    const now = Math.floor(Date.now() / 1000);
+
+    await db.run(`INSERT INTO milestone_votes (milestone_id, voter_address, contribution_weight, approved, created_at)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (milestone_id, voter_address) DO UPDATE SET approved = $4, contribution_weight = $3, created_at = $5`,
+      [req.params.id, voterAddress, weight, approved ? 1 : 0, now]);
+
+    const totalContributions = await db.get(
+      'SELECT COALESCE(SUM(CAST(amount AS INTEGER)), 0) as total FROM contributions WHERE campaign_id = $1',
+      [milestone.campaign_id]
+    );
+    const voteResult = await db.get(
+      'SELECT COALESCE(SUM(contribution_weight), 0) as total_yes FROM milestone_votes WHERE milestone_id = $1 AND approved = 1',
+      [req.params.id]
+    );
+    const adminVote = approved ? weight : 0;
+    const totalYes = (voteResult?.total_yes || 0);
+    const grandTotal = (totalContributions?.total || 1);
+    const thresholdMet = (totalYes / grandTotal) > 0.5;
+
+    if (thresholdMet) {
+      const updates = { status: 'completed', updated_at: now, completed_at: now };
+      const setClauses = Object.keys(updates).map((k, i) => `${k} = $${i + 1}`).join(', ');
+      const values = Object.values(updates);
+      values.push(req.params.id);
+      await db.run(`UPDATE milestones SET ${setClauses} WHERE id = $${values.length}`, values);
+    }
+
+    db.release();
+    res.json({ voted: true, thresholdMet, totalYes, grandTotal, autoCompleted: thresholdMet });
+  } catch (err) { next(err); }
+});
+
+router.get('/:id/votes', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const milestone = await db.get('SELECT * FROM milestones WHERE id = $1', [req.params.id]);
+    if (!milestone) { db.release(); return res.status(404).json({ error: 'Milestone not found' }); }
+    const votes = await db.all('SELECT * FROM milestone_votes WHERE milestone_id = $1 ORDER BY created_at DESC', [req.params.id]);
+    const totalContributions = await db.get(
+      'SELECT COALESCE(SUM(CAST(amount AS INTEGER)), 0) as total FROM contributions WHERE campaign_id = $1',
+      [milestone.campaign_id]
+    );
+    const totalYes = votes.filter(v => v.approved).reduce((s, v) => s + v.contribution_weight, 0);
+    const grandTotal = totalContributions?.total || 1;
+    db.release();
+    res.json({
+      votes,
+      result: {
+        totalYes,
+        grandTotal,
+        percent: Math.round((totalYes / grandTotal) * 100),
+        passed: (totalYes / grandTotal) > 0.5,
+      },
+    });
+  } catch (err) { next(err); }
+});
+
 function tryParseJson(val, def) {
   if (!val) return def;
   try { return JSON.parse(val); } catch { return def; }

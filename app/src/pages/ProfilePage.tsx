@@ -198,6 +198,16 @@ export default function ProfilePage() {
 
           <PortfolioSection address={address} isOwnProfile={isOwnProfile} />
 
+          {isOwnProfile && (
+            <Card variant="light" padding="default">
+              <h3 className="text-sm font-semibold text-white mb-2">Creator Verification</h3>
+              <p className="text-xs text-gray-500 mb-3">Get verified to build trust with backers and unlock higher campaign limits. Verification requires a gatekeeper endorsement.</p>
+              <Button variant="outline" size="small" onClick={() => navigate('/contact')}>
+                Apply for Verification
+              </Button>
+            </Card>
+          )}
+
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-white">Reviews ({ratings.length})</h3>

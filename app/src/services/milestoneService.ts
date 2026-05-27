@@ -68,6 +68,22 @@ export async function getCompletedCount(campaignId: string): Promise<ServiceResp
   return { success: true, data: res.data.completed };
 }
 
+export async function castVote(milestoneId: string, voterAddress: string, approved: boolean, contributionWeight: number): Promise<ServiceResponse<{ voted: boolean; thresholdMet: boolean; totalYes: number; grandTotal: number; autoCompleted: boolean }>> {
+  const res = await api.post<{ voted: boolean; thresholdMet: boolean; totalYes: number; grandTotal: number; autoCompleted: boolean }>(`/milestones/${milestoneId}/vote`, {
+    voterAddress,
+    approved,
+    contributionWeight,
+  });
+  if (!res.success) return { success: false, error: res.error || 'Failed to cast vote' };
+  return { success: true, data: res.data, transactionId: `tx_vote_${milestoneId}_${Date.now()}` };
+}
+
+export async function getMilestoneVotes(milestoneId: string): Promise<ServiceResponse<{ votes: unknown[]; result: { totalYes: number; grandTotal: number; percent: number; passed: boolean } }>> {
+  const res = await api.get<{ votes: unknown[]; result: { totalYes: number; grandTotal: number; percent: number; passed: boolean } }>(`/milestones/${milestoneId}/votes`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch votes' };
+  return { success: true, data: res.data };
+}
+
 export async function getMilestoneProgress(campaignId: string): Promise<ServiceResponse<{ completed: number; total: number; percent: number }>> {
   const res = await api.get<ProgressResponse>(`/milestones/campaign/${campaignId}/progress`);
   if (!res.success || !res.data) return { success: true, data: { completed: 0, total: 0, percent: 0 } };

@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAuth } from '../contexts/AuthContext';
 import HomePage from '../pages/HomePage';
 import DemoPage from '../pages/DemoPage';
 import ExplorePage from '../pages/ExplorePage';
@@ -8,10 +9,14 @@ import CreateCampaignPage from '../pages/CreateCampaignPage';
 import ProfilePage from '../pages/ProfilePage';
 import WalletPage from '../pages/WalletPage';
 import DashboardPage from '../pages/DashboardPage';
+import SignUpPage from '../pages/SignUpPage';
+import SignInPage from '../pages/SignInPage';
+import ContactPage from '../pages/ContactPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
   const { isOnboarded } = useDemoMode();
-  if (!isOnboarded) return <Navigate to="/" replace />;
+  if (!isAuthenticated && !isOnboarded) return <Navigate to="/signin" replace />;
   return <>{children}</>;
 }
 
@@ -20,6 +25,9 @@ export function AppRouter() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/demo" element={<DemoPage />} />
+      <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/signin" element={<SignInPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/explore" element={<ExplorePage />} />
       <Route path="/campaign/:id" element={<CampaignPage />} />

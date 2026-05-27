@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'general',
+  message TEXT NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+);
