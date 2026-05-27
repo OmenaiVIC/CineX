@@ -26,52 +26,62 @@ export async function seedIfEmpty() {
   try {
     // Profiles
     for (const p of [
-      { address: C1, username: 'chidi-okonkwo', bio: 'Award-winning documentary filmmaker from Enugu. Passionate about telling untold stories from across Nigeria\'s diverse communities.', social_twitter: '@chidifilms', social_instagram: '@chidi_okonkwo', social_website: 'chidiokonkwo.film', verification_level: '2-tier' },
-      { address: C2, username: 'amara-obi', bio: 'Feature film director and costume designer. Lagos-based with a love for magical realism and African futurism.', social_twitter: '@amaraobi', social_instagram: '@amara_obi_studio', verification_level: '1-tier' },
-      { address: B1, username: 'femi-balogun', bio: 'Film enthusiast and impact investor backing African cinema.', social_twitter: '@femibalogun' },
+      { address: C1, username: 'chidi-okonkwo', bio: 'Award-winning documentary filmmaker from Enugu.', social_twitter: '@chidifilms', social_instagram: '@chidi_okonkwo', social_website: 'chidiokonkwo.film', verification_level: '2-tier' },
+      { address: C2, username: 'amara-obi', bio: 'Feature film director and costume designer.', social_twitter: '@amaraobi', social_instagram: '@amara_obi_studio', social_website: '', verification_level: '1-tier' },
+      { address: B1, username: 'femi-balogun', bio: 'Film enthusiast and impact investor.', social_twitter: '@femibalogun', social_instagram: '', social_website: '', verification_level: 'unverified' },
     ]) {
       await db2.run('INSERT INTO profiles (address, username, bio, social_twitter, social_instagram, social_website, verification_level, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8) ON CONFLICT DO NOTHING',
         [p.address, p.username, p.bio, p.social_twitter, p.social_instagram, p.social_website, p.verification_level || 'unverified', d(200)]);
     }
+    console.log('  ✓ profiles');
 
     // User settings
     for (const [addr, role] of [[C1, 'creative'], [C2, 'creative'], [B1, 'backer']]) {
       await db2.run('INSERT INTO user_settings (address, role, onboarding_completed, created_at, updated_at) VALUES ($1, $2, 1, $3, $3) ON CONFLICT DO NOTHING',
         [addr, role, d(180)]);
     }
+    console.log('  ✓ user_settings');
 
-    // Portfolio items (seed with concept art links)
+    // Portfolio items
     for (const item of [
-      { address: C1, title: 'Echoes of Harmattan — Behind the Scenes', description: 'Behind-the-scenes documentary footage from our Kano shoot.', category: 'short-film', role: 'Director', year: 2026, media_urls: ['https://youtube.com/watch?v=example1'], awards: [] },
-      { address: C1, title: 'The Last Mangrove — Teaser Trailer', description: 'Official teaser for our Niger Delta documentary.', category: 'documentary', role: 'Director/Producer', year: 2025, media_urls: ['https://youtube.com/watch?v=example2'], awards: ['Best Documentary — AFRIFF 2025'] },
-      { address: C1, title: 'Silent Waters — Short Film', description: 'Award-winning short film about coastal erosion.', category: 'short-film', role: 'Director/Cinematographer', year: 2024, media_urls: ['https://vimeo.com/example3'], awards: ['Best Cinematography', 'Jury Prize — Lagos Film Festival 2024'] },
-      { address: C2, title: 'Satin Shadows — Concept Art & Mood Board', description: 'Visual development portfolio for the feature film.', category: 'feature', role: 'Director/Costume Designer', year: 2026, media_urls: ['https://drive.google.com/example4'], awards: [] },
-      { address: C2, title: 'Lagos Fashion Week 2025 — Documentary', description: 'A glimpse into the avant-garde fashion scene.', category: 'documentary', role: 'Director', year: 2025, media_urls: ['https://youtube.com/watch?v=example5'], awards: [] },
+      { address: C1, title: 'Echoes of Harmattan', description: 'BTS documentary footage.', category: 'short-film', role: 'Director', year: 2026, media_urls: '[]', awards: '[]' },
+      { address: C1, title: 'The Last Mangrove', description: 'Teaser trailer.', category: 'documentary', role: 'Director/Producer', year: 2025, media_urls: '[]', awards: '["Best Doc — AFRIFF 2025"]' },
+      { address: C2, title: 'Satin Shadows', description: 'Concept art.', category: 'feature', role: 'Director', year: 2026, media_urls: '[]', awards: '[]' },
     ]) {
       await db2.run('INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)',
-        [item.address, item.title, item.description, item.category, item.role, item.year, JSON.stringify(item.media_urls), JSON.stringify(item.awards), d(30)]);
+        [item.address, item.title, item.description, item.category, item.role, item.year, item.media_urls, item.awards, d(30)]);
     }
+    console.log('  ✓ portfolio');
 
-    // Ratings
-    for (const r of [
-      { rater: B1, ratee: C1, score: 5, review: 'Chidi\'s previous work on "Silent Waters" was breathtaking.', category: 'cinematography', ago: 90 },
-      { rater: B1, ratee: C1, score: 4, review: 'Great storytelling ability. Would collaborate again.', category: 'storytelling', ago: 40 },
-      { rater: B1, ratee: C2, score: 5, review: 'Amara\'s costume design work is unparalleled.', category: 'costume-design', ago: 60 },
-      { rater: B1, ratee: C2, score: 4, review: 'Strong visual aesthetic and original storytelling.', category: 'storytelling', ago: 15 },
-    ]) {
+    // Ratings (simple test first)
+    try {
       await db2.run('INSERT INTO ratings (rater_address, target_address, score, comment, category, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
-        [r.rater, r.ratee, r.score, r.review, r.category, d(r.ago)]);
-    }
+        [B1, C1, 5, 'Great work.', 'cinematography', d(90)]);
+      console.log('  ✓ ratings 1');
+      await db2.run('INSERT INTO ratings (rater_address, target_address, score, comment, category, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
+        [B1, C1, 4, 'Good storytelling.', 'storytelling', d(40)]);
+      console.log('  ✓ ratings 2');
+      await db2.run('INSERT INTO ratings (rater_address, target_address, score, comment, category, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
+        [B1, C2, 5, 'Amazing design.', 'costume-design', d(60)]);
+      console.log('  ✓ ratings 3');
+      await db2.run('INSERT INTO ratings (rater_address, target_address, score, comment, category, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
+        [B1, C2, 4, 'Strong visual aesthetic.', 'storytelling', d(15)]);
+      console.log('  ✓ ratings 4');
+    } catch (e) { console.error('  ✗ ratings failed:', e.message); }
 
     // Wallet balances
-    for (const w of [
-      { user_id: C1, naira_balance: 8450000, usd_balance: 6036, sbtc_balance: '6036', status: 'active', preferred_currency: 'NGN' },
-      { user_id: C2, naira_balance: 3200000, usd_balance: 2286, sbtc_balance: '2286', status: 'active', preferred_currency: 'NGN' },
-      { user_id: B1, naira_balance: 15000000, usd_balance: 10714, sbtc_balance: '10714', status: 'active', preferred_currency: 'NGN' },
-    ]) {
-      await db2.run('INSERT INTO wallets (user_id, naira_balance, usd_balance, sbtc_balance, status, preferred_currency, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7) ON CONFLICT DO NOTHING',
-        [w.user_id, w.naira_balance, w.usd_balance, w.sbtc_balance, w.status, w.preferred_currency, d(180)]);
-    }
+    try {
+      const t = d(180);
+      await db2.run('INSERT INTO wallets (user_id, naira_balance, usd_balance, sbtc_balance, status, preferred_currency, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(user_id) DO NOTHING',
+        [C1, 8450000, 6036, '6036', 'active', 'NGN', t, t]);
+      console.log('  ✓ wallet 1 OK');
+      await db2.run('INSERT INTO wallets (user_id, naira_balance, usd_balance, sbtc_balance, status, preferred_currency, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(user_id) DO NOTHING',
+        [C2, 3200000, 2286, '2286', 'active', 'NGN', t, t]);
+      console.log('  ✓ wallet 2 OK');
+      await db2.run('INSERT INTO wallets (user_id, naira_balance, usd_balance, sbtc_balance, status, preferred_currency, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(user_id) DO NOTHING',
+        [B1, 15000000, 10714, '10714', 'active', 'NGN', t, t]);
+      console.log('  ✓ wallet 3 OK');
+    } catch (e) { console.error('  ✗ wallet insert failed:', e.message); }
 
     // AI summaries
     for (const s of [

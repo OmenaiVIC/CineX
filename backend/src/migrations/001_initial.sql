@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS ratings (
   comment_hash TEXT,
   tx_id TEXT,
   project_id TEXT,
+  category TEXT,
   created_at INTEGER DEFAULT (EXTRACT(EPOCH FROM NOW())::integer),
   UNIQUE(rater_address, target_address, project_id)
 );

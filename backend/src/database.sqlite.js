@@ -10,29 +10,43 @@ let db;
 let _initialized = false;
 
 function cvt(sql) {
-  return sql.replace(/\$(\d+)/g, '?');
+  const params = [];
+  return {
+    sql: sql.replace(/\$(\d+)/g, (_, n) => { params.push(Number(n)); return '?'; }),
+    map: params,
+  };
+}
+
+function expandParams(sql, origParams) {
+  const { sql: converted, map } = cvt(sql);
+  return { sql: converted, params: map.map(i => origParams[i - 1]) };
 }
 
 class SqliteCompat {
   constructor(database) { this.db = database; }
 
   async get(sql, params = []) {
-    return this.db.prepare(cvt(sql)).get(...params) || null;
+    const { sql: s, params: p } = expandParams(sql, params);
+    return this.db.prepare(s).get(...p) || null;
   }
 
   async all(sql, params = []) {
-    return this.db.prepare(cvt(sql)).all(...params);
+    const { sql: s, params: p } = expandParams(sql, params);
+    return this.db.prepare(s).all(...p);
   }
 
   async run(sql, params = []) {
     const isInsert = /^\s*INSERT\s/i.test(sql);
-    const stmt = this.db.prepare(cvt(sql));
-    const result = stmt.run(...params);
+    const { sql: s, params: p } = expandParams(sql, params);
+    const stmt = this.db.prepare(s);
+    const result = stmt.run(...p);
     let row = null;
     if (isInsert && result.lastInsertRowid) {
       const id = Number(result.lastInsertRowid);
       const table = extractTable(sql);
-      row = this.db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id) || null;
+      try {
+        row = this.db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id) || null;
+      } catch { /* table may not have id column */ }
     }
     return {
       lastInsertRowid: row?.id ?? null,
@@ -86,7 +100,7 @@ function execSchema() {
     );
     CREATE TABLE IF NOT EXISTS ratings (
       id INTEGER PRIMARY KEY AUTOINCREMENT, rater_address TEXT NOT NULL, target_address TEXT NOT NULL REFERENCES profiles(address) ON DELETE CASCADE,
-      score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5), comment TEXT, comment_hash TEXT, tx_id TEXT, project_id TEXT,
+      score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5), comment TEXT, comment_hash TEXT, tx_id TEXT, project_id TEXT, category TEXT,
       created_at INTEGER DEFAULT (unixepoch()), UNIQUE(rater_address, target_address, project_id)
     );
     CREATE TABLE IF NOT EXISTS user_settings (
@@ -130,15 +144,17 @@ function execSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL UNIQUE, email TEXT, phone TEXT,
       pillar_wallet_address TEXT, bns_name TEXT, stx_address TEXT, btc_address TEXT,
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending','active','suspended')),
-      naira_balance INTEGER DEFAULT 0, sbtc_balance TEXT DEFAULT '0',
-      created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch())
+      naira_balance INTEGER DEFAULT 0, usd_balance INTEGER DEFAULT 0, sbtc_balance TEXT DEFAULT '0',
+      preferred_currency TEXT DEFAULT 'NGN',
+      created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch()), activated_at INTEGER
     );
     CREATE TABLE IF NOT EXISTS wallet_transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT, wallet_id INTEGER NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
       type TEXT NOT NULL CHECK(type IN ('deposit','withdrawal','send','receive','fee','swap')),
-      amount_naira INTEGER DEFAULT 0, amount_sbtc TEXT DEFAULT '0', asset TEXT DEFAULT 'STX',
+      amount_naira INTEGER DEFAULT 0, amount_usd INTEGER DEFAULT 0, amount_sbtc TEXT DEFAULT '0',
+      currency TEXT DEFAULT 'NGN', asset TEXT DEFAULT 'STX',
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending','confirmed','failed','cancelled')),
-      reference TEXT, tx_id TEXT, counterparty TEXT, description TEXT, metadata TEXT DEFAULT '{}',
+      reference TEXT, tx_id TEXT, counterparty TEXT, conversion_rate_ngn_usd TEXT, description TEXT, metadata TEXT DEFAULT '{}',
       created_at INTEGER DEFAULT (unixepoch()), confirmed_at INTEGER
     );
     CREATE INDEX IF NOT EXISTS idx_wallets_user ON wallets(user_id);
@@ -164,5 +180,7 @@ function migrateWallets() {
     const txCols = db.prepare("PRAGMA table_info('wallet_transactions')").all().map(r => r.name);
     if (!txCols.includes('amount_usd')) db.exec("ALTER TABLE wallet_transactions ADD COLUMN amount_usd INTEGER DEFAULT 0");
     if (!txCols.includes('conversion_rate_ngn_usd')) db.exec("ALTER TABLE wallet_transactions ADD COLUMN conversion_rate_ngn_usd TEXT");
+    const rCols = db.prepare("PRAGMA table_info('ratings')").all().map(r => r.name);
+    if (!rCols.includes('category')) db.exec("ALTER TABLE ratings ADD COLUMN category TEXT");
   } catch (e) { /* migration may already be applied */ }
 }

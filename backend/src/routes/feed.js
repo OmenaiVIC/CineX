@@ -3,6 +3,17 @@ import { getDb } from '../database.js';
 
 const router = Router();
 
+router.get('/', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const events = await db.all('SELECT * FROM feed_events ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
+    db.release();
+    res.json(events);
+  } catch (err) { next(err); }
+});
+
 router.get('/global', async (req, res, next) => {
   try {
     const db = await getDb();

@@ -3,6 +3,15 @@ import { getDb } from '../database.js';
 
 const router = Router();
 
+router.get('/', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const profiles = await db.all('SELECT * FROM profiles ORDER BY created_at DESC');
+    db.release();
+    res.json(profiles);
+  } catch (err) { next(err); }
+});
+
 router.get('/:address', async (req, res, next) => {
   try {
     const db = await getDb();
