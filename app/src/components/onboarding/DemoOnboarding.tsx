@@ -49,7 +49,7 @@ export default function DemoOnboarding({ onComplete }: Props) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">CineX Demo</h1>
-          <p className="text-gray-400">Experience the future of film funding</p>
+          <p className="text-gray-400">Experience the Creative Media Financing Solution</p>
         </div>
 
         <div className="bg-[#0a0a0f] border border-[#1a1a2e] rounded-2xl p-8">

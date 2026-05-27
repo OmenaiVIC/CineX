@@ -2,11 +2,35 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useDemoMode } from '../../contexts/DemoModeContext';
 
 export default function Navbar() {
-  const { currentUser, logout } = useDemoMode();
+  const { currentUser, isOnboarded, logout } = useDemoMode();
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (!currentUser) return null;
+  if (!isOnboarded) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-[#050505]/85 backdrop-blur-md border-b border-[rgba(255,255,255,0.06)]">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <span
+            className="text-lg font-bold text-white cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            CineX <span className="text-[#4ade80] font-normal" style={{ fontSize: '.75rem', fontWeight: 400 }}>Fintech</span>
+          </span>
+          <div className="flex items-center gap-4">
+            <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+              Litepaper
+            </a>
+            <button
+              onClick={() => navigate('/demo')}
+              className="px-4 py-1.5 rounded-full bg-[#4ade80] text-black text-xs font-semibold hover:shadow-[0_0_20px_rgba(74,222,128,0.2)] transition-all"
+            >
+              Try Demo
+            </button>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   const links = [
     { path: '/dashboard', label: 'Dashboard' },
