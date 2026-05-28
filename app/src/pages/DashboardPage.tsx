@@ -13,11 +13,13 @@ import type { Campaign, Milestone, Pool } from '../types';
 
 export default function DashboardPage() {
   const { currentUser, isOnboarded } = useDemoMode();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(currentUser?.address || '');
-  const { contributions, refresh: refreshContributions } = useBackerContributions(currentUser?.address || '');
+  const activeUser = currentUser || user;
+
+  const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(activeUser?.address || '');
+  const { contributions, refresh: refreshContributions } = useBackerContributions(activeUser?.address || '');
 
   const [allMilestones, setAllMilestones] = useState<Milestone[]>([]);
   const [allPoolz, setAllPoolz] = useState<Pool[]>([]);
@@ -29,7 +31,7 @@ export default function DashboardPage() {
     setAllCampaigns(getAll<Campaign>('campaigns'));
   }, []);
 
-  if (!currentUser) {
+  if (!activeUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSkeleton variant="card" count={3} />
@@ -37,7 +39,7 @@ export default function DashboardPage() {
     );
   }
 
-  const role = currentUser.role;
+  const role = activeUser.role;
 
   const isDemo = isOnboarded && !isAuthenticated;
 
