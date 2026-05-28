@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -43,7 +44,7 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { name, description, creator, target_amount, min_commitment, max_members, deadline, category, return_rate } = req.body;
@@ -62,7 +63,7 @@ router.post('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:id/join', async (req, res, next) => {
+router.post('/:id/join', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { address, amount } = req.body;

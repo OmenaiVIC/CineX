@@ -1,16 +1,12 @@
 import type { ServiceResponse } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BACKEND
+export const API_BASE = import.meta.env.VITE_API_BACKEND
   || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3001/api'
     : 'https://cinex-backend-zo1r.onrender.com/api');
 
 function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-}
-
-function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`);
 }
 
 function deepConvertKeys<T>(obj: unknown, convert: (s: string) => string): T {
@@ -37,8 +33,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const options: RequestInit = { method, headers };
     if (body !== undefined) {
-      const snakeBody = deepConvertKeys(body, camelToSnake);
-      options.body = JSON.stringify(snakeBody);
+      options.body = JSON.stringify(body);
     }
     const res = await fetch(`${API_BASE}${path}`, options);
     if (!res.ok) {

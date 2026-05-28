@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ router.get('/pending', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/apply', async (req, res, next) => {
+router.post('/apply', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { applicant, name, bio, portfolio_url, previous_works, social_media, bond_amount } = req.body;
@@ -58,7 +59,7 @@ router.post('/apply', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:id/review', async (req, res, next) => {
+router.post('/:id/review', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { reviewer, approved, rejection_reason } = req.body;

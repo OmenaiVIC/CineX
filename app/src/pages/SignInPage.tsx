@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useStacksConnect } from '../hooks/useStacksConnect';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -9,29 +10,41 @@ import * as api from '../services/api';
 export default function SignInPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { connectWallet, disconnectWallet, connected, installed, address: stacksAddress } = useStacksConnect();
   const [tab, setTab] = useState<'wallet' | 'email'>('wallet');
-  const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [connError, setConnError] = useState('');
+
+  const handleWalletConnect = async () => {
+    setConnError('');
+    const addr = await connectWallet();
+    if (!addr) {
+      setConnError('Wallet connection cancelled or failed');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const body = tab === 'wallet'
-      ? { address: address.trim() }
-      : { email: email.trim(), password };
+    if (tab === 'wallet') {
+      if (!connected || !stacksAddress) {
+        setError('Connect your Stacks wallet first');
+        return;
+      }
+    } else {
+      if (!email.trim() || !password) {
+        setError('Enter email and password');
+        return;
+      }
+    }
 
-    if (tab === 'wallet' && (!address.trim() || address.trim().length < 10)) {
-      setError('Enter a valid Stacks address');
-      return;
-    }
-    if (tab === 'email' && (!email.trim() || !password)) {
-      setError('Enter email and password');
-      return;
-    }
+    const body = tab === 'wallet'
+      ? { address: stacksAddress }
+      : { email: email.trim(), password };
 
     setLoading(true);
     const res = await api.post<{ token: string; user: { id: number; address: string | null; email: string | null; displayName: string; role: string } }>('/auth/login', body);
@@ -71,13 +84,44 @@ export default function SignInPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {tab === 'wallet' ? (
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Stacks Address</label>
-                <Input
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  placeholder="ST1J4G6R0VX7NZYF1DGX8MNSNYVE3VGZJSRTPGZGM"
-                />
+              <div className="space-y-3">
+                {!installed ? (
+                  <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300">
+                    No Stacks wallet detected.{' '}
+                    <a
+                      href="https://www.hiro.so/wallet"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#4ade80] underline"
+                    >
+                      Install Hiro Wallet
+                    </a>{' '}
+                    to connect.
+                  </div>
+                ) : connected && stacksAddress ? (
+                  <div className="bg-black/30 rounded-lg p-3">
+                    <label className="block text-xs text-gray-400 mb-1">Connected Address</label>
+                    <p className="text-sm text-white font-mono break-all">{stacksAddress}</p>
+                    <button
+                      type="button"
+                      onClick={disconnectWallet}
+                      className="text-xs text-gray-500 hover:text-red-400 mt-2 transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleWalletConnect}
+                      className="w-full py-3 px-4 bg-[#4ade80] text-black font-medium rounded-lg hover:bg-[#3bcc6e] transition-colors text-sm"
+                    >
+                      Connect Stacks Wallet
+                    </button>
+                    {connError && <p className="text-xs text-red-400 mt-2">{connError}</p>}
+                  </div>
+                )}
               </div>
             ) : (
               <>

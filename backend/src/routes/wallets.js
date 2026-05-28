@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import * as walletService from '../services/walletService.js';
 import * as rateService from '../services/rateService.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/create', async (req, res, next) => {
+router.post('/create', requireAuth, async (req, res, next) => {
   try {
     const { user_id, email, phone, preferred_currency } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id is required' });
@@ -13,7 +14,7 @@ router.post('/create', async (req, res, next) => {
   } catch (err) { console.error('Wallet create error:', err); res.status(500).json({ error: 'Failed to create wallet' }); }
 });
 
-router.post('/activate', async (req, res, next) => {
+router.post('/activate', requireAuth, async (req, res, next) => {
   try {
     const { user_id, pillar_wallet_address, bns_name, stx_address, btc_address } = req.body;
     if (!user_id || !pillar_wallet_address) return res.status(400).json({ error: 'user_id and pillar_wallet_address are required' });
@@ -23,7 +24,7 @@ router.post('/activate', async (req, res, next) => {
   } catch (err) { console.error('Wallet activate error:', err); res.status(500).json({ error: 'Failed to activate wallet' }); }
 });
 
-router.get('/:userId', async (req, res, next) => {
+router.get('/:userId', requireAuth, async (req, res, next) => {
   try {
     const wallet = await walletService.getWallet(req.params.userId);
     if (!wallet) return res.status(404).json({ error: 'Wallet not found' });
@@ -31,14 +32,14 @@ router.get('/:userId', async (req, res, next) => {
   } catch (err) { console.error('Wallet get error:', err); res.status(500).json({ error: 'Failed to get wallet' }); }
 });
 
-router.get('/:userId/balance', async (req, res, next) => {
+router.get('/:userId/balance', requireAuth, async (req, res, next) => {
   try {
     const balance = await walletService.getBalance(req.params.userId);
     res.json(balance);
   } catch (err) { console.error('Balance error:', err); res.status(500).json({ error: 'Failed to get balance' }); }
 });
 
-router.post('/preferred-currency', async (req, res, next) => {
+router.post('/preferred-currency', requireAuth, async (req, res, next) => {
   try {
     const { user_id, currency } = req.body;
     if (!user_id || !currency) return res.status(400).json({ error: 'user_id and currency (NGN/USD) required' });
@@ -48,7 +49,7 @@ router.post('/preferred-currency', async (req, res, next) => {
   } catch (err) { console.error('Preferred currency error:', err); res.status(500).json({ error: 'Failed to set preferred currency' }); }
 });
 
-router.post('/deposit', async (req, res, next) => {
+router.post('/deposit', requireAuth, async (req, res, next) => {
   try {
     const { user_id, amount_naira, amount_usd, amount_sbtc, currency, tx_id, description } = req.body;
     if (!user_id || (!amount_naira && !amount_usd && !amount_sbtc)) return res.status(400).json({ error: 'user_id and at least one amount field required' });
@@ -58,7 +59,7 @@ router.post('/deposit', async (req, res, next) => {
   } catch (err) { console.error('Deposit error:', err); res.status(500).json({ error: 'Failed to record deposit' }); }
 });
 
-router.post('/confirm-deposit', async (req, res, next) => {
+router.post('/confirm-deposit', requireAuth, async (req, res, next) => {
   try {
     const { tx_id, reference } = req.body;
     if (!tx_id && !reference) return res.status(400).json({ error: 'tx_id or reference required' });
@@ -68,7 +69,7 @@ router.post('/confirm-deposit', async (req, res, next) => {
   } catch (err) { console.error('Confirm deposit error:', err); res.status(500).json({ error: 'Failed to confirm deposit' }); }
 });
 
-router.post('/send', async (req, res, next) => {
+router.post('/send', requireAuth, async (req, res, next) => {
   try {
     const { user_id, amount, currency, counterparty_user_id, description } = req.body;
     if (!user_id || !amount || !counterparty_user_id) return res.status(400).json({ error: 'user_id, amount, and counterparty_user_id required' });
@@ -78,7 +79,7 @@ router.post('/send', async (req, res, next) => {
   } catch (err) { console.error('Send error:', err); res.status(500).json({ error: 'Failed to process send' }); }
 });
 
-router.post('/confirm-send', async (req, res, next) => {
+router.post('/confirm-send', requireAuth, async (req, res, next) => {
   try {
     const { reference, tx_id } = req.body;
     if (!reference) return res.status(400).json({ error: 'reference required' });
@@ -88,7 +89,7 @@ router.post('/confirm-send', async (req, res, next) => {
   } catch (err) { console.error('Confirm send error:', err); res.status(500).json({ error: 'Failed to confirm send' }); }
 });
 
-router.post('/fail', async (req, res, next) => {
+router.post('/fail', requireAuth, async (req, res, next) => {
   try {
     const { reference } = req.body;
     if (!reference) return res.status(400).json({ error: 'reference required' });
@@ -98,7 +99,7 @@ router.post('/fail', async (req, res, next) => {
   } catch (err) { console.error('Fail transaction error:', err); res.status(500).json({ error: 'Failed to fail transaction' }); }
 });
 
-router.get('/:userId/transactions', async (req, res, next) => {
+router.get('/:userId/transactions', requireAuth, async (req, res, next) => {
   try {
     const offset = parseInt(req.query.offset) || 0;
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
@@ -107,7 +108,7 @@ router.get('/:userId/transactions', async (req, res, next) => {
   } catch (err) { console.error('Transaction history error:', err); res.status(500).json({ error: 'Failed to get transaction history' }); }
 });
 
-router.get('/:userId/summary', async (req, res, next) => {
+router.get('/:userId/summary', requireAuth, async (req, res, next) => {
   try {
     const summary = await walletService.getWalletSummary(req.params.userId);
     if (!summary) return res.status(404).json({ error: 'Wallet not found' });
@@ -131,7 +132,7 @@ router.post('/rates/convert', async (req, res, next) => {
   } catch (err) { console.error('Convert error:', err); res.status(400).json({ error: err.message }); }
 });
 
-router.post('/quote', async (req, res, next) => {
+router.post('/quote', requireAuth, async (req, res, next) => {
   try {
     const { user_id, from, to, amount } = req.body;
     if (!user_id || !from || !to || !amount) return res.status(400).json({ error: 'user_id, from, to, amount required' });
@@ -142,7 +143,7 @@ router.post('/quote', async (req, res, next) => {
   } catch (err) { console.error('Quote error:', err); res.status(400).json({ error: err.message }); }
 });
 
-router.post('/convert', async (req, res, next) => {
+router.post('/convert', requireAuth, async (req, res, next) => {
   try {
     const { user_id, quote_id } = req.body;
     if (!user_id || !quote_id) return res.status(400).json({ error: 'user_id and quote_id required' });

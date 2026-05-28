@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useStacksConnect } from '../hooks/useStacksConnect';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -9,13 +10,41 @@ import * as api from '../services/api';
 export default function SignUpPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromDemo = searchParams.get('from') === 'demo';
+  const { connectWallet, disconnectWallet, connected, installed, address: stacksAddress } = useStacksConnect();
   const [tab, setTab] = useState<'wallet' | 'email'>('wallet');
-  const [address, setAddress] = useState('');
+
+  const initialName = fromDemo
+    ? (() => {
+        try {
+          const raw = sessionStorage.getItem('cinex_demo_identity');
+          if (raw) {
+            const identity = JSON.parse(raw);
+            if (identity.address) {
+              const stored = sessionStorage.getItem('cinex_demo_name');
+              return stored || identity.address.slice(0, 8);
+            }
+          }
+        } catch { /* ignore */ }
+        return '';
+      })()
+    : '';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(initialName);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [connError, setConnError] = useState('');
+
+  const handleWalletConnect = async () => {
+    setConnError('');
+    const addr = await connectWallet();
+    if (!addr) {
+      setConnError('Wallet connection cancelled or failed');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +53,7 @@ export default function SignUpPage() {
     if (!displayName.trim()) { setError('Display name is required'); return; }
 
     if (tab === 'wallet') {
-      if (!address.trim() || address.trim().length < 10) { setError('Enter a valid Stacks address'); return; }
+      if (!connected || !stacksAddress) { setError('Connect your Stacks wallet first'); return; }
     } else {
       if (!email.trim() || !email.includes('@')) { setError('Enter a valid email address'); return; }
       if (!password || password.length < 6) { setError('Password must be at least 6 characters'); return; }
@@ -32,7 +61,7 @@ export default function SignUpPage() {
 
     setLoading(true);
     const body = tab === 'wallet'
-      ? { address: address.trim(), displayName: displayName.trim() }
+      ? { address: stacksAddress, displayName: displayName.trim() }
       : { email: email.trim(), password, displayName: displayName.trim() };
 
     const res = await api.post<{ token: string; user: { id: number; address: string | null; email: string | null; displayName: string; role: string } }>('/auth/register', body);
@@ -55,6 +84,11 @@ export default function SignUpPage() {
         </div>
 
         <Card variant="light" padding="default">
+          {fromDemo && (
+            <div className="mb-4 bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] rounded-lg px-4 py-3 text-xs text-gray-300">
+              Migrating from demo — your display name has been pre-filled. Complete signup to create your real account.
+            </div>
+          )}
           <div className="flex mb-6 bg-black/30 rounded-lg p-1">
             <button
               onClick={() => setTab('wallet')}
@@ -72,13 +106,44 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {tab === 'wallet' ? (
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Stacks Address</label>
-                <Input
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  placeholder="ST1J4G6R0VX7NZYF1DGX8MNSNYVE3VGZJSRTPGZGM"
-                />
+              <div className="space-y-3">
+                {!installed ? (
+                  <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300">
+                    No Stacks wallet detected.{' '}
+                    <a
+                      href="https://www.hiro.so/wallet"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#4ade80] underline"
+                    >
+                      Install Hiro Wallet
+                    </a>{' '}
+                    to connect.
+                  </div>
+                ) : connected && stacksAddress ? (
+                  <div className="bg-black/30 rounded-lg p-3">
+                    <label className="block text-xs text-gray-400 mb-1">Connected Address</label>
+                    <p className="text-sm text-white font-mono break-all">{stacksAddress}</p>
+                    <button
+                      type="button"
+                      onClick={disconnectWallet}
+                      className="text-xs text-gray-500 hover:text-red-400 mt-2 transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleWalletConnect}
+                      className="w-full py-3 px-4 bg-[#4ade80] text-black font-medium rounded-lg hover:bg-[#3bcc6e] transition-colors text-sm"
+                    >
+                      Connect Stacks Wallet
+                    </button>
+                    {connError && <p className="text-xs text-red-400 mt-2">{connError}</p>}
+                  </div>
+                )}
               </div>
             ) : (
               <>

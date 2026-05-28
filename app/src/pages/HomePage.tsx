@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HowItWorksGuide from '../components/ui/HowItWorksGuide';
+import { useGuide } from '../contexts/GuideContext';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { openGuide } = useGuide();
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [showGuide, setShowGuide] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -322,7 +322,7 @@ export default function HomePage() {
           </div>
           <div style={{ textAlign: 'center', marginTop: 36 }}>
             <button
-              onClick={() => setShowGuide(true)}
+              onClick={openGuide}
               className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-[#4ade80] border border-[rgba(74,222,128,0.3)] hover:bg-[rgba(74,222,128,0.1)] hover:border-[#4ade80] rounded-full transition-all"
             >
               See the Complete Lifecycle →
@@ -460,6 +460,7 @@ export default function HomePage() {
         <div className="lp-social-links">
           <a href="/litepaper.html" target="_blank" rel="noopener" style={{ fontSize: '.85rem' }}>Economic Litepaper</a>
           <a href="https://x.com/MediaCinex73878" target="_blank" rel="noopener">Follow us on X</a>
+          <a href="https://x.com/paper2screen" target="_blank" rel="noopener">Founder @paper2screen</a>
           <a href="https://www.linkedin.com/in/victor-olumese-omenai/" target="_blank" rel="noopener" style={{ fontSize: '.9rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <svg viewBox="0 0 24 24" style={{ width: 18, height: 18, fill: 'currentColor' }}><path d="M19 0H5a5 5 0 0 0-5 5v14a5 5 0 0 0 5 5h14a5 5 0 0 0 5-5V5a5 5 0 0 0-5-5zM8 19H5V8h3v11zM6.5 6.7c-1 0-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8 1.8.8 1.8 1.8-.8 1.8-1.8 1.8zM20 19h-3v-5.6c0-3.4-4-3.1-4 0V19h-3V8h3v1.8c1.4-2.6 7-2.8 7 2.5V19z"/></svg>
             Victor's LinkedIn
@@ -479,7 +480,6 @@ export default function HomePage() {
         </div>
       )}
 
-      <HowItWorksGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </div>
   );
 }

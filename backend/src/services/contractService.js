@@ -34,8 +34,8 @@ function init() {
     creator: { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) },
     backer: { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) },
   };
-  console.log(`[contractService] Creator: ${_wallets.creator.address}`);
-  console.log(`[contractService] Backer:  ${_wallets.backer.address}`);
+  console.log(`[contractService] Creator wallet initialized`);
+  console.log(`[contractService] Backer wallet initialized`);
   _initialized = true;
 }
 

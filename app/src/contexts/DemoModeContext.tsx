@@ -84,6 +84,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       isDemo: true,
     };
     setState(newState);
+    try { sessionStorage.setItem('cinex_demo_name', name); } catch { /* ignore */ }
   }, []);
 
   const logout = useCallback(() => {

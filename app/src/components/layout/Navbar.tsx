@@ -1,10 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDemoMode } from '../../contexts/DemoModeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useGuide } from '../../contexts/GuideContext';
 
 export default function Navbar() {
   const { currentUser, isOnboarded, logout: demoLogout } = useDemoMode();
   const { user, isAuthenticated, logout: authLogout } = useAuth();
+  const { openGuide } = useGuide();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,7 +30,7 @@ export default function Navbar() {
             CineX <span className="text-[#4ade80] font-normal" style={{ fontSize: '.75rem', fontWeight: 400 }}>Fintech</span>
           </span>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/#how-it-works')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+            <button onClick={openGuide} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               How It Works
             </button>
             <button onClick={() => navigate('/explore')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">

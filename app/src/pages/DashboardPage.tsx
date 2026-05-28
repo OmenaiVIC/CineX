@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
@@ -11,7 +12,8 @@ import { getAll } from '../contexts/DemoStorage';
 import type { Campaign, Milestone, Pool } from '../types';
 
 export default function DashboardPage() {
-  const { currentUser } = useDemoMode();
+  const { currentUser, isOnboarded } = useDemoMode();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(currentUser?.address || '');
@@ -37,9 +39,27 @@ export default function DashboardPage() {
 
   const role = currentUser.role;
 
+  const isDemo = isOnboarded && !isAuthenticated;
+
+  const banner = isDemo ? (
+    <div className="mb-6 bg-gradient-to-r from-[rgba(74,222,128,0.1)] to-[rgba(34,197,94,0.05)] border border-[rgba(74,222,128,0.25)] rounded-xl p-4 flex items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-white">You are in Demo Mode</p>
+        <p className="text-xs text-gray-400 mt-0.5">Create a real account to save your progress and access live features.</p>
+      </div>
+      <button
+        onClick={() => navigate('/signup?from=demo')}
+        className="shrink-0 px-4 py-2 text-xs font-semibold text-black bg-[#4ade80] hover:bg-[#22c55e] rounded-lg transition-all"
+      >
+        Create Real Account →
+      </button>
+    </div>
+  ) : null;
+
   if (role === 'creative') {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {banner}
         <CreatorDashboard
           campaigns={campaigns}
           milestones={allMilestones}
@@ -53,6 +73,7 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {banner}
       <BackerDashboard
         contributions={contributions}
         campaigns={allCampaigns}

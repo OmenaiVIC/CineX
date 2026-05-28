@@ -21,7 +21,16 @@ import { initEmail } from './services/emailService.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://cine-x-iota.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get('/health', (req, res) => {

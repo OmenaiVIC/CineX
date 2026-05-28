@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { getDb } from '../database.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -33,7 +34,7 @@ router.post('/register', async (req, res, next) => {
 
     let passwordHash = null;
     if (password) {
-      passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+      passwordHash = bcrypt.hashSync(password, 10);
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -82,8 +83,7 @@ router.post('/login', async (req, res, next) => {
 
     if (user.password_hash) {
       if (!password) { db.release(); return res.status(401).json({ error: 'Password required' }); }
-      const inputHash = crypto.createHash('sha256').update(password).digest('hex');
-      if (inputHash !== user.password_hash) { db.release(); return res.status(401).json({ error: 'Invalid password' }); }
+      if (!bcrypt.compareSync(password, user.password_hash)) { db.release(); return res.status(401).json({ error: 'Invalid password' }); }
     } else if (!address) {
       db.release(); return res.status(401).json({ error: 'This account uses Stacks address login' });
     }

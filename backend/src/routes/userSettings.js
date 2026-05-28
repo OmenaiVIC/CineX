@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get('/:address', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { address, role } = req.body;

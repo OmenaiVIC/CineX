@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.get('/:address', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.put('/:address', async (req, res, next) => {
+router.put('/:address', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
@@ -62,7 +63,7 @@ router.get('/:address/ratings', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:address/ratings', async (req, res, next) => {
+router.post('/:address/ratings', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { raterAddress, score, comment, commentHash, txId, projectId } = req.body;
@@ -99,7 +100,7 @@ router.get('/:address/portfolio', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:address/portfolio', async (req, res, next) => {
+router.post('/:address/portfolio', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { title, description, category, role, year, mediaUrls, awards } = req.body;
@@ -118,7 +119,7 @@ router.post('/:address/portfolio', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.put('/:address/portfolio/:id', async (req, res, next) => {
+router.put('/:address/portfolio/:id', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);

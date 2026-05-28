@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { API_BASE } from '../services/api';
 
 interface AuthUser {
   id: number;
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (token && !user) {
-      fetch('/api/auth/me', {
+      fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       }).then(r => r.json()).then(data => {
         if (data?.user) {
@@ -87,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveToken(null);
     saveUser(null);
     if (t) {
-      fetch('/api/auth/logout', {
+      fetch(`${API_BASE}/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${t}` },
       }).catch(() => {});

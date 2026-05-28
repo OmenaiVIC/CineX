@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.get('/user/:address', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/event', async (req, res, next) => {
+router.post('/event', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { event_type, event_data, actor, pool_id, campaign_id, block_height, tx_id } = req.body;
