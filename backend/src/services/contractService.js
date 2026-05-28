@@ -482,6 +482,19 @@ async function finalizeMilestone(campaignId, milestoneIndex) {
   return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
 }
 
+async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
+  const pk = _wallets?.creator?.privateKey;
+  if (!pk) throw new Error('CREATOR_KEY not configured');
+  const txHash = await callContract(pk, 'project-verification-module', 'emergency-verify-creator', [
+    standardPrincipalCV(creatorAddress),
+    uintCV(expirationBlock),
+  ]);
+  return {
+    tx_hash: txHash,
+    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+  };
+}
+
 async function getCampaignContributions(campaignId, contributor) {
   return await readOnlyCall('campaign-module-2', 'get-campaign-contributions', [
     uintCV(campaignId),
@@ -505,42 +518,6 @@ async function claimCreatorBonus(campaignId) {
   const pk = _wallets.creator.privateKey;
   const txHash = await callContract(pk, 'yield-escrow', 'claim-creator-bonus', [uintCV(campaignId)]);
   return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
-}
-
-export {
-  init,
-  getNetwork,
-  getState,
-  testBroadcast,
-  getTxStatus,
-  createCampaignInEscrow,
-  createCampaignInModule,
-  contribute,
-  getCampaignFromEscrow,
-  getCampaignFromModule,
-  getTotalRaised,
-  getEscrowCampaign,
-  getEscrowBalance,
-  getMilestoneState,
-  getCampaignModuleCampaign,
-  emergencyVerifyCreator,
-  isCreatorCurrentlyVerified,
-  getCreatorFundingCap,
-  getCreatorIdentity,
-  depositToEscrow,
-  addPortfolio,
-  getPortfolio,
-  rateUser,
-  getAverageRating,
-  createMilestones,
-  submitMilestone,
-  endorseMilestone,
-  finalizeMilestone,
-  getCampaignContributions,
-  getYieldPool,
-  claimBackerYield,
-  claimCreatorBonus,
-};
 }
 
 async function isCreatorCurrentlyVerified(creatorAddress) {
@@ -596,4 +573,8 @@ export default {
   submitMilestone,
   endorseMilestone,
   finalizeMilestone,
+  getCampaignContributions,
+  getYieldPool,
+  claimBackerYield,
+  claimCreatorBonus,
 };
