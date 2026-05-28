@@ -67,9 +67,17 @@ export async function depositToWallet(address: string, amount: number, currency:
   else if (currency === 'USD') body.amount_usd = amount;
   else body.amount_sbtc = String(amount);
   body.currency = currency;
-  const res = await api.post<{ wallet: BackendWallet }>('/wallets/deposit', body);
-  if (res.success && res.data?.wallet) return { success: true, data: toBalance(res.data.wallet) };
+  const res = await api.post<{ transaction: { reference: string; id: number } }>('/wallets/deposit', body);
+  if (res.success && res.data?.transaction?.reference) {
+    const ref = res.data.transaction.reference;
+    await confirmDeposit(ref);
+  }
   return getWalletBalance(address);
+}
+
+export async function confirmDeposit(reference: string): Promise<ServiceResponse<unknown>> {
+  const res = await api.post('/wallets/confirm-deposit', { reference });
+  return res;
 }
 
 export async function debitWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {

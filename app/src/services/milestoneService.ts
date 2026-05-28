@@ -45,10 +45,10 @@ export async function createMilestone(
   deliverables?: string[]
 ): Promise<ServiceResponse<Milestone>> {
   const res = await api.post<Record<string, unknown>>('/milestones', {
-    campaignId,
+    campaign_id: campaignId,
     title,
     description,
-    fundingRequired,
+    funding_required: fundingRequired,
     deadline: Math.floor(deadline / 1000),
     deliverables: deliverables || [],
   });

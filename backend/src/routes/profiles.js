@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
 import { requireAuth } from '../middleware/auth.js';
+import contractService from '../services/contractService.js';
 
 const router = Router();
 
@@ -79,9 +80,21 @@ router.post('/:address/ratings', requireAuth, async (req, res, next) => {
       INSERT INTO feed_events (event_type, event_data, actor, pool_id, tx_id)
       VALUES ($1, $2, $3, NULL, $4)
     `, ['rating_received', JSON.stringify({ score, summary: `${raterAddress.slice(0, 6)}… rated you ${score}/5` }), req.params.address, txId || null]);
+    let chainResult = null;
+    try {
+      chainResult = await contractService.rateUser(
+        req.params.address,
+        projectId ? Number(projectId) : 0,
+        score,
+        commentHash || null
+      );
+      console.log(`[profiles] Chain rating: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[profiles] Chain rating failed (DB succeeded): ${chainErr.message}`);
+    }
     db.release();
     const row = created.rows[0];
-    res.status(201).json(row || { id: created.lastInsertRowid });
+    res.status(201).json({ ...(row || { id: created.lastInsertRowid }), chain: chainResult });
   } catch (err) {
     if (err.message && (err.message.includes('UNIQUE') || err.message.includes('duplicate'))) {
       return res.status(409).json({ error: 'Rating already exists for this rater+project' });
@@ -109,13 +122,25 @@ router.post('/:address/portfolio', requireAuth, async (req, res, next) => {
       INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `, [req.params.address, title, description, category, role, year, JSON.stringify(mediaUrls || []), JSON.stringify(awards || [])]);
+    let chainResult = null;
+    try {
+      chainResult = await contractService.addPortfolio(
+        title || 'Untitled',
+        (mediaUrls && mediaUrls[0]) || '',
+        description || '',
+        year || new Date().getFullYear()
+      );
+      console.log(`[profiles] Chain portfolio added: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[profiles] Chain portfolio add failed (DB succeeded): ${chainErr.message}`);
+    }
     db.release();
     const row = created.rows[0];
     if (row) {
       row.media_urls = tryParseJson(row.media_urls, []);
       row.awards = tryParseJson(row.awards, []);
     }
-    res.status(201).json(row || { id: created.lastInsertRowid });
+    res.status(201).json({ ...(row || { id: created.lastInsertRowid }), chain: chainResult });
   } catch (err) { next(err); }
 });
 

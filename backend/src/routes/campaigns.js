@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import contractService from '../services/contractService.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -48,6 +50,14 @@ router.get('/active-count', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.get('/:id/chain-state', async (req, res, next) => {
+  try {
+    const escrow = await contractService.getCampaignFromEscrow(Number(req.params.id));
+    const mod = await contractService.getCampaignFromModule(Number(req.params.id));
+    res.json({ escrow, module: mod });
+  } catch (err) { next(err); }
+});
+
 router.get('/:id', async (req, res, next) => {
   try {
     const db = await getDb();
@@ -61,7 +71,7 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { title, description, creator, target_amount, deadline, category, media_urls, tags } = req.body;
@@ -70,14 +80,28 @@ router.post('/', async (req, res, next) => {
     const result = await db.run(`
       INSERT INTO campaigns (title, description, creator, target_amount, current_amount, deadline, category, status, media_urls, tags, created_at, updated_at)
       VALUES ($1, $2, $3, $4, '0', $5, $6, 'active', $7, $8, $9, $9)
-    `, [title, description || '', creator, target_amount, deadline || 0, category || 'short-film', JSON.stringify(media_urls || []), JSON.stringify(tags || []), now]);
-    const created = result.rows[0];
+    `, [title, description || '', creator, target_amount || 0, deadline || 0, category || 'short-film', JSON.stringify(media_urls || []), JSON.stringify(tags || []), now]);
+    const created = result.rows[0] || { id: result.lastInsertRowid };
+    const campaignId = created.id;
     if (created) {
       await db.run(`INSERT INTO feed_events (event_type, event_data, actor, campaign_id) VALUES ($1, $2, $3, $4)`,
-        ['campaign_created', JSON.stringify({ summary: `Campaign '${title}' launched` }), creator, created.id]);
+        ['campaign_created', JSON.stringify({ summary: `Campaign '${title}' launched` }), creator, campaignId]);
+    }
+    let chainResult = null;
+    try {
+      chainResult = await contractService.createCampaignInModule(
+        `${title}: ${(description || '').slice(0, 200)}`,
+        Number(target_amount),
+        2592000,
+        1,
+        'Standard'
+      );
+      console.log(`[campaigns] Chain campaign created: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[campaigns] Chain campaign creation failed (DB insert succeeded): ${chainErr.message}`);
     }
     db.release();
-    res.status(201).json(created || { id: result.lastInsertRowid });
+    res.status(201).json({ ...created, chain: chainResult });
   } catch (err) { next(err); }
 });
 
@@ -90,7 +114,7 @@ router.get('/:id/contributions', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:id/contribute', async (req, res, next) => {
+router.post('/:id/contribute', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { contributor, amount, message } = req.body;
@@ -107,8 +131,15 @@ router.post('/:id/contribute', async (req, res, next) => {
       [newAmount, newStatus, now, req.params.id]);
     await db.run(`INSERT INTO feed_events (event_type, event_data, actor, campaign_id) VALUES ($1, $2, $3, $4)`,
       ['campaign_funded', JSON.stringify({ summary: `Contribution of ${amount} received` }), contributor, req.params.id]);
+    let chainResult = null;
+    try {
+      chainResult = await contractService.contribute(Number(req.params.id), Number(amount));
+      console.log(`[campaigns] Chain contribution: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[campaigns] Chain contribution failed (DB succeed): ${chainErr.message}`);
+    }
     db.release();
-    res.status(201).json({ txId, campaignId: req.params.id, amount });
+    res.status(201).json({ txId, campaignId: req.params.id, amount, chain: chainResult });
   } catch (err) { next(err); }
 });
 

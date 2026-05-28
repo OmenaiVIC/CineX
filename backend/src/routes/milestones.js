@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import contractService from '../services/contractService.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -24,7 +26,7 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { campaign_id, title, description, funding_required, deadline, deliverables } = req.body;
@@ -34,12 +36,19 @@ router.post('/', async (req, res, next) => {
       INSERT INTO milestones (campaign_id, title, description, funding_required, deadline, status, deliverables, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $7)
     `, [campaign_id, title, description || '', funding_required, deadline || null, JSON.stringify(deliverables || []), now]);
+    let chainResult = null;
+    try {
+      chainResult = await contractService.createMilestones(Number(campaign_id), [deadline ? Math.ceil((deadline - now) / 600) : 100]);
+      console.log(`[milestones] Chain milestones created: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[milestones] Chain milestone creation failed (DB succeeded): ${chainErr.message}`);
+    }
     db.release();
-    res.status(201).json(result.rows[0] || { id: result.lastInsertRowid });
+    res.status(201).json({ ...(result.rows[0] || { id: result.lastInsertRowid }), chain: chainResult });
   } catch (err) { next(err); }
 });
 
-router.put('/:id/status', async (req, res, next) => {
+router.put('/:id/status', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { status } = req.body;
@@ -56,8 +65,20 @@ router.put('/:id/status', async (req, res, next) => {
     if (result.changes === 0) { db.release(); return res.status(404).json({ error: 'Milestone not found' }); }
     const updated = await db.get('SELECT * FROM milestones WHERE id = $1', [req.params.id]);
     if (updated) updated.deliverables = tryParseJson(updated.deliverables, []);
+    let chainResult = null;
+    try {
+      if (status === 'active') {
+        chainResult = await contractService.submitMilestone(updated.campaign_id, updated.id - 1);
+        console.log(`[milestones] Chain submit: ${chainResult.explorer_url}`);
+      } else if (status === 'completed') {
+        chainResult = await contractService.finalizeMilestone(updated.campaign_id, updated.id - 1);
+        console.log(`[milestones] Chain finalize: ${chainResult.explorer_url}`);
+      }
+    } catch (chainErr) {
+      console.warn(`[milestones] Chain status update failed (DB succeeded): ${chainErr.message}`);
+    }
     db.release();
-    res.json(updated);
+    res.json({ ...updated, chain: chainResult });
   } catch (err) { next(err); }
 });
 
@@ -73,7 +94,7 @@ router.get('/campaign/:campaignId/progress', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:id/vote', async (req, res, next) => {
+router.post('/:id/vote', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { voterAddress, approved, contributionWeight } = req.body;
@@ -112,8 +133,15 @@ router.post('/:id/vote', async (req, res, next) => {
       await db.run(`UPDATE milestones SET ${setClauses} WHERE id = $${values.length}`, values);
     }
 
+    let chainResult = null;
+    try {
+      chainResult = await contractService.endorseMilestone(milestone.campaign_id, milestone.id - 1, approved);
+      console.log(`[milestones] Chain endorse: ${chainResult.explorer_url}`);
+    } catch (chainErr) {
+      console.warn(`[milestones] Chain endorse failed (DB succeeded): ${chainErr.message}`);
+    }
     db.release();
-    res.json({ voted: true, thresholdMet, totalYes, grandTotal, autoCompleted: thresholdMet });
+    res.json({ voted: true, thresholdMet, totalYes, grandTotal, autoCompleted: thresholdMet, chain: chainResult });
   } catch (err) { next(err); }
 });
 

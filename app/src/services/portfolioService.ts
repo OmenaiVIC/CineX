@@ -22,15 +22,6 @@ export async function getPortfolioForUser(address: string): Promise<ServiceRespo
   return { success: true, data: items };
 }
 
-export async function getPortfolioItem(id: string): Promise<ServiceResponse<PortfolioItem>> {
-  const res = await getPortfolioForUser('');
-  if (res.data) {
-    const found = res.data.find(i => i.id === id);
-    if (found) return { success: true, data: found };
-  }
-  return { success: false, error: 'Portfolio item not found' };
-}
-
 export async function createPortfolioItem(item: Omit<PortfolioItem, 'id'>): Promise<ServiceResponse<PortfolioItem>> {
   const res = await api.post<Record<string, unknown>>(`/profiles/${item.address}/portfolio`, {
     title: item.title,

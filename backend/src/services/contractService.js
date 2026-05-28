@@ -9,6 +9,10 @@ import {
   cvToHex,
   getAddressFromPrivateKey,
   TransactionVersion,
+  stringAsciiCV,
+  listCV,
+  someCV,
+  noneCV,
 } from '@stacks/transactions';
 import { StacksTestnet } from '@stacks/network';
 
@@ -345,6 +349,139 @@ async function getTotalRaised(campaignId) {
   return 0;
 }
 
+async function createCampaignInEscrow(projectId, asset, totalGoal, milestones, deadline) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const msCVs = milestones.map(ms => ({
+    name: stringAsciiCV(ms.name.slice(0, 64)),
+    amount: uintCV(ms.amount),
+  }));
+  const txHash = await callContract(pk, 'milestone-escrow', 'create-campaign', [
+    uintCV(projectId),
+    contractPrincipalCV(asset === 'STX' ? 'SP000000000000000000002Q6VF78' : asset),
+    uintCV(totalGoal),
+    listCV(msCVs),
+    uintCV(deadline),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function createCampaignInModule(description, fundingGoal, duration, rewardTiers, rewardDescription) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'campaign-module-2', 'create-campaign', [
+    stringAsciiCV(description.slice(0, 500)),
+    uintCV(0),
+    uintCV(fundingGoal),
+    uintCV(duration),
+    uintCV(rewardTiers || 1),
+    stringAsciiCV((rewardDescription || '').slice(0, 150)),
+    contractPrincipalCV(DEPLOYER, 'project-verification-module'),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function depositToEscrow(campaignId, amountUstx) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'milestone-escrow', 'deposit', [
+    uintCV(campaignId),
+    uintCV(amountUstx),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function rateUser(targetAddress, campaignId, rating, commentHash) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const raterAddr = _wallets.backer.address;
+  const commentHashCV = commentHash
+    ? someCV(bufferCV(Buffer.from(commentHash.slice(0, 32), 'utf-8')))
+    : noneCV();
+  const txHash = await callContract(pk, 'reputation', 'rate-user', [
+    standardPrincipalCV(raterAddr),
+    standardPrincipalCV(targetAddress),
+    uintCV(campaignId),
+    uintCV(Math.min(5, Math.max(1, rating))),
+    commentHashCV,
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function getAverageRating(targetAddress) {
+  return await readOnlyCall('reputation', 'get-average-rating', [standardPrincipalCV(targetAddress)]);
+}
+
+async function addPortfolio(projectName, projectUrl, projectDescription, completionYear) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const creatorAddr = _wallets.creator.address;
+  const txHash = await callContract(pk, 'project-verification-module', 'add-portfolio', [
+    standardPrincipalCV(creatorAddr),
+    stringAsciiCV(projectName.slice(0, 100)),
+    stringAsciiCV(projectUrl.slice(0, 255)),
+    stringAsciiCV(projectDescription.slice(0, 500)),
+    uintCV(completionYear || 0),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function getPortfolio(creatorAddress, portfolioId) {
+  return await readOnlyCall('project-verification-module', 'get-portfolio', [
+    standardPrincipalCV(creatorAddress),
+    uintCV(portfolioId),
+  ]);
+}
+
+async function getCampaignFromEscrow(campaignId) {
+  return await readOnlyCall('milestone-escrow', 'get-campaign', [uintCV(campaignId)]);
+}
+
+async function getCampaignFromModule(campaignId) {
+  return await readOnlyCall('campaign-module-2', 'get-campaign', [uintCV(campaignId)]);
+}
+
+async function createMilestones(campaignId, deadlines) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'milestone-verification', 'create-milestones', [
+    uintCV(campaignId),
+    listCV((deadlines || [100, 200, 300]).map(d => uintCV(d))),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function submitMilestone(campaignId, milestoneIndex) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'milestone-verification', 'submit-milestone', [
+    uintCV(campaignId),
+    uintCV(milestoneIndex),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function endorseMilestone(campaignId, milestoneIndex, vote) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'milestone-verification', 'endorse-milestone', [
+    uintCV(campaignId),
+    uintCV(milestoneIndex),
+    vote,
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function finalizeMilestone(campaignId, milestoneIndex) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'milestone-verification', 'finalize-milestone', [
+    uintCV(campaignId),
+    uintCV(milestoneIndex),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
 async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
   const pk = _wallets?.creator?.privateKey;
   if (!pk) throw new Error('CREATOR_KEY not configured');
@@ -398,4 +535,17 @@ export default {
   isCreatorCurrentlyVerified,
   getCreatorFundingCap,
   getCreatorIdentity,
+  createCampaignInEscrow,
+  createCampaignInModule,
+  depositToEscrow,
+  getCampaignFromEscrow,
+  getCampaignFromModule,
+  addPortfolio,
+  getPortfolio,
+  rateUser,
+  getAverageRating,
+  createMilestones,
+  submitMilestone,
+  endorseMilestone,
+  finalizeMilestone,
 };
