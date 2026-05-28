@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
@@ -34,6 +35,8 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
 export default function ProfilePage() {
   const { address } = useParams<{ address: string }>();
   const { currentUser } = useDemoMode();
+  const { user } = useAuth();
+  const activeUser = currentUser || user;
   const navigate = useNavigate();
   const tx = useTxModal();
 
@@ -50,7 +53,7 @@ export default function ProfilePage() {
   const [newReview, setNewReview] = useState('');
   const [newCategory, setNewCategory] = useState('general');
 
-  const isOwnProfile = currentUser?.address === address;
+  const isOwnProfile = activeUser?.address === address;
 
   useEffect(() => {
     if (!address) return;
@@ -72,12 +75,12 @@ export default function ProfilePage() {
   }, [address]);
 
   const handleSubmitRating = async () => {
-    if (!currentUser || !address || newRating === 0) return;
+    if (!activeUser || !address || newRating === 0) return;
     tx.open('Submitting Rating', `Rating ${profile?.displayName || address.slice(0, 10)}...`);
     setTimeout(async () => {
-      const res = await addRating(currentUser.address, address, newRating, newReview || undefined, newCategory);
+      const res = await addRating(activeUser.address!, address, newRating, newReview || undefined, newCategory);
       if (res.success) {
-        addFeedEvent('rating_received', currentUser.address, `Rated ${profile?.displayName || address.slice(0, 10)}... ${newRating}/5`, address);
+        addFeedEvent('rating_received', activeUser.address!, `Rated ${profile?.displayName || address.slice(0, 10)}... ${newRating}/5`, address);
         tx.succeed(res.transactionId);
         setTimeout(async () => {
           tx.close();
@@ -213,7 +216,7 @@ export default function ProfilePage() {
               <h3 className="text-base font-semibold text-white">Reviews ({ratings.length})</h3>
             </div>
 
-            {!isOwnProfile && currentUser && (
+            {!isOwnProfile && activeUser && (
               <Card variant="light" padding="small" className="mb-4">
                 <h4 className="text-sm font-semibold text-white mb-3">Rate this Creator</h4>
                 <div className="space-y-3">

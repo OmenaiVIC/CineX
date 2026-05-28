@@ -27,10 +27,15 @@ function loadToken(): string | null {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 }
 
+function ensureUserAddress(u: AuthUser): AuthUser {
+  if (!u.address && u.id) return { ...u, address: `email_${u.id}` };
+  return u;
+}
+
 function loadUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? ensureUserAddress(JSON.parse(raw)) : null;
   } catch { return null; }
 }
 
@@ -59,8 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { Authorization: `Bearer ${token}` },
       }).then(r => r.json()).then(data => {
         if (data?.user) {
-          setUser(data.user);
-          saveUser(data.user);
+          const userWithAddress = ensureUserAddress(data.user);
+          setUser(userWithAddress);
+          saveUser(userWithAddress);
         } else {
           setToken(null);
           saveToken(null);
@@ -75,10 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback((newToken: string, newUser: AuthUser) => {
+    const userWithAddress = ensureUserAddress(newUser);
     setToken(newToken);
-    setUser(newUser);
+    setUser(userWithAddress);
     saveToken(newToken);
-    saveUser(newUser);
+    saveUser(userWithAddress);
   }, []);
 
   const logout = useCallback(() => {

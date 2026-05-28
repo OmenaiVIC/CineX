@@ -51,15 +51,17 @@ router.post('/register', async (req, res, next) => {
     await db.run('INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES ($1, $2, $3, $4)',
       [userId, token, expiresAt, now]);
 
+    const profileAddress = address || `email_${userId}`;
+
     await db.run('INSERT INTO profiles (address, username) VALUES ($1, $2) ON CONFLICT (address) DO NOTHING',
-      [address || `email_${userId}`, displayName]);
+      [profileAddress, displayName]);
 
     db.release();
 
     res.status(201).json({
       token,
       expiresAt: expiresAt * 1000,
-      user: { id: userId, address: address || null, email: email || null, displayName, role: 'creative' },
+      user: { id: userId, address: profileAddress, email: email || null, displayName, role: 'creative' },
     });
   } catch (err) { next(err); }
 });
@@ -96,12 +98,14 @@ router.post('/login', async (req, res, next) => {
 
     db.release();
 
+    const userAddress = user.address || (user.email ? `email_${user.id}` : null);
+
     res.json({
       token,
       expiresAt: expiresAt * 1000,
       user: {
         id: user.id,
-        address: user.address,
+        address: userAddress,
         email: user.email,
         displayName: user.display_name,
         role: user.role,

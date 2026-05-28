@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -14,6 +15,8 @@ const CATEGORIES: Campaign['category'][] = ['short-film', 'feature', 'documentar
 
 export default function CreateCampaignPage() {
   const { currentUser } = useDemoMode();
+  const { user } = useAuth();
+  const activeUser = currentUser || user;
   const navigate = useNavigate();
   const tx = useTxModal();
 
@@ -24,7 +27,7 @@ export default function CreateCampaignPage() {
   const [category, setCategory] = useState<Campaign['category']>('short-film');
   const [tags, setTags] = useState('');
 
-  if (!currentUser) {
+  if (!activeUser) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 text-center">
         <p className="text-gray-400">Please complete onboarding first.</p>
@@ -56,10 +59,10 @@ export default function CreateCampaignPage() {
     setTimeout(() => {
       const res = createCampaign(
         { title: title.trim(), description: description.trim(), targetAmount: target.toString(), deadline: deadlineMs, category, tags: tagList },
-        currentUser.address
+        activeUser.address!
       );
       if (res.success && res.data) {
-        addFeedEvent('campaign_created', currentUser.address, `Launched "${title}"`, res.data.id, { category });
+        addFeedEvent('campaign_created', activeUser.address!, `Launched "${title}"`, res.data.id, { category });
         tx.succeed(res.transactionId);
         setTimeout(() => {
           tx.close();
