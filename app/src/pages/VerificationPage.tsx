@@ -35,7 +35,7 @@ const VERIFICATION_LEVELS = [
 export default function VerificationPage() {
   const { currentUser } = useDemoMode();
   const { user } = useAuth();
-  const activeUser = currentUser || user;
+  const activeUser = user || currentUser;
   const { connected: walletConnected, installed: walletInstalled, address: walletAddress } = useStacksConnect();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -291,6 +291,26 @@ export default function VerificationPage() {
                 <button onClick={() => setMode('select')} className="text-xs text-gray-500 hover:text-gray-300">Change mode</button>
               </div>
 
+              {mode === 'quick' && (
+                <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-4 space-y-2">
+                  <p className="text-xs text-blue-300 font-medium">Why is a wallet required?</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    The Stacks blockchain requires your own wallet to sign the creator registration transaction 
+                    (<span className="text-gray-300 font-mono">tx-sender == creator</span> constraint). 
+                    This is a <strong className="text-gray-300">one-time</strong> signature — no STX needed, no gas fees.
+                    After signing, the backend automatically triggers verification. You won't need your wallet again.
+                  </p>
+                  <details className="text-xs text-gray-500">
+                    <summary className="cursor-pointer hover:text-gray-300">Technical detail</summary>
+                    <p className="mt-1 leading-relaxed">
+                      The smart contract enforces that only your wallet address can register your own creator identity. 
+                      This prevents impersonation and ensures the on-chain record is genuinely yours. 
+                      The backend's wallet cannot sign on your behalf due to this constraint — hence the one-time wallet interaction.
+                    </p>
+                  </details>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Full Name *</label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="Your legal or stage name" />
@@ -323,8 +343,8 @@ export default function VerificationPage() {
               )}
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Portfolio URL</label>
-                <Input value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)} placeholder="https://your-portfolio.com" />
+                <label className="block text-xs text-gray-400 mb-1">Portfolio URL (Behance, YouTube, Vimeo, personal site, etc.)</label>
+                <Input value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)} placeholder="https://behance.net/yourname" />
               </div>
 
               {mode === 'full' && (
@@ -366,8 +386,15 @@ export default function VerificationPage() {
                 <Button variant="neon" onClick={mode === 'quick' ? handleOnchainRegister : handleApply}>
                   {mode === 'quick' ? 'Register Creator Profile' : 'Submit Application'}
                 </Button>
-                {!walletConnected && mode === 'quick' && (
-                  <p className="text-xs text-yellow-400">Connect your Stacks wallet to register on-chain.</p>
+                {mode === 'quick' && !walletInstalled && !walletConnected && (
+                  <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300">
+                    No Stacks wallet detected.{' '}
+                    <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener noreferrer" className="text-[#4ade80] underline">Install Hiro Wallet</a>
+                    {' '}(free browser extension, 1-minute setup). After installing, refresh and connect to sign the free registration transaction.
+                  </div>
+                )}
+                {mode === 'quick' && walletInstalled && !walletConnected && (
+                  <p className="text-xs text-yellow-400">Click "Connect Wallet" in the header, then come back here to register.</p>
                 )}
               </div>
             </div>

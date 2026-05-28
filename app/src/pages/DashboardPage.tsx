@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const activeUser = currentUser || user;
+  const activeUser = user || currentUser;
 
   const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(activeUser?.address || '');
   const { contributions, refresh: refreshContributions } = useBackerContributions(activeUser?.address || '');

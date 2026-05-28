@@ -15,7 +15,7 @@ import type { CampaignContribution, FeedEvent } from '../types';
 export default function WalletPage() {
   const { currentUser } = useDemoMode();
   const { user } = useAuth();
-  const activeUser = currentUser || user;
+  const activeUser = user || currentUser;
   const [showFund, setShowFund] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);

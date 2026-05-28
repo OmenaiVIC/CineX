@@ -116,12 +116,12 @@ router.get('/:address/portfolio', async (req, res, next) => {
 router.post('/:address/portfolio', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
-    const { title, description, category, role, year, mediaUrls, awards } = req.body;
+    const { title, description, category, role, year, mediaUrls, awards, thumbnailUrl } = req.body;
     if (!title) { db.release(); return res.status(400).json({ error: 'title required' }); }
     const created = await db.run(`
-      INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    `, [req.params.address, title, description, category, role, year, JSON.stringify(mediaUrls || []), JSON.stringify(awards || [])]);
+      INSERT INTO portfolio_items (address, title, description, category, role, year, media_urls, awards, thumbnail_url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `, [req.params.address, title, description, category, role, year, JSON.stringify(mediaUrls || []), JSON.stringify(awards || []), thumbnailUrl || null]);
     let chainResult = null;
     try {
       chainResult = await contractService.addPortfolio(
@@ -148,15 +148,15 @@ router.put('/:address/portfolio/:id', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
-    const { title, description, category, role, year, mediaUrls, awards } = req.body;
+    const { title, description, category, role, year, mediaUrls, awards, thumbnailUrl } = req.body;
     const result = await db.run(`
       UPDATE portfolio_items SET
         title = COALESCE($1, title), description = COALESCE($2, description),
         category = COALESCE($3, category), role = COALESCE($4, role),
         year = COALESCE($5, year), media_urls = COALESCE($6, media_urls),
-        awards = COALESCE($7, awards), updated_at = $8
-      WHERE id = $9 AND address = $10
-    `, [title, description, category, role, year, mediaUrls ? JSON.stringify(mediaUrls) : null, awards ? JSON.stringify(awards) : null, now, req.params.id, req.params.address]);
+        thumbnail_url = COALESCE($7, thumbnail_url), awards = COALESCE($8, awards), updated_at = $9
+      WHERE id = $10 AND address = $11
+    `, [title, description, category, role, year, mediaUrls ? JSON.stringify(mediaUrls) : null, thumbnailUrl || null, awards ? JSON.stringify(awards) : null, now, req.params.id, req.params.address]);
     if (result.changes === 0) { db.release(); return res.status(404).json({ error: 'Portfolio item not found' }); }
     const updated = await db.get('SELECT * FROM portfolio_items WHERE id = $1', [req.params.id]);
     db.release();

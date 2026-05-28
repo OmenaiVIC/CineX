@@ -114,6 +114,7 @@ export interface PortfolioItem {
   role: string;
   year: number;
   mediaUrls: string[];
+  thumbnailUrl?: string;
   awards?: string[];
   collaborators?: string[];
 }

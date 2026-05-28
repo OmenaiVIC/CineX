@@ -66,6 +66,11 @@ export default function PortfolioSection({ address, isOwnProfile }: PortfolioSec
           {items.map(item => (
             <Card key={item.id} variant="light" padding="small">
               <div className="flex flex-col h-full">
+                {item.thumbnailUrl && (
+                  <div className="w-full h-36 rounded-lg overflow-hidden mb-3 -mx-1 -mt-1">
+                    <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm font-semibold text-white truncate">{item.title}</h4>

@@ -11,6 +11,7 @@ function toItem(m: Record<string, unknown>): PortfolioItem {
     role: String(m.role || ''),
     year: Number(m.year || new Date().getFullYear()),
     mediaUrls: Array.isArray(m.mediaUrls) ? m.mediaUrls : [],
+    thumbnailUrl: m.thumbnailUrl ? String(m.thumbnailUrl) : undefined,
     awards: Array.isArray(m.awards) ? m.awards : undefined,
   };
 }
@@ -30,6 +31,7 @@ export async function createPortfolioItem(item: Omit<PortfolioItem, 'id'>): Prom
     role: item.role,
     year: item.year,
     mediaUrls: item.mediaUrls || [],
+    thumbnailUrl: item.thumbnailUrl || '',
     awards: item.awards || [],
   });
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to create portfolio item' };
@@ -44,6 +46,7 @@ export async function updatePortfolioItem(id: string, updates: Partial<Portfolio
   if (updates.role !== undefined) body.role = updates.role;
   if (updates.year !== undefined) body.year = updates.year;
   if (updates.mediaUrls !== undefined) body.mediaUrls = updates.mediaUrls;
+  if (updates.thumbnailUrl !== undefined) body.thumbnailUrl = updates.thumbnailUrl;
   if (updates.awards !== undefined) body.awards = updates.awards;
   const res = await api.put<Record<string, unknown>>(`/profiles/${address}/portfolio/${id}`, body);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Portfolio item not found' };

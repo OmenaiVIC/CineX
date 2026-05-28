@@ -71,6 +71,7 @@ export async function initDb() {
   db.exec('PRAGMA journal_mode=WAL');
   db.exec('PRAGMA foreign_keys=ON');
   execSchema();
+  try { db.exec('ALTER TABLE portfolio_items ADD COLUMN thumbnail_url TEXT'); } catch (_) {}
   _initialized = true;
   console.log('✅ SQLite database ready (fallback)');
 }
@@ -95,7 +96,7 @@ function execSchema() {
     CREATE TABLE IF NOT EXISTS portfolio_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT, address TEXT NOT NULL REFERENCES profiles(address) ON DELETE CASCADE,
       title TEXT NOT NULL, description TEXT, category TEXT, role TEXT, year INTEGER,
-      media_urls TEXT DEFAULT '[]', awards TEXT DEFAULT '[]',
+      media_urls TEXT DEFAULT '[]', awards TEXT DEFAULT '[]', thumbnail_url TEXT,
       created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch())
     );
     CREATE TABLE IF NOT EXISTS ratings (

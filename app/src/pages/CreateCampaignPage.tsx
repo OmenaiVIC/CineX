@@ -16,7 +16,7 @@ const CATEGORIES: Campaign['category'][] = ['short-film', 'feature', 'documentar
 export default function CreateCampaignPage() {
   const { currentUser } = useDemoMode();
   const { user } = useAuth();
-  const activeUser = currentUser || user;
+  const activeUser = user || currentUser;
   const navigate = useNavigate();
   const tx = useTxModal();
 

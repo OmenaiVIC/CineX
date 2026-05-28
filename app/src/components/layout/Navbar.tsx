@@ -61,6 +61,7 @@ export default function Navbar() {
   }
 
   const links = [
+    { path: '/', label: 'Home' },
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/explore', label: 'Explore' },
     { path: '/wallet', label: 'Wallet' },
