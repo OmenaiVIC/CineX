@@ -18,6 +18,7 @@ export default function WalletPage() {
   const activeUser = currentUser || user;
   const [showFund, setShowFund] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
 
   const txHistory = useMemo(() => {
     if (!activeUser) return [];
@@ -56,6 +57,7 @@ export default function WalletPage() {
             address={activeUser.address!}
             onFund={() => setShowFund(true)}
             onSend={() => {}}
+            refreshKey={balanceRefreshKey}
           />
           <CurrencyConverter />
         </div>
@@ -72,7 +74,7 @@ export default function WalletPage() {
         isOpen={showFund}
         address={activeUser.address!}
         onClose={() => setShowFund(false)}
-        onSuccess={() => setRefreshKey(k => k + 1)}
+        onSuccess={() => { setRefreshKey(k => k + 1); setBalanceRefreshKey(k => k + 1); }}
       />
     </div>
   );

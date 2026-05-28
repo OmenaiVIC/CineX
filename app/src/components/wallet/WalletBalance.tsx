@@ -8,9 +8,10 @@ interface Props {
   address: string;
   onFund?: () => void;
   onSend?: () => void;
+  refreshKey?: number;
 }
 
-export default function WalletBalance({ address, onFund, onSend }: Props) {
+export default function WalletBalance({ address, onFund, onSend, refreshKey }: Props) {
   const [balance, setBalance] = useState<WalletBalanceType | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +22,7 @@ export default function WalletBalance({ address, onFund, onSend }: Props) {
     setLoading(false);
   }, [address]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh, refreshKey]);
 
   if (loading) {
     return (

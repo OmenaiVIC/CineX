@@ -35,7 +35,7 @@ export default function CreateCampaignPage() {
     );
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !description.trim() || !targetAmount || !deadline) {
       tx.fail('Please fill in all required fields');
       return;
@@ -56,8 +56,8 @@ export default function CreateCampaignPage() {
     const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
 
     tx.open('Creating Campaign', `Launching "${title}"`);
-    setTimeout(() => {
-      const res = createCampaign(
+    setTimeout(async () => {
+      const res = await createCampaign(
         { title: title.trim(), description: description.trim(), targetAmount: target.toString(), deadline: deadlineMs, category, tags: tagList },
         activeUser.address!
       );

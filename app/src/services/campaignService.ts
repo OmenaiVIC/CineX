@@ -19,10 +19,10 @@ export async function createCampaign(params: CreateCampaignParams, creator: stri
     title: params.title,
     description: params.description,
     creator,
-    targetAmount: params.targetAmount,
+    target_amount: params.targetAmount,
     deadline: params.deadline,
     category: params.category,
-    mediaUrls: params.mediaUrls,
+    media_urls: params.mediaUrls,
     tags: params.tags,
   });
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to create campaign' };

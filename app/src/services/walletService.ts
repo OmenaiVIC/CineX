@@ -68,9 +68,10 @@ export async function depositToWallet(address: string, amount: number, currency:
   else body.amount_sbtc = String(amount);
   body.currency = currency;
   const res = await api.post<{ transaction: { reference: string; id: number } }>('/wallets/deposit', body);
-  if (res.success && res.data?.transaction?.reference) {
-    const ref = res.data.transaction.reference;
-    await confirmDeposit(ref);
+  if (!res.success) return { success: false, error: res.error || 'Deposit failed' };
+  if (res.data?.transaction?.reference) {
+    const confirmRes = await confirmDeposit(res.data.transaction.reference);
+    if (!confirmRes.success) return { success: false, error: confirmRes.error || 'Deposit confirmation failed' };
   }
   return getWalletBalance(address);
 }

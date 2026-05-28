@@ -101,7 +101,12 @@ export default function BackerDashboard({
                       <div className="h-full bg-[#4ade80] rounded-full transition-all" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Your contribution: ₦{userTotal.toLocaleString()}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <p className="text-xs text-gray-600">Your contribution: ₦{userTotal.toLocaleString()}</p>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                      Yield: On-chain
+                    </span>
+                  </div>
                 </div>
               </div>
             </Card>

@@ -473,8 +473,8 @@ async function endorseMilestone(campaignId, milestoneIndex, vote) {
 }
 
 async function finalizeMilestone(campaignId, milestoneIndex) {
-  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
-  const pk = _wallets.creator.privateKey;
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
   const txHash = await callContract(pk, 'milestone-verification', 'finalize-milestone', [
     uintCV(campaignId),
     uintCV(milestoneIndex),
@@ -482,17 +482,65 @@ async function finalizeMilestone(campaignId, milestoneIndex) {
   return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
 }
 
-async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
-  const pk = _wallets?.creator?.privateKey;
-  if (!pk) throw new Error('CREATOR_KEY not configured');
-  const txHash = await callContract(pk, 'project-verification-module', 'emergency-verify-creator', [
-    standardPrincipalCV(creatorAddress),
-    uintCV(expirationBlock),
+async function getCampaignContributions(campaignId, contributor) {
+  return await readOnlyCall('campaign-module-2', 'get-campaign-contributions', [
+    uintCV(campaignId),
+    standardPrincipalCV(contributor),
   ]);
-  return {
-    tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
-  };
+}
+
+async function getYieldPool(campaignId) {
+  return await readOnlyCall('yield-escrow', 'get-yield-pool', [uintCV(campaignId)]);
+}
+
+async function claimBackerYield(campaignId) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'yield-escrow', 'claim-backer-yield', [uintCV(campaignId)]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function claimCreatorBonus(campaignId) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'yield-escrow', 'claim-creator-bonus', [uintCV(campaignId)]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+export {
+  init,
+  getNetwork,
+  getState,
+  testBroadcast,
+  getTxStatus,
+  createCampaignInEscrow,
+  createCampaignInModule,
+  contribute,
+  getCampaignFromEscrow,
+  getCampaignFromModule,
+  getTotalRaised,
+  getEscrowCampaign,
+  getEscrowBalance,
+  getMilestoneState,
+  getCampaignModuleCampaign,
+  emergencyVerifyCreator,
+  isCreatorCurrentlyVerified,
+  getCreatorFundingCap,
+  getCreatorIdentity,
+  depositToEscrow,
+  addPortfolio,
+  getPortfolio,
+  rateUser,
+  getAverageRating,
+  createMilestones,
+  submitMilestone,
+  endorseMilestone,
+  finalizeMilestone,
+  getCampaignContributions,
+  getYieldPool,
+  claimBackerYield,
+  claimCreatorBonus,
+};
 }
 
 async function isCreatorCurrentlyVerified(creatorAddress) {

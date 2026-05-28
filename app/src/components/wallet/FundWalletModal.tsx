@@ -3,6 +3,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import TransactionModal, { useTxModal } from '../common/TransactionModal';
 import { depositToWallet } from '../../services/walletService';
+import * as api from '../../services/api';
 
 interface Props {
   isOpen: boolean;
@@ -47,7 +48,7 @@ export default function FundWalletModal({ isOpen, address, onClose, onSuccess }:
   const handleDemoCredit = async () => {
     tx.open('Demo Credit', `Depositing ${DEMO_CREDIT_NGN.toLocaleString()} NGN`);
     setTimeout(async () => {
-      const res = await depositToWallet(address, DEMO_CREDIT_NGN, 'NGN');
+      const res = await api.post<{ message: string; amount: number }>('/wallets/demo-credit', { user_id: address });
       if (res.success) {
         tx.succeed(`tx_demo_${Date.now()}`);
         setTimeout(() => {

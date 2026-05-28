@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import profilesRouter from './routes/profiles.js';
 import userSettingsRouter from './routes/userSettings.js';
 import feedRouter from './routes/feed.js';
@@ -12,14 +15,35 @@ import milestonesRouter from './routes/milestones.js';
 import verificationRouter from './routes/verification.js';
 import authRouter from './routes/auth.js';
 import contactRouter from './routes/contact.js';
+import yieldRouter from './routes/yield.js';
 import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
 import { initEmail } from './services/emailService.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '..', 'uploads'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext));
+  },
+});
 
 app.use(cors({
   origin: [
@@ -41,6 +65,20 @@ app.get('/warmup', (req, res) => {
   res.json({ status: 'ok', message: 'Backend warm' });
 });
 
+app.use('/api/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+app.post('/api/upload', requireAuth, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: err.message });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No file provided' });
+    const url = `${req.protocol}://${req.get('host')}/api/uploads/${req.file.filename}`;
+    res.json({ url, filename: req.file.filename });
+  });
+});
+
 app.use('/api/profiles', profilesRouter);
 app.use('/api/user-settings', userSettingsRouter);
 app.use('/api/feed', feedRouter);
@@ -53,6 +91,7 @@ app.use('/api/milestones', milestonesRouter);
 app.use('/api/verification', verificationRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/contact', contactRouter);
+app.use('/api/yield', yieldRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);

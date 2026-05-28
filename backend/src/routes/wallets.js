@@ -49,6 +49,23 @@ router.post('/preferred-currency', requireAuth, async (req, res, next) => {
   } catch (err) { console.error('Preferred currency error:', err); res.status(500).json({ error: 'Failed to set preferred currency' }); }
 });
 
+router.post('/demo-credit', async (req, res, next) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'user_id required' });
+    let wallet = await walletService.getWallet(user_id);
+    if (!wallet) {
+      wallet = await walletService.createWallet({ userId: user_id, preferredCurrency: 'NGN' });
+    }
+    const deposit = await walletService.recordDeposit(user_id, { amountNaira: 100000, currency: 'NGN' });
+    if (!deposit) return res.status(500).json({ error: 'Failed to record deposit' });
+    const confirmed = await walletService.confirmDeposit(deposit.reference);
+    if (!confirmed) return res.status(500).json({ error: 'Failed to confirm deposit' });
+    const balance = await walletService.getBalance(user_id);
+    res.json({ message: 'Demo credit applied', amount: 100000, balance });
+  } catch (err) { console.error('Demo credit error:', err); res.status(500).json({ error: 'Failed to process demo credit' }); }
+});
+
 router.post('/deposit', requireAuth, async (req, res, next) => {
   try {
     const { user_id, amount_naira, amount_usd, amount_sbtc, currency, tx_id, description } = req.body;

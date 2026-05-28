@@ -61,6 +61,9 @@ export default function DashboardPage() {
   if (role === 'creative') {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
+        <button onClick={() => navigate('/explore')} className="text-sm text-gray-400 hover:text-white mb-4 flex items-center gap-1">
+          ← Explore Campaigns
+        </button>
         {banner}
         <CreatorDashboard
           campaigns={campaigns}
@@ -75,6 +78,9 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <button onClick={() => navigate('/explore')} className="text-sm text-gray-400 hover:text-white mb-4 flex items-center gap-1">
+        ← Explore Campaigns
+      </button>
       {banner}
       <BackerDashboard
         contributions={contributions}

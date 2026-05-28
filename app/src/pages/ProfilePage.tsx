@@ -9,10 +9,11 @@ import TransactionModal, { useTxModal } from '../components/common/TransactionMo
 import { getProfile, updateProfile } from '../services/profileService';
 import { getRatingsForUser, getAverageRating, getRatingBreakdown, addRating } from '../services/reputationService';
 import { getCredibilitySummary, refreshCredibilitySummary } from '../services/aiService';
-import { getCreatorCampaigns } from '../services/campaignService';
+import { getCreatorCampaigns, getBackerContributions } from '../services/campaignService';
 import { addFeedEvent } from '../services/feedService';
+import { API_BASE } from '../services/api';
 import PortfolioSection from '../components/portfolio/PortfolioSection';
-import type { Profile, Rating, CredibilitySummary, Campaign } from '../types';
+import type { Profile, Rating, CredibilitySummary, Campaign, CampaignContribution } from '../types';
 
 function StarRating({ value, onChange, readonly = false }: { value: number; onChange?: (v: number) => void; readonly?: boolean }) {
   return (
@@ -45,11 +46,13 @@ export default function ProfilePage() {
   const [avgRating, setAvgRating] = useState<{ average: number; count: number }>({ average: 0, count: 0 });
   const [breakdown, setBreakdown] = useState<Record<string, { average: number; count: number }>>({});
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [contributions, setContributions] = useState<CampaignContribution[]>([]);
   const [credibility, setCredibility] = useState<CredibilitySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCredibility, setShowCredibility] = useState(false);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [avatarUrlInput, setAvatarUrlInput] = useState('');
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const [newRating, setNewRating] = useState(0);
   const [newReview, setNewReview] = useState('');
@@ -60,21 +63,29 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!address) return;
     setLoading(true);
-    Promise.all([
+    const fetches: Promise<unknown>[] = [
       getProfile(address),
       getRatingsForUser(address),
       getAverageRating(address),
       getRatingBreakdown(address),
-      getCreatorCampaigns(address),
-    ]).then(([p, r, a, b, c]) => {
+    ];
+    if (activeUser?.role === 'creative') {
+      fetches.push(getCreatorCampaigns(address));
+    } else {
+      fetches.push(getBackerContributions(address));
+    }
+    Promise.all(fetches).then(([p, r, a, b, c]) => {
       if (p.success && p.data) setProfile(p.data);
       if (r.success && r.data) setRatings(r.data);
       if (a.success && a.data) setAvgRating(a.data);
       if (b.success && b.data) setBreakdown(b.data);
-      if (c.success && c.data) setCampaigns(c.data);
+      if (c && (c as { success: boolean; data?: Campaign[] }).success) {
+        if (activeUser?.role === 'creative') setCampaigns((c as { data: Campaign[] }).data || []);
+        else setContributions((c as { data: CampaignContribution[] }).data || []);
+      }
       setLoading(false);
     });
-  }, [address]);
+  }, [address, activeUser?.role]);
 
   const handleSubmitRating = async () => {
     if (!activeUser || !address || newRating === 0) return;
@@ -136,26 +147,60 @@ export default function ProfilePage() {
               {isOwnProfile && (
                 <div className="mb-2">
                   {showAvatarEditor ? (
-                    <div className="flex gap-1 items-center">
-                      <input
-                        value={avatarUrlInput}
-                        onChange={e => setAvatarUrlInput(e.target.value)}
-                        placeholder="https://example.com/avatar.jpg"
-                        className="flex-1 px-2 py-1 text-xs bg-black border border-gray-800 rounded text-white placeholder-gray-500"
-                      />
-                      <button
-                        onClick={async () => {
-                          if (avatarUrlInput.trim()) {
-                            await updateProfile(profile.address, { avatarUrl: avatarUrlInput.trim() });
-                            setProfile(prev => prev ? { ...prev, avatarUrl: avatarUrlInput.trim() } : prev);
-                          }
-                          setShowAvatarEditor(false);
-                        }}
-                        className="text-xs text-[#4ade80] hover:underline"
-                      >
-                        Save
-                      </button>
-                      <button onClick={() => setShowAvatarEditor(false)} className="text-xs text-gray-500 hover:text-gray-300">✕</button>
+                    <div className="space-y-2">
+                      <div className="flex gap-1 items-center">
+                        <input
+                          value={avatarUrlInput}
+                          onChange={e => setAvatarUrlInput(e.target.value)}
+                          placeholder="https://example.com/avatar.jpg"
+                          className="flex-1 px-2 py-1 text-xs bg-black border border-gray-800 rounded text-white placeholder-gray-500"
+                        />
+                        <button
+                          onClick={async () => {
+                            if (avatarUrlInput.trim()) {
+                              await updateProfile(profile.address, { avatarUrl: avatarUrlInput.trim() });
+                              setProfile(prev => prev ? { ...prev, avatarUrl: avatarUrlInput.trim() } : prev);
+                            }
+                            setShowAvatarEditor(false);
+                          }}
+                          className="text-xs text-[#4ade80] hover:underline"
+                        >
+                          Save
+                        </button>
+                        <button onClick={() => setShowAvatarEditor(false)} className="text-xs text-gray-500 hover:text-gray-300">✕</button>
+                      </div>
+                      <div className="border-t border-gray-800 pt-2">
+                        <label className="block text-xs text-gray-500 mb-1">Or upload a file:</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setAvatarUploading(true);
+                            try {
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              const res = await fetch(`${API_BASE}/upload`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: { Authorization: `Bearer ${localStorage.getItem('cinex_auth_token') || ''}` },
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                await updateProfile(profile.address, { avatarUrl: data.url });
+                                setProfile(prev => prev ? { ...prev, avatarUrl: data.url } : prev);
+                                setShowAvatarEditor(false);
+                              }
+                            } catch (err) {
+                              console.error('Upload failed:', err);
+                            }
+                            setAvatarUploading(false);
+                          }}
+                          className="text-xs text-gray-400 file:mr-2 file:py-1 file:px-3 file:text-xs file:bg-gray-800 file:text-white file:border-0 file:rounded file:cursor-pointer hover:file:bg-gray-700"
+                        />
+                        {avatarUploading && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+                      </div>
                     </div>
                   ) : (
                     <button onClick={() => { setAvatarUrlInput(profile.avatarUrl || ''); setShowAvatarEditor(true); }} className="text-xs text-gray-500 hover:text-gray-300">Edit Avatar</button>
@@ -212,7 +257,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="md:col-span-2 space-y-6">
-          {campaigns.length > 0 && (
+          {activeUser?.role === 'creative' && campaigns.length > 0 && (
             <div>
               <h3 className="text-base font-semibold text-white mb-3">Campaigns</h3>
               <div className="space-y-2">
@@ -234,15 +279,39 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <PortfolioSection address={address} isOwnProfile={isOwnProfile} />
+          {activeUser?.role === 'backer' && contributions.length > 0 && (
+            <div>
+              <h3 className="text-base font-semibold text-white mb-3">Contributions</h3>
+              <div className="space-y-2">
+                {contributions.map((c, i) => (
+                  <Card key={c.txId || i} variant="light" padding="small" className="cursor-pointer hover:border-gray-700" onClick={() => navigate(`/campaign/${c.campaignId}`)}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white">Campaign #{c.campaignId}</p>
+                        <p className="text-xs text-gray-500">₦{Number(c.amount).toLocaleString()} contributed</p>
+                      </div>
+                      <span className="text-xs text-gray-500">{new Date(c.timestamp).toLocaleDateString()}</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {isOwnProfile && (
+          {activeUser?.role === 'creative' && <PortfolioSection address={address} isOwnProfile={isOwnProfile} />}
+
+          {isOwnProfile && activeUser?.role === 'creative' && (
             <Card variant="light" padding="default">
-              <h3 className="text-sm font-semibold text-white mb-2">Creator Verification</h3>
-              <p className="text-xs text-gray-500 mb-3">Get verified to build trust with backers and unlock higher campaign limits. Verification requires a gatekeeper endorsement.</p>
-              <Button variant="outline" size="small" onClick={() => navigate('/verification/apply')}>
-                Apply for Verification
-              </Button>
+              <h3 className="text-sm font-semibold text-white mb-2">Creator Profile</h3>
+              <p className="text-xs text-gray-500 mb-3">Set up your creator profile on-chain to start raising funds. Unverified creators can raise up to 1,000 STX. Apply for verification to unlock higher limits.</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="small" onClick={() => navigate('/verification/apply?mode=quick')}>
+                  Quick Register
+                </Button>
+                <Button variant="outline" size="small" onClick={() => navigate('/verification/apply')}>
+                  Apply for Verification
+                </Button>
+              </div>
             </Card>
           )}
 
