@@ -8,7 +8,7 @@ import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import TransactionModal, { useTxModal } from '../components/common/TransactionModal';
 import MilestoneList from '../components/dashboard/MilestoneList';
 import { useCampaign, useCampaignContributions } from '../hooks/useCampaigns';
-import { contributeToCampaign } from '../services/campaignService';
+import { contributeToCampaign, getCampaignChainState } from '../services/campaignService';
 import { getCampaignMilestones } from '../services/milestoneService';
 import { addFeedEvent } from '../services/feedService';
 import type { Milestone } from '../types';
@@ -24,12 +24,20 @@ export default function CampaignPage() {
 
   const [contributeAmount, setContributeAmount] = useState('');
   const [contributeMessage, setContributeMessage] = useState('');
+  const [lastChainUrl, setLastChainUrl] = useState<string | null>(null);
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [chainState, setChainState] = useState<{ escrow: Record<string, unknown>; module: Record<string, unknown> } | null>(null);
+  const [chainStateLoading, setChainStateLoading] = useState(false);
   useEffect(() => {
     if (!id) return;
     getCampaignMilestones(id).then(res => {
       if (res.success && res.data) setMilestones(res.data);
+    });
+    setChainStateLoading(true);
+    getCampaignChainState(id).then(res => {
+      if (res.success && res.data) setChainState(res.data as unknown as { escrow: Record<string, unknown>; module: Record<string, unknown> });
+      setChainStateLoading(false);
     });
   }, [id]);
 
@@ -43,11 +51,14 @@ export default function CampaignPage() {
       const res = await contributeToCampaign({ campaignId: id, amount: amt.toString(), message: contributeMessage }, currentUser.address);
       if (res.success) {
         addFeedEvent('campaign_funded', currentUser.address, `Contributed ₦${amt.toLocaleString()} to ${campaign?.title}`, id);
-        tx.succeed(res.transactionId);
+        const chainUrl = (res as { chainUrl?: string }).chainUrl || undefined;
+        setLastChainUrl(chainUrl || null);
+        tx.succeed(res.transactionId || 'tx_success', chainUrl);
         setTimeout(() => {
           tx.close();
           setContributeAmount('');
           setContributeMessage('');
+          setLastChainUrl(null);
           refreshCampaign();
           refreshContributions();
         }, 1000);
@@ -192,6 +203,36 @@ export default function CampaignPage() {
             </div>
           </Card>
 
+          <Card variant="light" padding="default">
+            <h3 className="text-sm font-semibold text-white mb-2">On-Chain Status</h3>
+            {chainStateLoading ? (
+              <p className="text-xs text-gray-500">Loading...</p>
+            ) : chainState?.escrow ? (
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Escrow</span>
+                  <span className="text-[#4ade80]">Active</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Module</span>
+                  <span className={chainState.module ? 'text-[#4ade80]' : 'text-gray-500'}>
+                    {chainState.module ? 'Synced' : 'Off-chain'}
+                  </span>
+                </div>
+                <a
+                  href={`https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow?chain=testnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-blue-400 hover:text-blue-300 mt-1"
+                >
+                  View Escrow Contract ↗
+                </a>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500">Not on chain</p>
+            )}
+          </Card>
+
           {contributions.length > 0 && (
             <Card variant="light" padding="default">
               <h3 className="text-sm font-semibold text-white mb-2">Recent Backers</h3>
@@ -214,6 +255,7 @@ export default function CampaignPage() {
         title={tx.title}
         description={tx.description}
         txId={tx.txId}
+        chainUrl={tx.chainUrl}
         error={tx.error}
         onClose={() => tx.close()}
         onRetry={handleContribute}

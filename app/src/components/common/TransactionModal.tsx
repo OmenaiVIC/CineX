@@ -8,12 +8,13 @@ interface TransactionModalProps {
   title: string;
   description?: string;
   txId?: string;
+  chainUrl?: string;
   error?: string;
   onClose: () => void;
   onRetry?: () => void;
 }
 
-export default function TransactionModal({ isOpen, state, title, description, txId, error, onClose, onRetry }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, state, title, description, txId, chainUrl, error, onClose, onRetry }: TransactionModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -36,7 +37,12 @@ export default function TransactionModal({ isOpen, state, title, description, tx
             <h3 className="text-lg font-semibold text-white mb-2">Transaction Confirmed</h3>
             {description && <p className="text-sm text-gray-400 mb-3">{description}</p>}
             {txId && (
-              <p className="text-xs text-gray-500 font-mono break-all mb-4">Tx: {txId.slice(0, 20)}...{txId.slice(-8)}</p>
+              <p className="text-xs text-gray-500 font-mono break-all mb-2">Tx: {txId.slice(0, 20)}...{txId.slice(-8)}</p>
+            )}
+            {chainUrl && (
+              <a href={chainUrl} target="_blank" rel="noopener noreferrer" className="block text-xs text-blue-400 hover:text-blue-300 mb-4">
+                View on Explorer ↗
+              </a>
             )}
             <button onClick={onClose} className="px-6 py-2 bg-green-400 text-black rounded-full text-sm font-medium hover:bg-green-500 transition-colors">Done</button>
           </div>
@@ -66,6 +72,7 @@ export function useTxModal() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [txId, setTxId] = useState<string | undefined>();
+  const [chainUrl, setChainUrl] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
 
   const open = (t: string, desc?: string) => {
@@ -73,13 +80,15 @@ export function useTxModal() {
     setDescription(desc || '');
     setState('loading');
     setTxId(undefined);
+    setChainUrl(undefined);
     setError(undefined);
     setIsOpen(true);
   };
 
-  const succeed = (id?: string) => {
+  const succeed = (id?: string, url?: string) => {
     setState('success');
     if (id) setTxId(id);
+    if (url) setChainUrl(url);
   };
 
   const fail = (err: string) => {
@@ -92,5 +101,5 @@ export function useTxModal() {
     setState('idle');
   };
 
-  return { isOpen, state, title, description, txId, error, open, succeed, fail, close };
+  return { isOpen, state, title, description, txId, chainUrl, error, open, succeed, fail, close };
 }

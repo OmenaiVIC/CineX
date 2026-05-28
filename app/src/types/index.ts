@@ -49,6 +49,7 @@ export interface CampaignContribution {
   timestamp: number;
   txId: string;
   message?: string;
+  chainUrl?: string;
 }
 
 export interface EscrowDeposit {

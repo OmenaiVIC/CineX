@@ -38,10 +38,49 @@
 - Devnet backend runs on port **3001**.
 - Run `clarinet check` before any test run.
 
+## On-Chain Bridge (Backend Proxy Pattern)
+
+The backend uses `CREATOR_KEY` and `BACKER_KEY` env var private keys to broadcast smart contract txs as a proxy for Web2 users. All mutation endpoints follow a **dual-write** pattern: write to SQLite first, then broadcast on-chain (wrapped in try/catch — chain failure never blocks the Web2 flow).
+
+### contractService Functions (31 exports)
+
+| Area | Functions | On-Chain Call |
+|---|---|---|
+| **Wallet/Keys** | `init`, `getNetwork`, `getState`, `testBroadcast`, `getTxStatus` | — |
+| **Campaign** | `createCampaignInEscrow`, `createCampaignInModule`, `contribute`, `getCampaignFromEscrow`, `getCampaignFromModule`, `getTotalRaised` | `milestone-escrow.create-campaign`, `campaign-module-2.create-campaign`, `campaign-module-2.contribute-to-campaign` |
+| **Escrow** | `depositToEscrow`, `getEscrowCampaign`, `getEscrowBalance`, `getMilestoneState` | `milestone-escrow.deposit`, `milestone-escrow.get-campaign` |
+| **Milestone** | `submitProof`, `approve`, `release`, `createMilestones`, `submitMilestone`, `endorseMilestone`, `finalizeMilestone` | `milestone-escrow.submit-milestone-proof`/`approve-milestone`/`release-milestone-funds`, `milestone-verification.create-milestones`/`submit-milestone`/`endorse-milestone`/`finalize-milestone` |
+| **Verification** | `emergencyVerifyCreator`, `isCreatorCurrentlyVerified`, `getCreatorFundingCap`, `getCreatorIdentity` | `project-verification-module.emergency-verify-creator`/`is-creator-currently-verified`/`get-verification-funding-cap`/`get-creator-identity` |
+| **Portfolio** | `addPortfolio`, `getPortfolio` | `project-verification-module.add-portfolio`/`get-portfolio` |
+| **Reputation** | `rateUser`, `getAverageRating` | `reputation.rate-user`/`get-average-rating` |
+
+### Read-Only Calls
+
+Use `readOnlyCall()` not `readContract()` — the latter is undefined.
+Pattern: `await readOnlyCall(contractName, functionName, [args...])`
+
+### Wired Backend Routes
+
+- `POST /api/campaigns` → DB insert + `createCampaignInModule`
+- `POST /api/campaigns/:id/contribute` → DB insert + `contribute`
+- `GET /api/campaigns/:id/chain-state` → chain reads (escrow + module)
+- `POST /api/profiles/:address/portfolio` → DB insert + `addPortfolio`
+- `POST /api/profiles/:address/ratings` → DB insert + `rateUser`
+- `POST /api/milestones` → DB insert + `createMilestones`
+- `PUT /api/milestones/:id/status` (→active) → DB update + `submitMilestone`
+- `PUT /api/milestones/:id/status` (→completed) → DB update + `finalizeMilestone`
+- `POST /api/milestones/:id/vote` → DB insert + `endorseMilestone`
+
+## Deployment
+
+- **Vercel**: Root `vercel.json` sets `rootDirectory: "app"`. SPA rewrites in `app/vercel.json`.
+- **Render**: Connected to GitHub repo; auto-deploys on push to `main`.
+- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`.
+
 ## Testing
 
 - **Vitest** with `@hirosystems/clarinet-sdk`.
-- **50 total tests**: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22).
+- **227 tests** across 11 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), plus 9 individual contract test files.
 - `integration.test.ts` has 5 flows: create+contribute → milestone-escrow wrappers → milestone-verification lifecycle → claim → edge cases.
 - `createLinkedCampaigns()` helper creates campaign in both `milestone-escrow` (user-specified id) and `campaign-module` (auto-incremented).
 - Rendezvous fuzzing: `node scripts/run-rv-for-all.js` runs property tests on all contracts; requires `.tests.clar` stubs in `contracts/`.

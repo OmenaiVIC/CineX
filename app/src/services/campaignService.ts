@@ -48,12 +48,13 @@ export async function getCampaignContributions(campaignId: string): Promise<Serv
 }
 
 export async function contributeToCampaign(params: ContributeToCampaignParams, contributor: string): Promise<ServiceResponse<CampaignContribution>> {
-  const res = await api.post<{ txId: string }>(`/campaigns/${params.campaignId}/contribute`, {
+  const res = await api.post<{ txId: string; chain?: { explorer_url: string } }>(`/campaigns/${params.campaignId}/contribute`, {
     contributor,
     amount: params.amount,
     message: params.message,
   });
   if (!res.success || !res.data) return { success: false, error: res.error || 'Contribution failed' };
+  const chainUrl = res.data.chain?.explorer_url;
   const contribution: CampaignContribution = {
     campaignId: params.campaignId,
     contributor,
@@ -61,8 +62,9 @@ export async function contributeToCampaign(params: ContributeToCampaignParams, c
     timestamp: Date.now(),
     txId: res.data.txId,
     message: params.message,
+    chainUrl,
   };
-  return { success: true, data: contribution, transactionId: res.data.txId };
+  return { success: true, data: contribution, transactionId: res.data.txId, chainUrl };
 }
 
 export async function getTotalFundsRaised(): Promise<ServiceResponse<string>> {
@@ -75,6 +77,12 @@ export async function getActiveCampaignCount(): Promise<ServiceResponse<number>>
   const res = await api.get<{ count: number }>('/campaigns/active-count');
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch count' };
   return { success: true, data: res.data.count };
+}
+
+export async function getCampaignChainState(id: string): Promise<ServiceResponse<{ escrow: unknown; module: unknown }>> {
+  const res = await api.get<{ escrow: unknown; module: unknown }>(`/campaigns/${id}/chain-state`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch chain state' };
+  return { success: true, data: res.data };
 }
 
 export async function getTotalContributedByUser(address: string): Promise<ServiceResponse<string>> {
