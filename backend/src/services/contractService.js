@@ -345,6 +345,40 @@ async function getTotalRaised(campaignId) {
   return 0;
 }
 
+async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
+  const pk = _wallets?.creator?.privateKey;
+  if (!pk) throw new Error('CREATOR_KEY not configured');
+  const txHash = await callContract(pk, 'project-verification-module', 'emergency-verify-creator', [
+    standardPrincipalCV(creatorAddress),
+    uintCV(expirationBlock),
+  ]);
+  return {
+    tx_hash: txHash,
+    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+  };
+}
+
+async function isCreatorCurrentlyVerified(creatorAddress) {
+  const data = await readOnlyCall('project-verification-module', 'is-creator-currently-verified', [
+    standardPrincipalCV(creatorAddress),
+  ]);
+  return data;
+}
+
+async function getCreatorFundingCap(creatorAddress) {
+  const data = await readOnlyCall('project-verification-module', 'get-verification-funding-cap', [
+    standardPrincipalCV(creatorAddress),
+  ]);
+  return data;
+}
+
+async function getCreatorIdentity(creatorAddress) {
+  const data = await readOnlyCall('project-verification-module', 'get-creator-identity', [
+    standardPrincipalCV(creatorAddress),
+  ]);
+  return data;
+}
+
 export default {
   init,
   getNetwork,
@@ -360,4 +394,8 @@ export default {
   getEscrowBalance,
   getMilestoneState,
   getTotalRaised,
+  emergencyVerifyCreator,
+  isCreatorCurrentlyVerified,
+  getCreatorFundingCap,
+  getCreatorIdentity,
 };

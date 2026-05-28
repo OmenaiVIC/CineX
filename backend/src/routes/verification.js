@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
 import { requireAuth } from '../middleware/auth.js';
+import contractService from '../services/contractService.js';
 
 const router = Router();
 
@@ -67,6 +68,7 @@ router.post('/:id/review', requireAuth, async (req, res, next) => {
     const app = await db.get('SELECT * FROM verification_applications WHERE id = $1', [req.params.id]);
     if (!app) { db.release(); return res.status(404).json({ error: 'Application not found' }); }
     const now = Math.floor(Date.now() / 1000);
+    let onchainTx = null;
     if (approved) {
       await db.run('UPDATE verification_applications SET status = $1, reviewed_at = $2, reviewer = $3, updated_at = $2 WHERE id = $4',
         ['approved', now, reviewer, req.params.id]);
@@ -75,13 +77,49 @@ router.post('/:id/review', requireAuth, async (req, res, next) => {
         VALUES ($1, $2, $3, $4, $5, $6, $7, 75, 0, '0')
         ON CONFLICT(address) DO UPDATE SET name = $2, bio = $3, portfolio_url = $4, previous_works = $5, social_media = $6, verified_at = $7
       `, [app.applicant, app.name, app.bio || '', app.portfolio_url || '', app.previous_works, app.social_media, now]);
+
+      // Attempt on-chain verification via emergency-verify-creator
+      try {
+        const expirationBlock = now + 52560 * 2; // ~2 years
+        onchainTx = await contractService.emergencyVerifyCreator(app.applicant, expirationBlock);
+      } catch (onchainErr) {
+        console.warn('[verification] on-chain verify failed (user may need to register first):', onchainErr.message);
+      }
     } else {
       await db.run('UPDATE verification_applications SET status = $1, reviewed_at = $2, reviewer = $3, rejection_reason = $4, updated_at = $2 WHERE id = $5',
         ['rejected', now, reviewer, rejection_reason || null, req.params.id]);
     }
     const updated = await db.get('SELECT * FROM verification_applications WHERE id = $1', [req.params.id]);
     db.release();
-    res.json(updated);
+    res.json({ ...updated, onchainTx });
+  } catch (err) { next(err); }
+});
+
+// GET /verification/onchain-status/:address — check on-chain verification state
+router.get('/onchain-status/:address', async (req, res, next) => {
+  try {
+    const [identityData, verifiedData, capData] = await Promise.all([
+      contractService.getCreatorIdentity(req.params.address).catch(() => null),
+      contractService.isCreatorCurrentlyVerified(req.params.address).catch(() => null),
+      contractService.getCreatorFundingCap(req.params.address).catch(() => null),
+    ]);
+    res.json({
+      identity: identityData,
+      verified: verifiedData,
+      fundingCap: capData,
+    });
+  } catch (err) { next(err); }
+});
+
+// POST /verification/notify-registered — frontend calls after user registers on-chain via wallet
+router.post('/notify-registered', requireAuth, async (req, res, next) => {
+  try {
+    const { address } = req.body;
+    if (!address) return res.status(400).json({ error: 'address required' });
+    const now = Math.floor(Date.now() / 1000);
+    const expirationBlock = now + 52560 * 2;
+    const result = await contractService.emergencyVerifyCreator(address, expirationBlock);
+    res.json({ status: 'broadcast', ...result });
   } catch (err) { next(err); }
 });
 
