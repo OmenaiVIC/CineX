@@ -12,6 +12,7 @@ import DashboardPage from '../pages/DashboardPage';
 import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
 import ContactPage from '../pages/ContactPage';
+import VerificationPage from '../pages/VerificationPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ export function AppRouter() {
       <Route path="/campaign/new" element={<ProtectedRoute><CreateCampaignPage /></ProtectedRoute>} />
       <Route path="/profile/:address" element={<ProfilePage />} />
       <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+      <Route path="/verification/apply" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
     </Routes>
   );
 }

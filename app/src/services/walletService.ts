@@ -54,21 +54,48 @@ export async function getWalletBalance(address: string): Promise<ServiceResponse
 
 export async function creditWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
   const res = await api.post<{ wallet: BackendWallet }>('/wallets/deposit', {
-    userId: address,
-    amountSbtc: stxAmount,
+    user_id: address,
+    amount_sbtc: stxAmount,
   });
+  if (res.success && res.data?.wallet) return { success: true, data: toBalance(res.data.wallet) };
+  return getWalletBalance(address);
+}
+
+export async function depositToWallet(address: string, amount: number, currency: 'NGN' | 'USD' | 'STX'): Promise<ServiceResponse<WalletBalance>> {
+  const body: Record<string, unknown> = { user_id: address };
+  if (currency === 'NGN') body.amount_naira = amount;
+  else if (currency === 'USD') body.amount_usd = amount;
+  else body.amount_sbtc = String(amount);
+  body.currency = currency;
+  const res = await api.post<{ wallet: BackendWallet }>('/wallets/deposit', body);
   if (res.success && res.data?.wallet) return { success: true, data: toBalance(res.data.wallet) };
   return getWalletBalance(address);
 }
 
 export async function debitWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
   const res = await api.post<{ wallet: BackendWallet }>('/wallets/send', {
-    userId: address,
+    user_id: address,
     amount: parseInt(stxAmount, 10),
-    counterpartyUserId: 'pool',
+    counterparty_user_id: 'pool',
   });
   if (!res.success) return { success: false, error: res.error || 'Insufficient balance' };
   return getWalletBalance(address);
+}
+
+export async function sendFunds(
+  senderAddress: string,
+  recipientId: string,
+  amount: number,
+  currency: 'NGN' | 'USD' | 'STX'
+): Promise<ServiceResponse<WalletBalance>> {
+  const res = await api.post<{ wallet: BackendWallet }>('/wallets/send', {
+    user_id: senderAddress,
+    amount,
+    currency,
+    counterparty_user_id: recipientId,
+  });
+  if (!res.success) return { success: false, error: res.error || 'Transaction failed' };
+  return getWalletBalance(senderAddress);
 }
 
 export async function convertCurrency(

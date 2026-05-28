@@ -17,7 +17,7 @@ export async function createWallet({ userId, email, phone, preferredCurrency }) 
       const updated = await db.get('SELECT * FROM wallets WHERE user_id = $1', [userId]);
       return updated;
     }
-    const result = await db.run('INSERT INTO wallets (user_id, email, phone, preferred_currency, status) VALUES ($1, $2, $3, $4, $5)', [userId, email || null, phone || null, preferredCurrency || 'NGN', 'pending']);
+    const result = await db.run('INSERT INTO wallets (user_id, email, phone, preferred_currency, status) VALUES ($1, $2, $3, $4, $5)', [userId, email || null, phone || null, preferredCurrency || 'NGN', 'active']);
     return result.rows[0] || { user_id: userId };
   } finally { db.release(); }
 }
@@ -115,7 +115,14 @@ export async function recordSend(userId, { amount, currency, counterpartyUserId,
   try {
     const sender = await db.get('SELECT * FROM wallets WHERE user_id = $1', [userId]);
     if (!sender || sender.status !== 'active') return null;
-    const counterparty = counterpartyUserId ? await db.get('SELECT * FROM wallets WHERE user_id = $1', [counterpartyUserId]) : null;
+    let counterparty = null;
+    if (counterpartyUserId) {
+      counterparty = await db.get('SELECT * FROM wallets WHERE user_id = $1', [counterpartyUserId]);
+      if (!counterparty) {
+        const user = await db.get('SELECT id FROM users WHERE email = $1', [counterpartyUserId]);
+        if (user) counterparty = await db.get('SELECT * FROM wallets WHERE user_id = $1', [`email_${user.id}`]);
+      }
+    }
     if (counterpartyUserId && !counterparty) return null;
     const cur = currency || 'NGN';
     if ((cur === 'NGN' && sender.naira_balance < amount) || (cur === 'USD' && sender.usd_balance < amount)) return null;

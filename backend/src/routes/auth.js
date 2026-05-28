@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { getDb } from '../database.js';
 import { requireAuth } from '../middleware/auth.js';
+import * as walletService from '../services/walletService.js';
 
 const router = Router();
 
@@ -14,10 +15,12 @@ const SESSION_DAYS = 30;
 
 router.post('/register', async (req, res, next) => {
   try {
-    const { address, email, password, displayName } = req.body;
+    const { address, email, password, displayName, role } = req.body;
     if ((!address && !email) || !displayName) {
       return res.status(400).json({ error: 'Provide address or email, and display name' });
     }
+
+    const userRole = (role === 'creative' || role === 'backer') ? role : 'creative';
 
     const db = await getDb();
 
@@ -41,7 +44,7 @@ router.post('/register', async (req, res, next) => {
     const result = await db.run(`
       INSERT INTO users (address, email, password_hash, display_name, role, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $6)
-    `, [address || null, email || null, passwordHash, displayName, 'creative', now]);
+    `, [address || null, email || null, passwordHash, displayName, userRole, now]);
 
     const userId = result.lastInsertRowid;
     if (!userId) { db.release(); return res.status(500).json({ error: 'Failed to create user' }); }
@@ -58,10 +61,12 @@ router.post('/register', async (req, res, next) => {
 
     db.release();
 
+    await walletService.createWallet({ userId: profileAddress, email: email || null, preferredCurrency: 'NGN' });
+
     res.status(201).json({
       token,
       expiresAt: expiresAt * 1000,
-      user: { id: userId, address: profileAddress, email: email || null, displayName, role: 'creative' },
+      user: { id: userId, address: profileAddress, email: email || null, displayName, role: userRole },
     });
   } catch (err) { next(err); }
 });
@@ -99,6 +104,8 @@ router.post('/login', async (req, res, next) => {
     db.release();
 
     const userAddress = user.address || (user.email ? `email_${user.id}` : null);
+
+    walletService.createWallet({ userId: userAddress, email: user.email || null, preferredCurrency: 'NGN' }).catch(() => {});
 
     res.json({
       token,

@@ -14,6 +14,7 @@ interface PortfolioSectionProps {
 export default function PortfolioSection({ address, isOwnProfile }: PortfolioSectionProps) {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     getPortfolioForUser(address).then(res => {
@@ -26,6 +27,8 @@ export default function PortfolioSection({ address, isOwnProfile }: PortfolioSec
     if (res.success && res.data) {
       setItems(prev => [res.data!, ...prev]);
       setShowForm(false);
+      setSuccessMsg('Work added to portfolio!');
+      setTimeout(() => setSuccessMsg(''), 3000);
     }
   };
 
@@ -46,6 +49,11 @@ export default function PortfolioSection({ address, isOwnProfile }: PortfolioSec
           </Button>
         )}
       </div>
+      {successMsg && (
+        <div className="mb-3 px-4 py-2 bg-[#4ade80]/10 border border-[#4ade80]/25 rounded-lg text-sm text-[#4ade80] flex items-center gap-2">
+          <span>✓</span> {successMsg}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <Card variant="light" padding="default">

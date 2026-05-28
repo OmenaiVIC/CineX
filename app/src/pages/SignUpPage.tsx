@@ -34,6 +34,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState(initialName);
+  const [role, setRole] = useState<'creative' | 'backer'>('creative');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [connError, setConnError] = useState('');
@@ -61,8 +62,8 @@ export default function SignUpPage() {
 
     setLoading(true);
     const body = tab === 'wallet'
-      ? { address: stacksAddress, displayName: displayName.trim() }
-      : { email: email.trim(), password, displayName: displayName.trim() };
+      ? { address: stacksAddress, displayName: displayName.trim(), role }
+      : { email: email.trim(), password, displayName: displayName.trim(), role };
 
     const res = await api.post<{ token: string; user: { id: number; address: string | null; email: string | null; displayName: string; role: string } }>('/auth/register', body);
     setLoading(false);
@@ -175,6 +176,34 @@ export default function SignUpPage() {
                 onChange={e => setDisplayName(e.target.value)}
                 placeholder="Your name or studio name"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-2">I want to join as</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole('creative')}
+                  className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-all ${
+                    role === 'creative'
+                      ? 'bg-[#4ade80]/20 border-[#4ade80] text-[#4ade80] font-medium'
+                      : 'border-gray-800 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  Creative
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('backer')}
+                  className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-all ${
+                    role === 'backer'
+                      ? 'bg-[#4ade80]/20 border-[#4ade80] text-[#4ade80] font-medium'
+                      : 'border-gray-800 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  Backer
+                </button>
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-400">{error}</p>}

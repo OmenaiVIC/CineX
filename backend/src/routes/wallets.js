@@ -73,7 +73,7 @@ router.post('/send', requireAuth, async (req, res, next) => {
   try {
     const { user_id, amount, currency, counterparty_user_id, description } = req.body;
     if (!user_id || !amount || !counterparty_user_id) return res.status(400).json({ error: 'user_id, amount, and counterparty_user_id required' });
-    const send = await walletService.recordSend(user_id, { amount: parseInt(amount), currency: currency || 'NGN', counterpartyUserId: counterparty_user_id, description });
+    const send = await walletService.recordSend(user_id, { amount: parseFloat(amount), currency: currency || 'NGN', counterpartyUserId: counterparty_user_id, description });
     if (!send) return res.status(400).json({ error: 'Insufficient balance, wallet not active, or recipient not found' });
     res.status(201).json({ transaction: send, message: 'Send pending. Confirm via /api/wallets/confirm-send after on-chain confirmation.' });
   } catch (err) { console.error('Send error:', err); res.status(500).json({ error: 'Failed to process send' }); }

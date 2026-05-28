@@ -6,7 +6,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import TransactionModal, { useTxModal } from '../components/common/TransactionModal';
-import { getProfile } from '../services/profileService';
+import { getProfile, updateProfile } from '../services/profileService';
 import { getRatingsForUser, getAverageRating, getRatingBreakdown, addRating } from '../services/reputationService';
 import { getCredibilitySummary, refreshCredibilitySummary } from '../services/aiService';
 import { getCreatorCampaigns } from '../services/campaignService';
@@ -48,6 +48,8 @@ export default function ProfilePage() {
   const [credibility, setCredibility] = useState<CredibilitySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCredibility, setShowCredibility] = useState(false);
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const [avatarUrlInput, setAvatarUrlInput] = useState('');
 
   const [newRating, setNewRating] = useState(0);
   const [newReview, setNewReview] = useState('');
@@ -124,9 +126,42 @@ export default function ProfilePage() {
         <div className="md:col-span-1 space-y-4">
           <Card variant="light" padding="default">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4ade80] to-[#00e5ff] flex items-center justify-center text-2xl font-bold text-black mx-auto mb-3">
-                {(profile.displayName || '?')[0].toUpperCase()}
-              </div>
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-[#4ade80]/30" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4ade80] to-[#00e5ff] flex items-center justify-center text-2xl font-bold text-black mx-auto mb-3">
+                  {(profile.displayName || '?')[0].toUpperCase()}
+                </div>
+              )}
+              {isOwnProfile && (
+                <div className="mb-2">
+                  {showAvatarEditor ? (
+                    <div className="flex gap-1 items-center">
+                      <input
+                        value={avatarUrlInput}
+                        onChange={e => setAvatarUrlInput(e.target.value)}
+                        placeholder="https://example.com/avatar.jpg"
+                        className="flex-1 px-2 py-1 text-xs bg-black border border-gray-800 rounded text-white placeholder-gray-500"
+                      />
+                      <button
+                        onClick={async () => {
+                          if (avatarUrlInput.trim()) {
+                            await updateProfile(profile.address, { avatarUrl: avatarUrlInput.trim() });
+                            setProfile(prev => prev ? { ...prev, avatarUrl: avatarUrlInput.trim() } : prev);
+                          }
+                          setShowAvatarEditor(false);
+                        }}
+                        className="text-xs text-[#4ade80] hover:underline"
+                      >
+                        Save
+                      </button>
+                      <button onClick={() => setShowAvatarEditor(false)} className="text-xs text-gray-500 hover:text-gray-300">✕</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setAvatarUrlInput(profile.avatarUrl || ''); setShowAvatarEditor(true); }} className="text-xs text-gray-500 hover:text-gray-300">Edit Avatar</button>
+                  )}
+                </div>
+              )}
               <h2 className="text-lg font-bold text-white">{profile.displayName || 'Anonymous'}</h2>
               <p className="text-xs text-gray-500 font-mono mt-1">{profile.address.slice(0, 10)}...{profile.address.slice(-6)}</p>
               {profile.bio && <p className="text-sm text-gray-400 mt-3">{profile.bio}</p>}
@@ -205,7 +240,7 @@ export default function ProfilePage() {
             <Card variant="light" padding="default">
               <h3 className="text-sm font-semibold text-white mb-2">Creator Verification</h3>
               <p className="text-xs text-gray-500 mb-3">Get verified to build trust with backers and unlock higher campaign limits. Verification requires a gatekeeper endorsement.</p>
-              <Button variant="outline" size="small" onClick={() => navigate('/contact')}>
+              <Button variant="outline" size="small" onClick={() => navigate('/verification/apply')}>
                 Apply for Verification
               </Button>
             </Card>
