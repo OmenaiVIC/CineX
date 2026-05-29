@@ -3,8 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {
   makeContractDeploy,
+  broadcastTransaction,
   AnchorMode,
   PostConditionMode,
+  ClarityVersion,
   getAddressFromPrivateKey,
   TransactionVersion,
 } from '@stacks/transactions';
@@ -53,42 +55,14 @@ async function deploy() {
     postConditionMode: PostConditionMode.Allow,
     fee: 50000,
     nonce,
-    clarityVersion: 1,
+    clarityVersion: ClarityVersion.Clarity2,
   });
 
-  const serializedTx = tx.serialize().toString('hex');
-  const broadcastUrl = `${network.coreApiUrl}/v2/transactions`;
-  console.log(`Broadcasting to ${broadcastUrl} (${serializedTx.length} hex chars)...`);
-
-  const broadcastResp = await fetch(broadcastUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: serializedTx,
-  });
-
-  const responseText = await broadcastResp.text();
-  console.log(`Response status: ${broadcastResp.status}`);
-  console.log(`Response body: ${responseText.substring(0, 500)}`);
-
-  if (!broadcastResp.ok) {
-    console.error(`Deploy FAILED: Hiro API ${broadcastResp.status}`);
-    process.exit(1);
-  }
-
-  let result;
-  try {
-    result = JSON.parse(responseText);
-  } catch (e) {
-    if (/^[0-9a-f]{64}$/i.test(responseText.trim())) {
-      result = { txid: responseText.trim() };
-    } else {
-      console.error(`Non-JSON response: ${responseText}`);
-      process.exit(1);
-    }
-  }
+  console.log('Broadcasting transaction...');
+  const result = await broadcastTransaction(tx, network);
 
   if (result.error) {
-    console.error(`Transaction rejected: ${result.reason || result.error}`);
+    console.error(`Transaction rejected: ${result.error}`);
     process.exit(1);
   }
 

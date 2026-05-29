@@ -29,7 +29,6 @@ router.post('/contract', async (req, res, next) => {
       process.env.CREATOR_KEY,
       contractName,
       codeBody,
-      1, // Clarity 2
     );
 
     res.json({

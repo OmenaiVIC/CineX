@@ -1,8 +1,10 @@
 import {
   makeContractCall,
   makeContractDeploy,
+  broadcastTransaction,
   AnchorMode,
   PostConditionMode,
+  ClarityVersion,
   contractPrincipalCV,
   standardPrincipalCV,
   uintCV,
@@ -20,6 +22,7 @@ import { StacksTestnet } from '@stacks/network';
 const API_URL = 'https://api.testnet.hiro.so';
 const EXPLORER_URL = 'https://explorer.hiro.so/txid';
 const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
+const V2_DEPLOYER = 'STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12';
 
 let _initialized = false;
 let _wallets = null;
@@ -98,14 +101,14 @@ function findWalletByKey(privateKey) {
   return null;
 }
 
-async function callContract(privateKey, contractName, functionName, functionArgs) {
+async function callContract(privateKey, contractName, functionName, functionArgs, contractAddress = DEPLOYER) {
   const account = findWalletByKey(privateKey);
   if (!account) throw new Error('Unknown private key');
   const nonce = await ensureNonce(account.address);
   let tx;
   try {
     tx = await makeContractCall({
-      contractAddress: DEPLOYER,
+      contractAddress,
       contractName,
       functionName,
       functionArgs,
@@ -165,9 +168,9 @@ async function callContract(privateKey, contractName, functionName, functionArgs
   return `0x${result.txid}`;
 }
 
-async function readOnlyCall(contractName, functionName, functionArgs) {
+async function readOnlyCall(contractName, functionName, functionArgs, contractAddress = DEPLOYER) {
   const resp = await fetch(
-    `${API_URL}/v2/contracts/call-read/${DEPLOYER}/${contractName}/${functionName}`,
+    `${API_URL}/v2/contracts/call-read/${contractAddress}/${contractName}/${functionName}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -509,7 +512,7 @@ async function proxyRegisterCreator(creatorAddress, fullName, profileUrl, projec
     stringAsciiCV(projectVertical || 'film'),
     uintCV(verificationLevel || 1),
     uintCV(expiration),
-  ]);
+  ], V2_DEPLOYER);
   return {
     tx_hash: txHash,
     explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
@@ -542,48 +545,42 @@ async function claimCreatorBonus(campaignId) {
 }
 
 async function isCreatorCurrentlyVerified(creatorAddress) {
-  // Check v2 first (proxy-registered users), fall back to v1
   try {
     const v2Data = await readOnlyCall('project-verification-module-v2', 'is-creator-currently-verified', [
       standardPrincipalCV(creatorAddress),
-    ]);
+    ], V2_DEPLOYER);
     if (v2Data.okay && v2Data.result) return v2Data;
-  } catch (_) { /* v2 may not exist yet */ }
-  const data = await readOnlyCall('project-verification-module', 'is-creator-currently-verified', [
+  } catch (_) { /* v2 may not exist */ }
+  return readOnlyCall('project-verification-module', 'is-creator-currently-verified', [
     standardPrincipalCV(creatorAddress),
   ]);
-  return data;
 }
 
 async function getCreatorFundingCap(creatorAddress) {
-  // Check v2 first, fall back to v1
   try {
     const v2Data = await readOnlyCall('project-verification-module-v2', 'get-verification-funding-cap', [
       standardPrincipalCV(creatorAddress),
-    ]);
+    ], V2_DEPLOYER);
     if (v2Data.okay && v2Data.result) return v2Data;
-  } catch (_) { /* v2 may not exist yet */ }
-  const data = await readOnlyCall('project-verification-module', 'get-verification-funding-cap', [
+  } catch (_) { /* v2 may not exist */ }
+  return readOnlyCall('project-verification-module', 'get-verification-funding-cap', [
     standardPrincipalCV(creatorAddress),
   ]);
-  return data;
 }
 
 async function getCreatorIdentity(creatorAddress) {
-  // Check v2 first, fall back to v1
   try {
     const v2Data = await readOnlyCall('project-verification-module-v2', 'get-creator-identity', [
       standardPrincipalCV(creatorAddress),
-    ]);
+    ], V2_DEPLOYER);
     if (v2Data.okay && v2Data.result) return v2Data;
-  } catch (_) { /* v2 may not exist yet */ }
-  const data = await readOnlyCall('project-verification-module', 'get-creator-identity', [
+  } catch (_) { /* v2 may not exist */ }
+  return readOnlyCall('project-verification-module', 'get-creator-identity', [
     standardPrincipalCV(creatorAddress),
   ]);
-  return data;
 }
 
-async function deployContract(privateKey, contractName, codeBody, clarityVersion = 1) {
+async function deployContract(privateKey, contractName, codeBody, clarityVersion = ClarityVersion.Clarity2) {
   const account = findWalletByKey(privateKey);
   if (!account) throw new Error('Unknown private key');
   const nonce = await ensureNonce(account.address);
@@ -600,47 +597,17 @@ async function deployContract(privateKey, contractName, codeBody, clarityVersion
     clarityVersion,
   });
 
-  const serializedTx = tx.serialize().toString('hex');
-  const broadcastUrl = `${_network.coreApiUrl}/v2/transactions`;
-  let broadcastResp;
-  try {
-    console.error(`[deployContract] POST ${broadcastUrl} (nonce=${nonce}, ${serializedTx.length} hex chars)`);
-    broadcastResp = await fetch(broadcastUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/octet-stream' },
-      body: serializedTx,
-    });
-  } catch (e) {
-    throw new Error(`broadcast network error: ${e.message}`);
-  }
-
-  const responseText = await broadcastResp.text();
-  console.error(`[deployContract] response status=${broadcastResp.status}, body (first 300): ${responseText.substring(0, 300)}`);
-
-  if (!broadcastResp.ok) {
-    const snippet = responseText.substring(0, 200);
-    throw new Error(`Hiro API ${broadcastResp.status}: ${snippet}`);
-  }
-
-  let result;
-  try {
-    result = JSON.parse(responseText);
-  } catch (e) {
-    if (/^[0-9a-f]{64}$/i.test(responseText.trim())) {
-      result = { txid: responseText.trim() };
-    } else {
-      throw new Error(`broadcast non-JSON response: ${responseText.substring(0, 200)}`);
-    }
-  }
-
+  const result = await broadcastTransaction(tx, _network);
   advanceNonce(account.address);
+
   if (result.error) {
-    throw new Error(`transaction rejected: ${result.reason || result.error}`);
+    throw new Error(`transaction rejected: ${result.error}`);
   }
+  const deployerAddr = getAddressFromPrivateKey(privateKey, TransactionVersion.Testnet);
   return {
     tx_hash: `0x${result.txid}`,
     explorer_url: `${EXPLORER_URL}/${result.txid}?chain=testnet`,
-    contract_id: `${DEPLOYER}.${contractName}`,
+    contract_id: `${deployerAddr}.${contractName}`,
   };
 }
 
