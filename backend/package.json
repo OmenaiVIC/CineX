@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --experimental-sqlite --watch src/index.js",
-    "start": "node --experimental-sqlite src/index.js"
+    "start": "node --experimental-sqlite src/index.js",
+    "deploy:v2": "node scripts/deploy-v2.js"
   },
   "dependencies": {
     "@stacks/network": "^6.17.0",

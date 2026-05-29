@@ -94,7 +94,7 @@ export default function MilestoneList({
     setVoteAction({ mileId, approve });
     tx.open(
       approve ? 'Approving Milestone' : 'Rejecting Milestone',
-      `Your vote weight: ${userContribution} STX`
+      `Your vote weight: ${userContribution} credits`
     );
 
     setTimeout(async () => {

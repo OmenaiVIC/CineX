@@ -111,6 +111,22 @@ router.get('/onchain-status/:address', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /verification/proxy-register — wallet-free Quick Register (backend signs for user)
+router.post('/proxy-register', requireAuth, async (req, res, next) => {
+  try {
+    const { address, name, portfolioUrl, projectVertical, verificationLevel } = req.body;
+    if (!address || !name) return res.status(400).json({ error: 'address and name required' });
+    const chainResult = await contractService.proxyRegisterCreator(
+      address,
+      name,
+      portfolioUrl || '',
+      projectVertical || 'film',
+      verificationLevel || 1,
+    );
+    res.json({ status: 'registered', ...chainResult });
+  } catch (err) { next(err); }
+});
+
 // POST /verification/notify-registered — frontend calls after user registers on-chain via wallet
 router.post('/notify-registered', requireAuth, async (req, res, next) => {
   try {

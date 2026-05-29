@@ -16,7 +16,9 @@ export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const activeUser = user || currentUser;
+  const isDemo = isOnboarded && !isAuthenticated;
+  const activeUser = isDemo ? currentUser : (user || currentUser);
+  const role = isDemo ? (currentUser?.role || 'backer') : (user?.role || currentUser?.role || 'backer');
 
   const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(activeUser?.address || '');
   const { contributions, refresh: refreshContributions } = useBackerContributions(activeUser?.address || '');
@@ -38,10 +40,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const role = activeUser.role;
-
-  const isDemo = isOnboarded && !isAuthenticated;
 
   const banner = isDemo ? (
     <div className="mb-6 bg-gradient-to-r from-[rgba(74,222,128,0.1)] to-[rgba(34,197,94,0.05)] border border-[rgba(74,222,128,0.25)] rounded-xl p-4 flex items-center justify-between gap-4">

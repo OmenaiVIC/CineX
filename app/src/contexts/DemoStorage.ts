@@ -179,13 +179,13 @@ function buildSeedData(): DemoData {
         address: C1,
         summary: 'Chidi Okonkwo has a strong track record of 2 successfully funded campaigns with a 100% milestone completion rate. Rated 4.6/5 across 7 reviews with particular strengths in cinematography (5.0 avg) and storytelling (4.5 avg). Completed "The Last Mangrove" (₦800,000) on time and under budget. Currently running "Echoes of Harmattan" (₦250,000 target) with 75% funded and 3 of 5 milestones delivered ahead of schedule. Model predicts 92% probability of successful delivery based on historical performance.',
         generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0',
-        disclaimer: 'AI-generated summary based on on-chain history and peer ratings. Not financial advice.',
+        disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.',
       },
       {
         address: C2,
         summary: 'Amara Obi is an emerging feature film director with 1 active campaign raising ₦5,000,000 for "Satin Shadows". 5 peer ratings averaging 4.2/5 with outstanding costume design (5.0 avg) and direction (4.5 avg). Milestone 1/5 (Costume Design) completed on schedule. Communication professionalism rated 3.0 — an area for improvement. Model projects 78% probability of campaign success with strong creative execution but recommends improved backer communication.',
         generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0',
-        disclaimer: 'AI-generated summary based on on-chain history and peer ratings. Not financial advice.',
+        disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.',
       },
     ],
 

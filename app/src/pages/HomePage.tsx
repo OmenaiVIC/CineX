@@ -302,7 +302,7 @@ export default function HomePage() {
         <div className="lp-section-inner">
           <div className="lp-label" style={{ textAlign: 'center' }}>How It Works</div>
           <h2 className="lp-title" style={{ textAlign: 'center' }}>Three Steps to Bankable Creativity</h2>
-          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>Plain English. No blockchain jargon. Just a better way to finance creative work.</p>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>Plain English. No technical jargon. Just a better way to finance creative work.</p>
           <div className="lp-how-grid">
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">1</div>
@@ -343,7 +343,7 @@ export default function HomePage() {
               </thead>
               <tbody>
                 <tr><td>Milestone control</td><td><span className="lp-cross">✗</span> Lump-sum</td><td><span className="lp-cross">✗</span> Usually none</td><td><span className="lp-check">✓</span> Staged releases</td></tr>
-                <tr><td>Escrow visibility</td><td>Opaque</td><td>Pseudonymous</td><td><span className="lp-check">✓</span> Transparent, on-chain</td></tr>
+                <tr><td>Escrow visibility</td><td>Opaque</td><td>Pseudonymous</td><td><span className="lp-check">✓</span> Fully transparent</td></tr>
                 <tr><td>Yield on idle capital</td><td><span className="lp-cross">✗</span> None</td><td>Sometimes speculative</td><td><span className="lp-check">✓</span> Productive escrow (70/20/10)</td></tr>
                 <tr><td>Africa‑specific tribes</td><td><span className="lp-cross">✗</span> Ignored</td><td><span className="lp-cross">✗</span> Western-centric</td><td><span className="lp-check">✓</span> Built on gatekeeper trust</td></tr>
                 <tr><td>Admin security</td><td>Centralized</td><td>Variable</td><td><span className="lp-check">✓</span> 2-of-3 multisig + timelock</td></tr>

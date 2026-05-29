@@ -206,6 +206,11 @@ plan:
             path: contracts/module-base.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: project-verification-module-v2
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/project-verification-module-v2.clar
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: yield-escrow-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/yield-escrow-trait.clar

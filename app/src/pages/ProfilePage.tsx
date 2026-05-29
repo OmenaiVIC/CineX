@@ -303,7 +303,7 @@ export default function ProfilePage() {
           {isOwnProfile && activeUser?.role === 'creative' && (
             <Card variant="light" padding="default">
               <h3 className="text-sm font-semibold text-white mb-2">Creator Profile</h3>
-              <p className="text-xs text-gray-500 mb-3">Set up your creator profile on-chain to start raising funds. Unverified creators can raise up to 1,000 STX. Apply for verification to unlock higher limits.</p>
+              <p className="text-xs text-gray-500 mb-3">Set up your creator profile to start raising funds. Unverified creators can raise up to ₦500,000. Apply for verification to unlock higher limits.</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="small" onClick={() => navigate('/verification/apply?mode=quick')}>
                   Quick Register

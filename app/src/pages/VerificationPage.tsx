@@ -27,11 +27,6 @@ const VERTICALS = [
   { value: 'other', label: 'Other' },
 ];
 
-const VERIFICATION_LEVELS = [
-  { value: 1, label: 'Basic (1 year, 1 STX fee)' },
-  { value: 2, label: 'Standard (2 years, 5 STX fee)' },
-];
-
 export default function VerificationPage() {
   const { currentUser } = useDemoMode();
   const { user } = useAuth();
@@ -49,7 +44,6 @@ export default function VerificationPage() {
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [previousWorks, setPreviousWorks] = useState('');
   const [projectVertical, setProjectVertical] = useState('film');
-  const [verificationLevel, setVerificationLevel] = useState(1);
   const [status, setStatus] = useState<{ applied: boolean; verified: boolean; status?: string; onchainVerified?: boolean; hasIdentity?: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [onchainRegistered, setOnchainRegistered] = useState(false);
@@ -75,6 +69,29 @@ export default function VerificationPage() {
   useEffect(() => {
     refreshStatus();
   }, [activeUser?.address]);
+
+  const handleQuickRegister = async () => {
+    if (!activeUser?.address) { tx.fail('You must be logged in'); return; }
+    if (!name.trim()) { tx.fail('Full name is required'); return; }
+
+    tx.open('Registering', 'Setting up your creator profile...');
+    const res = await api.post('/verification/proxy-register', {
+      address: activeUser.address,
+      name: name.trim(),
+      portfolioUrl: portfolioUrl.trim() || '',
+      projectVertical,
+      verificationLevel: 1,
+    });
+    if (res.success) {
+      tx.succeed('registered');
+      setTimeout(() => {
+        tx.close();
+        setStatus({ applied: false, verified: false, status: undefined, onchainVerified: false, hasIdentity: true });
+      }, 1000);
+    } else {
+      tx.fail(res.error || 'Registration failed');
+    }
+  };
 
   const handleApply = async () => {
     if (!activeUser?.address) { tx.fail('You must be logged in'); return; }
@@ -121,7 +138,7 @@ export default function VerificationPage() {
           stringAsciiCV((portfolioUrl || '').slice(0, 255)),
           bufferCV(identityHash),
           stringAsciiCV(projectVertical),
-          uintCV(verificationLevel),
+          uintCV(2),
           uintCV(99999999),
         ],
         appDetails: { name: 'CineX', icon: window.location.origin + '/favicon.ico' },
@@ -129,14 +146,10 @@ export default function VerificationPage() {
           setOnchainTxId(data.txId);
           tx.succeed(data.txId);
           setOnchainRegistered(true);
-          if (mode === 'full') {
-            setTimeout(async () => {
-              await api.post('/verification/notify-registered', { address: walletAddress });
-              refreshStatus();
-            }, 5000);
-          } else {
-            setTimeout(() => refreshStatus(), 5000);
-          }
+          setTimeout(async () => {
+            await api.post('/verification/notify-registered', { address: walletAddress });
+            refreshStatus();
+          }, 5000);
         },
         onCancel: () => {
           tx.fail('Transaction cancelled');
@@ -161,8 +174,8 @@ export default function VerificationPage() {
 
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold text-white">Verification</h1>
-        {mode === 'select' && status?.hasIdentity && !status.onchainVerified && (
-          <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Unverified</span>
+        {status?.hasIdentity && !status.onchainVerified && (
+          <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Profile Created</span>
         )}
         {status?.onchainVerified && (
           <span className="text-xs px-2 py-0.5 rounded bg-[#4ade80]/20 text-[#4ade80]">Verified ✓</span>
@@ -179,8 +192,8 @@ export default function VerificationPage() {
             <div className="w-16 h-16 rounded-full bg-[#4ade80]/20 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">✓</span>
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">Fully Verified (On-Chain)</h2>
-            <p className="text-sm text-gray-400 mb-4">Your identity is verified on the blockchain. You can access higher campaign funding limits.</p>
+            <h2 className="text-lg font-semibold text-white mb-2">Fully Verified</h2>
+            <p className="text-sm text-gray-400 mb-4">Your identity is verified. You can access higher campaign funding limits.</p>
             <Button variant="outline" size="small" onClick={() => navigate(`/profile/${activeUser.address}`)}>View Profile</Button>
           </div>
         </Card>
@@ -190,13 +203,13 @@ export default function VerificationPage() {
             <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl text-blue-400">⟳</span>
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">Creator Profile Registered</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">Creator Profile Created</h2>
             <p className="text-sm text-gray-400 mb-4">
-              Your creator profile is on-chain but unverified. You can create campaigns up to <strong>1,000 STX</strong>.
-              Apply for full verification to unlock higher funding caps.
+              Your creator profile is active. You can create campaigns with the standard funding limit.
+              Apply for verification to unlock higher funding caps.
             </p>
             <Button variant="neon" size="small" onClick={() => setMode('full')}>
-              Apply for Full Verification
+              Apply for Verification
             </Button>
           </div>
         </Card>
@@ -204,8 +217,7 @@ export default function VerificationPage() {
         <>
           <Card variant="light" padding="default" className="mb-4">
             <p className="text-sm text-gray-400 leading-relaxed">
-              Register your creator profile on-chain to start raising funds. Unverified creators can raise up to <strong>1,000 STX</strong>.
-              Apply for full verification to unlock up to <strong>100,000 STX</strong> funding caps.
+              Register as a creator to start raising funds for your projects. No wallet or crypto experience needed.
             </p>
           </Card>
 
@@ -216,7 +228,7 @@ export default function VerificationPage() {
                   <span className="text-xl">⚡</span>
                 </div>
                 <h3 className="text-sm font-semibold text-white mb-2">Quick Register</h3>
-                <p className="text-xs text-gray-500">Register your creator profile on-chain in one step. Start raising up to 1,000 STX immediately.</p>
+                <p className="text-xs text-gray-500">Register as a creator in seconds. Start raising funds immediately. No wallet required.</p>
               </div>
             </Card>
 
@@ -226,30 +238,28 @@ export default function VerificationPage() {
                   <span className="text-xl">✓</span>
                 </div>
                 <h3 className="text-sm font-semibold text-white mb-2">Apply for Verification</h3>
-                <p className="text-xs text-gray-500">Submit an application for admin review. Get verified to unlock up to 100,000 STX funding caps.</p>
+                <p className="text-xs text-gray-500">Submit an application for admin review. Get verified to unlock higher funding caps.</p>
               </div>
             </Card>
           </div>
         </>
-      ) : status?.verified && !onchainRegistered ? (
+      ) : status?.verified && !onchainRegistered && mode === 'full' ? (
         <Card variant="light" padding="default">
           <div className="text-center py-6">
             <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">⏳</span>
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">Approved — Register on Blockchain</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">Approved — Final Step</h2>
             <p className="text-sm text-gray-400 mb-4">
-              {mode === 'quick'
-                ? 'Complete your on-chain registration to activate your creator profile.'
-                : 'Your application is approved. Register your identity on-chain to activate verification and unlock higher funding caps.'}
+              Your application is approved. Complete the on-chain registration to activate your verification.
             </p>
             {!walletInstalled ? (
               <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300 mb-3">
-                No Stacks wallet detected.{' '}
-                <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener noreferrer" className="text-[#4ade80] underline">Install Hiro Wallet</a> to register on-chain.
+                <p className="mb-1 font-medium">Hiro Wallet required for this step</p>
+                <p className="text-xs text-yellow-400">This is a one-time setup to link your identity. <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener noreferrer" className="text-[#4ade80] underline">Install the free Hiro Wallet</a> to continue.</p>
               </div>
             ) : !walletConnected || !walletAddress ? (
-              <p className="text-sm text-gray-500 mb-3">Connect your Stacks wallet to continue.</p>
+              <p className="text-sm text-gray-500 mb-3">Connect your wallet to continue.</p>
             ) : null}
             {onchainTxId && (
               <p className="text-xs text-gray-500 mb-3 break-all">Tx: {onchainTxId}</p>
@@ -260,11 +270,11 @@ export default function VerificationPage() {
               onClick={handleOnchainRegister}
               disabled={!walletConnected || !walletAddress || onchainRegistered}
             >
-              {onchainRegistered ? 'Registered ✓' : 'Register on Blockchain'}
+              {onchainRegistered ? 'Registered ✓' : 'Complete Registration'}
             </Button>
           </div>
         </Card>
-      ) : status?.applied ? (
+      ) : status?.applied && mode === 'full' ? (
         <Card variant="light" padding="default">
           <div className="text-center py-6">
             <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
@@ -279,8 +289,8 @@ export default function VerificationPage() {
           <Card variant="light" padding="default" className="mb-6">
             <p className="text-sm text-gray-400 leading-relaxed">
               {mode === 'quick'
-                ? 'Register your creator profile on the Stacks blockchain. Your profile will start as unverified, allowing you to raise up to 1,000 STX per campaign. You can apply for full verification later.'
-                : 'Get verified to build trust with backers and unlock higher campaign funding limits. Verification requires submitting your identity details for review by our gatekeepers, then registering on the blockchain via your Stacks wallet.'}
+                ? 'Create your creator profile and start raising funds immediately. Your profile will start with standard funding limits — you can apply for higher limits later.'
+                : 'Get verified to build trust with backers and unlock higher campaign funding limits. Submit your identity details for review, then complete a one-time wallet registration.'}
             </p>
           </Card>
 
@@ -291,26 +301,6 @@ export default function VerificationPage() {
                 <button onClick={() => setMode('select')} className="text-xs text-gray-500 hover:text-gray-300">Change mode</button>
               </div>
 
-              {mode === 'quick' && (
-                <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-4 space-y-2">
-                  <p className="text-xs text-blue-300 font-medium">Why is a wallet required?</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    The Stacks blockchain requires your own wallet to sign the creator registration transaction 
-                    (<span className="text-gray-300 font-mono">tx-sender == creator</span> constraint). 
-                    This is a <strong className="text-gray-300">one-time</strong> signature — no STX needed, no gas fees.
-                    After signing, the backend automatically triggers verification. You won't need your wallet again.
-                  </p>
-                  <details className="text-xs text-gray-500">
-                    <summary className="cursor-pointer hover:text-gray-300">Technical detail</summary>
-                    <p className="mt-1 leading-relaxed">
-                      The smart contract enforces that only your wallet address can register your own creator identity. 
-                      This prevents impersonation and ensures the on-chain record is genuinely yours. 
-                      The backend's wallet cannot sign on your behalf due to this constraint — hence the one-time wallet interaction.
-                    </p>
-                  </details>
-                </div>
-              )}
-
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Full Name *</label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="Your legal or stage name" />
@@ -318,7 +308,7 @@ export default function VerificationPage() {
 
               {mode === 'quick' && (
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Project Vertical *</label>
+                  <label className="block text-xs text-gray-400 mb-1">Project Category *</label>
                   <select
                     value={projectVertical}
                     onChange={e => setProjectVertical(e.target.value)}
@@ -363,39 +353,15 @@ export default function VerificationPage() {
               {mode === 'quick' && (
                 <div className="bg-[#4ade80]/5 border border-[#4ade80]/20 rounded-lg p-3">
                   <p className="text-xs text-gray-400">
-                    <span className="text-[#4ade80] font-semibold">Unverified cap:</span> 1,000 STX (≈ $1,000) per campaign.
-                    You can raise funds immediately after registering.
+                    <span className="text-[#4ade80] font-semibold">Get started today:</span> Register once, no wallet needed. You can start raising funds for your first project immediately.
                   </p>
                 </div>
               )}
 
-              {mode === 'quick' && (
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Verification Level</label>
-                  <select
-                    value={verificationLevel}
-                    onChange={e => setVerificationLevel(Number(e.target.value))}
-                    className="w-full px-4 py-3 text-sm text-white bg-transparent border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
-                  >
-                    {VERIFICATION_LEVELS.map(v => <option key={v.value} value={v.value}>{v.label}</option>)}
-                  </select>
-                </div>
-              )}
-
-              <div className="pt-2 space-y-2">
-                <Button variant="neon" onClick={mode === 'quick' ? handleOnchainRegister : handleApply}>
+              <div className="pt-2">
+                <Button variant="neon" onClick={mode === 'quick' ? handleQuickRegister : handleApply} className="w-full">
                   {mode === 'quick' ? 'Register Creator Profile' : 'Submit Application'}
                 </Button>
-                {mode === 'quick' && !walletInstalled && !walletConnected && (
-                  <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300">
-                    No Stacks wallet detected.{' '}
-                    <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener noreferrer" className="text-[#4ade80] underline">Install Hiro Wallet</a>
-                    {' '}(free browser extension, 1-minute setup). After installing, refresh and connect to sign the free registration transaction.
-                  </div>
-                )}
-                {mode === 'quick' && walletInstalled && !walletConnected && (
-                  <p className="text-xs text-yellow-400">Click "Connect Wallet" in the header, then come back here to register.</p>
-                )}
               </div>
             </div>
           </Card>

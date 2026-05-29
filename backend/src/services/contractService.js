@@ -1,5 +1,6 @@
 import {
   makeContractCall,
+  makeContractDeploy,
   AnchorMode,
   PostConditionMode,
   contractPrincipalCV,
@@ -495,6 +496,26 @@ async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
   };
 }
 
+async function proxyRegisterCreator(creatorAddress, fullName, profileUrl, projectVertical, verificationLevel) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const identityHash = Buffer.from(creatorAddress.slice(0, 32), 'utf-8');
+  const expiration = Math.floor(Date.now() / 1000) + 52560 * 2; // ~2 years
+  const txHash = await callContract(pk, 'project-verification-module-v2', 'proxy-register-creator', [
+    standardPrincipalCV(creatorAddress),
+    stringAsciiCV(fullName.slice(0, 100)),
+    stringAsciiCV((profileUrl || '').slice(0, 255)),
+    bufferCV(identityHash),
+    stringAsciiCV(projectVertical || 'film'),
+    uintCV(verificationLevel || 1),
+    uintCV(expiration),
+  ]);
+  return {
+    tx_hash: txHash,
+    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+  };
+}
+
 async function getCampaignContributions(campaignId, contributor) {
   return await readOnlyCall('campaign-module-2', 'get-campaign-contributions', [
     uintCV(campaignId),
@@ -521,6 +542,13 @@ async function claimCreatorBonus(campaignId) {
 }
 
 async function isCreatorCurrentlyVerified(creatorAddress) {
+  // Check v2 first (proxy-registered users), fall back to v1
+  try {
+    const v2Data = await readOnlyCall('project-verification-module-v2', 'is-creator-currently-verified', [
+      standardPrincipalCV(creatorAddress),
+    ]);
+    if (v2Data.okay && v2Data.result) return v2Data;
+  } catch (_) { /* v2 may not exist yet */ }
   const data = await readOnlyCall('project-verification-module', 'is-creator-currently-verified', [
     standardPrincipalCV(creatorAddress),
   ]);
@@ -528,6 +556,13 @@ async function isCreatorCurrentlyVerified(creatorAddress) {
 }
 
 async function getCreatorFundingCap(creatorAddress) {
+  // Check v2 first, fall back to v1
+  try {
+    const v2Data = await readOnlyCall('project-verification-module-v2', 'get-verification-funding-cap', [
+      standardPrincipalCV(creatorAddress),
+    ]);
+    if (v2Data.okay && v2Data.result) return v2Data;
+  } catch (_) { /* v2 may not exist yet */ }
   const data = await readOnlyCall('project-verification-module', 'get-verification-funding-cap', [
     standardPrincipalCV(creatorAddress),
   ]);
@@ -535,10 +570,78 @@ async function getCreatorFundingCap(creatorAddress) {
 }
 
 async function getCreatorIdentity(creatorAddress) {
+  // Check v2 first, fall back to v1
+  try {
+    const v2Data = await readOnlyCall('project-verification-module-v2', 'get-creator-identity', [
+      standardPrincipalCV(creatorAddress),
+    ]);
+    if (v2Data.okay && v2Data.result) return v2Data;
+  } catch (_) { /* v2 may not exist yet */ }
   const data = await readOnlyCall('project-verification-module', 'get-creator-identity', [
     standardPrincipalCV(creatorAddress),
   ]);
   return data;
+}
+
+async function deployContract(privateKey, contractName, codeBody, clarityVersion = 1) {
+  const account = findWalletByKey(privateKey);
+  if (!account) throw new Error('Unknown private key');
+  const nonce = await ensureNonce(account.address);
+
+  const tx = await makeContractDeploy({
+    contractName,
+    codeBody,
+    senderKey: privateKey,
+    network: _network,
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Allow,
+    fee: 50000,
+    nonce,
+    clarityVersion,
+  });
+
+  const serializedTx = tx.serialize().toString('hex');
+  const broadcastUrl = `${_network.coreApiUrl}/v2/transactions`;
+  let broadcastResp;
+  try {
+    console.error(`[deployContract] POST ${broadcastUrl} (nonce=${nonce}, ${serializedTx.length} hex chars)`);
+    broadcastResp = await fetch(broadcastUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: serializedTx,
+    });
+  } catch (e) {
+    throw new Error(`broadcast network error: ${e.message}`);
+  }
+
+  const responseText = await broadcastResp.text();
+  console.error(`[deployContract] response status=${broadcastResp.status}, body (first 300): ${responseText.substring(0, 300)}`);
+
+  if (!broadcastResp.ok) {
+    const snippet = responseText.substring(0, 200);
+    throw new Error(`Hiro API ${broadcastResp.status}: ${snippet}`);
+  }
+
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    if (/^[0-9a-f]{64}$/i.test(responseText.trim())) {
+      result = { txid: responseText.trim() };
+    } else {
+      throw new Error(`broadcast non-JSON response: ${responseText.substring(0, 200)}`);
+    }
+  }
+
+  advanceNonce(account.address);
+  if (result.error) {
+    throw new Error(`transaction rejected: ${result.reason || result.error}`);
+  }
+  return {
+    tx_hash: `0x${result.txid}`,
+    explorer_url: `${EXPLORER_URL}/${result.txid}?chain=testnet`,
+    contract_id: `${DEPLOYER}.${contractName}`,
+  };
 }
 
 export default {
@@ -546,6 +649,7 @@ export default {
   getNetwork,
   getState,
   testBroadcast,
+  deployContract,
   contribute,
   submitProof,
   approve,
@@ -573,6 +677,7 @@ export default {
   submitMilestone,
   endorseMilestone,
   finalizeMilestone,
+  proxyRegisterCreator,
   getCampaignContributions,
   getYieldPool,
   claimBackerYield,

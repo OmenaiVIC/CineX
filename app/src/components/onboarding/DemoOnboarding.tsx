@@ -56,7 +56,7 @@ export default function DemoOnboarding({ onComplete }: Props) {
           {step === 'name' && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-white">What should we call you?</h2>
-              <p className="text-sm text-gray-400">Your name will be used to generate your on-chain identity.</p>
+              <p className="text-sm text-gray-400">Your name will be used to generate your platform identity.</p>
               <Input
                 placeholder="Enter your name"
                 value={name}

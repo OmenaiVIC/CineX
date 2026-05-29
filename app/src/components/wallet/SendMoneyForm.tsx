@@ -63,7 +63,7 @@ export default function SendMoneyForm({ address, onSuccess }: Props) {
       <div>
         <label className="block text-sm text-gray-400 mb-1">Recipient (email or address)</label>
         <Input
-          placeholder="email@example.com or STX address"
+          placeholder="email@example.com or wallet address"
           value={recipient}
           onChange={(e) => setRecipient(e.target.value)}
         />

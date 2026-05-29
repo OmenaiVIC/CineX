@@ -4,7 +4,7 @@ const ERROR_MAP: Record<number, { message: string; prefix: string }> = {
   5402: { message: 'Not authorized for this action', prefix: 'Milestone Escrow' },
   5403: { message: 'Campaign already exists', prefix: 'Milestone Escrow' },
   5404: { message: 'Insufficient funds in campaign', prefix: 'Milestone Escrow' },
-  5405: { message: 'STX transfer failed', prefix: 'Milestone Escrow' },
+   5405: { message: 'Transfer failed', prefix: 'Milestone Escrow' },
   5406: { message: 'Invalid amount', prefix: 'Milestone Escrow' },
   5407: { message: 'Previous milestone not yet approved', prefix: 'Milestone Escrow' },
   5408: { message: 'Creator cannot approve their own milestone', prefix: 'Milestone Escrow' },
