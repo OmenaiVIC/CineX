@@ -710,7 +710,7 @@ async function deployContract(privateKey, contractName, codeBody, clarityVersion
     network: _network,
     anchorMode: AnchorMode.Any,
     postConditionMode: PostConditionMode.Allow,
-    fee: 50000,
+    fee: Math.max(50000, 200000 + Math.floor(codeBody.length / 10) * 500),
     nonce,
     clarityVersion,
   });
