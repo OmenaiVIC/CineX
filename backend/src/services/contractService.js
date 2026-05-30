@@ -87,10 +87,10 @@ async function ensureNonce(address) {
     throw new Error(`Nonce fetch returned non-JSON (HTTP ${resp.status}): ${text.substring(0, 80)}`);
   }
   const chainNonce = Number(data.nonce);
-  if (!(address in _nonces) || chainNonce > _nonces[address]) {
-    _nonces[address] = chainNonce;
-  }
-  return _nonces[address];
+  // Always trust the chain nonce over our internal counter.
+  // The chain is the single source of truth for the account's next valid nonce.
+  _nonces[address] = chainNonce;
+  return chainNonce;
 }
 
 function advanceNonce(address) {
