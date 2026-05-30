@@ -64,6 +64,7 @@ export default function Navbar() {
     { path: '/', label: 'Home' },
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/explore', label: 'Explore' },
+    { path: '/pools', label: 'Pools' },
     { path: '/wallet', label: 'Wallet' },
     { path: '/contact', label: 'Contact' },
     ...(displayUser?.address ? [{ path: `/profile/${displayUser.address}`, label: 'Profile' }] : []),

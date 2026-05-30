@@ -5,6 +5,7 @@ import TransactionModal, { useTxModal } from '../common/TransactionModal';
 import type { Milestone, CampaignContribution } from '../../types';
 import { updateMilestoneStatus, castVote as castVoteApi, getMilestoneVotes } from '../../services/milestoneService';
 import { addFeedEvent } from '../../services/feedService';
+import { post } from '../../services/api';
 
 interface Vote {
   milestoneId: string;
@@ -104,7 +105,25 @@ export default function MilestoneList({
           const filtered = prev.filter(v => !(v.milestoneId === mileId && v.voter === currentUserAddress));
           return [...filtered, { milestoneId: mileId, voter: currentUserAddress, weight: userContribution, approved: approve }];
         });
-        if (res.data.autoCompleted) onUpdate?.();
+        if (res.data.autoCompleted) {
+          onUpdate?.();
+          const mile = milestones.find(m => m.id === mileId);
+          const campId = mile?.campaignId || milestones[0]?.campaignId;
+          try {
+            const approveRes = await post('/api/escrow/approve-milestone', {
+              campaignId: Number(campId),
+              milestoneIndex: Number(mileId) - 1,
+            });
+            console.log('[escrow] approve:', approveRes);
+            await post('/api/escrow/release-milestone', {
+              campaignId: Number(campId),
+              milestoneIndex: Number(mileId) - 1,
+            });
+            console.log('[escrow] release done');
+          } catch (err) {
+            console.warn('[escrow] approve/release failed (DB succeeded):', err);
+          }
+        }
         setVoteResults(prev => ({
           ...prev,
           [mileId]: { totalYes: res.data.totalYes, grandTotal: res.data.grandTotal, percent: Math.round((res.data.totalYes / res.data.grandTotal) * 100), passed: res.data.thresholdMet },
@@ -121,12 +140,22 @@ export default function MilestoneList({
   };
 
   const completeMilestone = async (mileId: string) => {
+    const mile = milestones.find(m => m.id === mileId);
+    const campaignId = mile?.campaignId || milestones[0]?.campaignId;
     tx.open('Completing Milestone', 'Marking milestone as completed');
     setTimeout(async () => {
       const res = await updateMilestoneStatus(mileId, 'completed');
       if (res.success) {
-        const mile = milestones.find(m => m.id === mileId);
         addFeedEvent('milestone_reached', currentUserAddress, `Completed milestone: ${mile?.title || mileId}`, mileId);
+        try {
+          const escrowRes = await post('/api/escrow/milestone-proof', {
+            campaignId: Number(campaignId),
+            milestoneIndex: Number(mileId) - 1,
+          });
+          console.log('[escrow] submit-proof:', escrowRes);
+        } catch (err) {
+          console.warn('[escrow] submit-proof failed (DB succeeded):', err);
+        }
         tx.succeed(`tx_complete_${mileId}_${Date.now()}`);
         setTimeout(() => { tx.close(); onUpdate?.(); }, 1000);
       } else {

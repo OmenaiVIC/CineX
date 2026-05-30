@@ -161,6 +161,43 @@ router.get('/user/:address/total-contributed', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /campaigns/:id/claim-funds — creator claims raised funds after goal met
+// Calls milestone-escrow directly (withdraw-from-campaign + collect-campaign-fee are unguarded)
+router.post('/:id/claim-funds', requireAuth, async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const campaign = await db.get('SELECT * FROM campaigns WHERE id = $1', [req.params.id]);
+    if (!campaign) { db.release(); return res.status(404).json({ error: 'Campaign not found' }); }
+    if (campaign.funds_claimed) { db.release(); return res.status(400).json({ error: 'Funds already claimed' }); }
+    const raised = Number(campaign.current_amount);
+    const target = Number(campaign.target_amount);
+    if (raised < target) { db.release(); return res.status(400).json({ error: 'Funding goal not yet reached' }); }
+
+    const feePct = 5;
+    const feeAmount = Math.floor(raised * feePct / 100);
+    const netAmount = raised - feeAmount;
+    const now = Math.floor(Date.now() / 1000);
+
+    let chainResult = null;
+    try {
+      const withdrawTx = await contractService.withdrawFromCampaign(Number(req.params.id), netAmount);
+      const feeTx = await contractService.collectCampaignFee(Number(req.params.id), feeAmount);
+      chainResult = { withdraw: withdrawTx, fee: feeTx };
+      console.log(`[campaigns] Chain claim-funds: ${JSON.stringify(chainResult)}`);
+    } catch (chainErr) {
+      console.warn(`[campaigns] Chain claim-funds failed (DB succeeded): ${chainErr.message}`);
+    }
+
+    await db.run('UPDATE campaigns SET funds_claimed = 1, status = $1, updated_at = $2 WHERE id = $3',
+      ['completed', now, req.params.id]);
+    await db.run(`INSERT INTO feed_events (event_type, event_data, actor, campaign_id) VALUES ($1, $2, $3, $4)`,
+      ['campaign_funded', JSON.stringify({ summary: `Campaign funds claimed — ₦${netAmount.toLocaleString()} to creator, ₦${feeAmount.toLocaleString()} fee` }), campaign.creator, req.params.id]);
+    const updated = await db.get('SELECT * FROM campaigns WHERE id = $1', [req.params.id]);
+    db.release();
+    res.json({ ...updated, chain: chainResult });
+  } catch (err) { next(err); }
+});
+
 function tryParseJson(val, def) {
   if (!val) return def;
   try { return JSON.parse(val); } catch { return def; }

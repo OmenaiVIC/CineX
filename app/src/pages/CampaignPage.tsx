@@ -11,6 +11,7 @@ import { useCampaign, useCampaignContributions } from '../hooks/useCampaigns';
 import { contributeToCampaign, getCampaignChainState } from '../services/campaignService';
 import { getCampaignMilestones } from '../services/milestoneService';
 import { addFeedEvent } from '../services/feedService';
+import { claimBackerYield, claimCreatorBonus, claimCampaignFunds } from '../services/yieldService';
 import type { Milestone } from '../types';
 
 export default function CampaignPage() {
@@ -66,6 +67,61 @@ export default function CampaignPage() {
         tx.fail(res.error || 'Contribution failed');
       }
     }, 800);
+  };
+
+  const [claimAction, setClaimAction] = useState<string | null>(null);
+
+  const handleClaimYield = async () => {
+    if (!id) return;
+    setClaimAction('yield');
+    tx.open('Claiming Yield', 'Withdrawing your yield from this campaign');
+    setTimeout(async () => {
+      const res = await claimBackerYield(id);
+      if (res.success) {
+        addFeedEvent('system', currentUser?.address || '', `Claimed yield from campaign #${id}`, id);
+        tx.succeed(res.transactionId || 'tx_yield_success');
+      } else {
+        tx.fail(res.error || 'Failed to claim yield');
+      }
+      setTimeout(() => { tx.close(); setClaimAction(null); }, 1000);
+    }, 600);
+  };
+
+  const handleClaimBonus = async () => {
+    if (!id) return;
+    setClaimAction('bonus');
+    tx.open('Claiming Bonus', 'Withdrawing your creator bonus from this campaign');
+    setTimeout(async () => {
+      const res = await claimCreatorBonus(id);
+      if (res.success) {
+        addFeedEvent('system', currentUser?.address || '', `Claimed creator bonus from campaign #${id}`, id);
+        tx.succeed(res.transactionId || 'tx_bonus_success');
+      } else {
+        tx.fail(res.error || 'Failed to claim bonus');
+      }
+      setTimeout(() => { tx.close(); setClaimAction(null); }, 1000);
+    }, 600);
+  };
+
+  const handleClaimFunds = async () => {
+    if (!id) return;
+    setClaimAction('funds');
+    tx.open('Claiming Funds', 'Withdrawing all raised funds to your wallet');
+    setTimeout(async () => {
+      const res = await claimCampaignFunds(id);
+      if (res.success) {
+        addFeedEvent('campaign_funded', currentUser?.address || '', `Claimed all funds for campaign #${id}`, id);
+        tx.succeed(res.transactionId || 'tx_claim_success');
+        setTimeout(() => {
+          tx.close();
+          setClaimAction(null);
+          refreshCampaign();
+        }, 1000);
+      } else {
+        tx.fail(res.error || 'Failed to claim funds');
+        setTimeout(() => { tx.close(); setClaimAction(null); }, 1000);
+      }
+    }, 600);
   };
 
   if (loading) {
@@ -233,6 +289,25 @@ export default function CampaignPage() {
             )}
           </Card>
 
+          {(isCreator && raised >= target && !(campaign as any).funds_claimed) && (
+            <Card variant="light" padding="default" className="space-y-3">
+              <h3 className="text-sm font-semibold text-white">Creator Actions</h3>
+              <Button variant="primary" className="w-full" onClick={handleClaimFunds}>
+                Claim Funds (₦{raised.toLocaleString()})
+              </Button>
+              <Button variant="outline" className="w-full" onClick={handleClaimBonus}>
+                Claim Bonus
+              </Button>
+            </Card>
+          )}
+          {!isCreator && currentUser && contributions.some(c => c.contributor === currentUser.address) && (
+            <Card variant="light" padding="default" className="space-y-3">
+              <h3 className="text-sm font-semibold text-white">Your Rewards</h3>
+              <Button variant="primary" className="w-full" onClick={handleClaimYield}>
+                Claim Yield
+              </Button>
+            </Card>
+          )}
           {contributions.length > 0 && (
             <Card variant="light" padding="default">
               <h3 className="text-sm font-semibold text-white mb-2">Recent Backers</h3>
@@ -258,7 +333,12 @@ export default function CampaignPage() {
         chainUrl={tx.chainUrl}
         error={tx.error}
         onClose={() => tx.close()}
-        onRetry={handleContribute}
+        onRetry={() => {
+          if (claimAction === 'yield') handleClaimYield();
+          else if (claimAction === 'bonus') handleClaimBonus();
+          else if (claimAction === 'funds') handleClaimFunds();
+          else handleContribute();
+        }}
       />
     </div>
   );

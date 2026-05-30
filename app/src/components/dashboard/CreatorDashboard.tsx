@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import TransactionModal, { useTxModal } from '../common/TransactionModal';
 import LoadingSkeleton from '../common/LoadingSkeleton';
+import { claimCreatorBonus, claimCampaignFunds } from '../../services/yieldService';
 import type { Campaign, Milestone, CampaignContribution } from '../../types';
 
 interface Props {
@@ -19,6 +21,37 @@ export default function CreatorDashboard({
   onViewCampaign,
   onCreateCampaign,
 }: Props) {
+  const tx = useTxModal();
+  const [claimingAction, setClaimingAction] = useState<{ type: string; campaignId: string } | null>(null);
+
+  const handleClaimBonus = async (campaignId: string) => {
+    setClaimingAction({ type: 'bonus', campaignId });
+    tx.open('Claiming Bonus', 'Withdrawing your creator bonus');
+    setTimeout(async () => {
+      const res = await claimCreatorBonus(campaignId);
+      if (res.success) {
+        tx.succeed(res.transactionId || 'tx_bonus_success');
+      } else {
+        tx.fail(res.error || 'Failed to claim bonus');
+      }
+      setTimeout(() => { tx.close(); setClaimingAction(null); }, 1000);
+    }, 600);
+  };
+
+  const handleClaimFunds = async (campaignId: string) => {
+    setClaimingAction({ type: 'funds', campaignId });
+    tx.open('Claiming Funds', 'Withdrawing all raised funds');
+    setTimeout(async () => {
+      const res = await claimCampaignFunds(campaignId);
+      if (res.success) {
+        tx.succeed(res.transactionId || 'tx_claim_success');
+      } else {
+        tx.fail(res.error || 'Failed to claim funds');
+      }
+      setTimeout(() => { tx.close(); setClaimingAction(null); }, 1000);
+    }, 600);
+  };
+
   const stats = useMemo(() => {
     const active = campaigns.filter(c => c.status === 'active').length;
     const funded = campaigns.filter(c => c.status === 'funded' || c.status === 'completed').length;
@@ -93,6 +126,16 @@ export default function CreatorDashboard({
                     {campaignMilestones.length > 0 && (
                       <p className="text-xs text-gray-600 mt-1">{completed}/{campaignMilestones.length} milestones completed</p>
                     )}
+                    <div className="flex gap-2 mt-2">
+                      {raised >= target && !(c as any).funds_claimed && (
+                        <Button variant="primary" size="small" onClick={() => handleClaimFunds(c.id)}>
+                          Claim Funds
+                        </Button>
+                      )}
+                      <Button variant="outline" size="small" onClick={() => handleClaimBonus(c.id)}>
+                        Claim Bonus
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -100,6 +143,20 @@ export default function CreatorDashboard({
           })}
         </div>
       )}
+
+      <TransactionModal
+        isOpen={tx.isOpen}
+        state={tx.state}
+        title={tx.title}
+        description={tx.description}
+        txId={tx.txId}
+        error={tx.error}
+        onClose={() => tx.close()}
+        onRetry={() => {
+          if (claimingAction?.type === 'funds') handleClaimFunds(claimingAction.campaignId);
+          else if (claimingAction?.type === 'bonus') handleClaimBonus(claimingAction.campaignId);
+        }}
+      />
     </div>
   );
 }

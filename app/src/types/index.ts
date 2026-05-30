@@ -40,6 +40,7 @@ export interface Campaign {
   updatedAt: number;
   mediaUrls?: string[];
   tags?: string[];
+  fundsClaimed?: boolean | number;
 }
 
 export interface CampaignContribution {
@@ -245,6 +246,37 @@ export interface Pool {
   deadline: number;
   targetAmount: string;
   currentAmount: string;
+  minCommitment?: string;
+  returnRate?: string;
+}
+
+export interface PoolProposal {
+  id: string;
+  poolId: string;
+  campaignId: string;
+  amount: string;
+  proposer: string;
+  description?: string;
+  status: 'active' | 'passed' | 'executed' | 'rejected';
+  createdAt: number;
+}
+
+export interface ProposalVote {
+  id: string;
+  proposalId: string;
+  voter: string;
+  approve: boolean;
+  weight: number;
+  createdAt: number;
+}
+
+export interface PoolMember {
+  id: string;
+  poolId: string;
+  address: string;
+  committed: string;
+  role: 'creator' | 'member';
+  joinedAt: number;
 }
 
 export interface CredibilitySummary {

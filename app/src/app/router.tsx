@@ -13,6 +13,9 @@ import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
 import ContactPage from '../pages/ContactPage';
 import VerificationPage from '../pages/VerificationPage';
+import PoolExplorePage from '../pages/PoolExplorePage';
+import PoolDetailPage from '../pages/PoolDetailPage';
+import PoolCreatePage from '../pages/PoolCreatePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -36,6 +39,9 @@ export function AppRouter() {
       <Route path="/profile/:address" element={<ProfilePage />} />
       <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/verification/apply" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
+      <Route path="/pools" element={<PoolExplorePage />} />
+      <Route path="/pools/create" element={<ProtectedRoute><PoolCreatePage /></ProtectedRoute>} />
+      <Route path="/pools/:id" element={<PoolDetailPage />} />
     </Routes>
   );
 }

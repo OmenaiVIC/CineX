@@ -13,6 +13,7 @@ import {
   getAddressFromPrivateKey,
   TransactionVersion,
   stringAsciiCV,
+  boolCV,
   listCV,
   someCV,
   noneCV,
@@ -580,6 +581,120 @@ async function getCreatorIdentity(creatorAddress) {
   ]);
 }
 
+// ========== POOL FUNCTIONS ==========
+
+async function createPoolInContract(name, targetAmount, minContribution, minReputation, duration, maxMembers) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'create-pool', [
+    stringAsciiCV(name),
+    uintCV(targetAmount),
+    uintCV(minContribution),
+    uintCV(minReputation),
+    uintCV(duration),
+    uintCV(maxMembers),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function joinPoolInContract(poolId, amount) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'join-pool', [
+    uintCV(poolId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function contributeToPoolContract(poolId, amount) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'contribute', [
+    uintCV(poolId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function proposeAllocation(poolId, campaignId, amount) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'propose-allocation', [
+    uintCV(poolId), uintCV(campaignId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function voteOnProposal(proposalId, approve) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'vote', [
+    uintCV(proposalId), approve ? boolCV(true) : boolCV(false),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function executeAllocation(proposalId) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'execute-allocation', [
+    uintCV(proposalId),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function closePoolInContract(poolId) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'close-pool', [
+    uintCV(poolId),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function withdrawUnused(poolId, amount) {
+  if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
+  const pk = _wallets.backer.privateKey;
+  const txHash = await callContract(pk, 'funding-pool', 'withdraw-unused', [
+    uintCV(poolId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+// Read-only pool getters
+async function getPoolFromContract(poolId) {
+  return readOnlyCall('funding-pool', 'get-pool', [uintCV(poolId)]);
+}
+
+async function getProposalFromContract(proposalId) {
+  return readOnlyCall('funding-pool', 'get-proposal', [uintCV(proposalId)]);
+}
+
+async function getPoolMember(poolId, memberAddress) {
+  return readOnlyCall('funding-pool', 'get-member', [uintCV(poolId), standardPrincipalCV(memberAddress)]);
+}
+
+async function getProposalVote(proposalId, voterAddress) {
+  return readOnlyCall('funding-pool', 'get-proposal-vote', [uintCV(proposalId), standardPrincipalCV(voterAddress)]);
+}
+
+async function withdrawFromCampaign(campaignId, amount) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'milestone-escrow', 'withdraw-from-campaign', [
+    uintCV(campaignId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+async function collectCampaignFee(campaignId, amount) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, 'milestone-escrow', 'collect-campaign-fee', [
+    uintCV(campaignId), uintCV(amount),
+  ]);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
 async function deployContract(privateKey, contractName, codeBody, clarityVersion = ClarityVersion.Clarity2) {
   const account = findWalletByKey(privateKey);
   if (!account) throw new Error('Unknown private key');
@@ -645,8 +760,22 @@ export default {
   endorseMilestone,
   finalizeMilestone,
   proxyRegisterCreator,
+  withdrawFromCampaign,
+  collectCampaignFee,
   getCampaignContributions,
   getYieldPool,
   claimBackerYield,
   claimCreatorBonus,
+  createPoolInContract,
+  joinPoolInContract,
+  contributeToPoolContract,
+  proposeAllocation,
+  voteOnProposal,
+  executeAllocation,
+  closePoolInContract,
+  withdrawUnused,
+  getPoolFromContract,
+  getProposalFromContract,
+  getPoolMember,
+  getProposalVote,
 };

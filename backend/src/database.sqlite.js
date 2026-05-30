@@ -138,6 +138,19 @@ function execSchema() {
     CREATE INDEX IF NOT EXISTS idx_pools_status ON pools(status);
     CREATE INDEX IF NOT EXISTS idx_pools_category ON pools(category);
     CREATE INDEX IF NOT EXISTS idx_pool_members_pool ON pool_members(pool_id);
+    CREATE TABLE IF NOT EXISTS pool_proposals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, pool_id INTEGER NOT NULL REFERENCES pools(id) ON DELETE CASCADE,
+      campaign_id TEXT NOT NULL, amount TEXT NOT NULL, proposer TEXT NOT NULL,
+      description TEXT DEFAULT '', status TEXT DEFAULT 'active' CHECK(status IN ('active','passed','executed','rejected')),
+      created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch())
+    );
+    CREATE TABLE IF NOT EXISTS proposal_votes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, proposal_id INTEGER NOT NULL REFERENCES pool_proposals(id) ON DELETE CASCADE,
+      voter TEXT NOT NULL, approve INTEGER DEFAULT 0, weight INTEGER DEFAULT 1,
+      created_at INTEGER DEFAULT (unixepoch()), UNIQUE(proposal_id, voter)
+    );
+    CREATE INDEX IF NOT EXISTS idx_pool_proposals_pool ON pool_proposals(pool_id);
+    CREATE INDEX IF NOT EXISTS idx_proposal_votes_proposal ON proposal_votes(proposal_id);
     CREATE INDEX IF NOT EXISTS idx_ratings_target ON ratings(target_address);
     CREATE INDEX IF NOT EXISTS idx_portfolio_address ON portfolio_items(address);
     -- wallets (migration-compatible)

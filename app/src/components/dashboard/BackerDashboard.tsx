@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import TransactionModal, { useTxModal } from '../common/TransactionModal';
+import { claimBackerYield } from '../../services/yieldService';
 import type { Campaign, CampaignContribution, Pool } from '../../types';
 
 interface Props {
@@ -18,6 +20,22 @@ export default function BackerDashboard({
   onViewCampaign,
   onExplore,
 }: Props) {
+  const tx = useTxModal();
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+
+  const handleClaimYield = async (campaignId: string) => {
+    setClaimingId(campaignId);
+    tx.open('Claiming Yield', 'Withdrawing your yield from this campaign');
+    setTimeout(async () => {
+      const res = await claimBackerYield(campaignId);
+      if (res.success) {
+        tx.succeed(res.transactionId || 'tx_yield_success');
+      } else {
+        tx.fail(res.error || 'Failed to claim yield');
+      }
+      setTimeout(() => { tx.close(); setClaimingId(null); }, 1000);
+    }, 600);
+  };
   const stats = useMemo(() => {
     const totalContributed = contributions.reduce((s, c) => s + Number(c.amount), 0);
     const uniqueCreators = new Set(
@@ -103,9 +121,13 @@ export default function BackerDashboard({
                   </div>
                   <div className="flex items-center gap-3 mt-2">
                     <p className="text-xs text-gray-600">Your contribution: ₦{userTotal.toLocaleString()}</p>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                      Yield: On-chain
-                    </span>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      onClick={() => handleClaimYield(c.id)}
+                    >
+                      Claim Yield
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -113,6 +135,17 @@ export default function BackerDashboard({
           );
         })}
       </div>
+
+      <TransactionModal
+        isOpen={tx.isOpen}
+        state={tx.state}
+        title={tx.title}
+        description={tx.description}
+        txId={tx.txId}
+        error={tx.error}
+        onClose={() => tx.close()}
+        onRetry={() => claimingId && handleClaimYield(claimingId)}
+      />
     </div>
   );
 }
