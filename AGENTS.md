@@ -110,22 +110,27 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **6 bug-fix commits** pushed to `main`: portfolio thumbnail (camelCase/snake_case), campaign duration (blocks, clamped 4320–8640), pool UI (localStorage), Quick Register v2 fallback, init() lenient, ensureNonce trusts chain, deployContract fee scaling
 - **`requireAuth` added** to `POST /api/deploy/contract`
 - **Sitemap** corrected at `docs/CONTRACT_FUNCTION_SITEMAP.md` — v2 deployment status updated
+- **Vercel deployment fixed** — fresh build deployed from `app/` directory; JS bundle hash changed `index-BFItlxEo.js` → `index-D_UcI-rU.js`
+- **Root `vercel.json` fixed** — removed invalid `rootDirectory: "app"` property (conflicted with `.vercel/project.json` `rootDirectory: null`)
 
 ### Verified
 - `clarinet check` passes (30 contracts, 0 errors)
 - 227 tests pass across 11 test files
-- Backend starts cleanly on Render (`https://cinex-backend-zo1r.onrender.com`)
+- Backend alive on Render — `GET /api/profiles` returns 12 profiles
 - Wallet debug: `creator` = `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12`, nonces healthy
 - `module-base` and `project-verification-module-v2` both deployed and responding
+- Frontend deployed at `https://cine-x-iota.vercel.app` — latest bundle confirmed
+- `VITE_API_BACKEND` env var set in Vercel cloud (encrypted, set 3 days ago)
+- `vercel --prod` from root no longer blocked
 
 ### Next Steps
-1. **Test Quick Register end-to-end** via `POST /api/verification/proxy-register` (needs auth token)
-2. **Deploy to Vercel** — auto-deploys on push to `main`
+1. **Test Quick Register end-to-end** via frontend login → `POST /api/verification/proxy-register`
+2. **Check frontend console** — open `https://cine-x-iota.vercel.app`, verify no JS errors, all API calls succeed
 3. **Render deploy hook** — configure in Render dashboard for CI/CD
 4. **Redeploy all 29 old contracts** under new deployer (cleanup sprint, deferred)
 
 ### Key URLs
 - Backend: `https://cinex-backend-zo1r.onrender.com`
-- Vercel: `https://cinex.vercel.app`
+- Frontend: `https://cine-x-iota.vercel.app`
 - Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
 - Hiro API: `https://api.testnet.hiro.so`

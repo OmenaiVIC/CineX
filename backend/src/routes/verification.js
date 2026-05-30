@@ -123,7 +123,7 @@ router.post('/proxy-register', requireAuth, async (req, res, next) => {
     await db.run(`
       INSERT INTO profiles (address, username, bio, portfolio_url, updated_at)
       VALUES ($1, $2, '', $3, $4)
-      ON CONFLICT(address) DO UPDATE SET username = COALESCE($2, username), updated_at = $4
+      ON CONFLICT(address) DO UPDATE SET username = COALESCE(EXCLUDED.username, username), updated_at = $4
     `, [address, name, portfolioUrl || '', now]);
     db.release();
 
