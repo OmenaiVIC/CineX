@@ -34,17 +34,20 @@ function init() {
   if (_initialized) return;
   const creatorKey = process.env.CREATOR_KEY;
   const backerKey = process.env.BACKER_KEY;
-  if (!creatorKey || !backerKey) {
-    console.warn('[contractService] CREATOR_KEY or BACKER_KEY not set');
+  _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
+  _wallets = {};
+  if (creatorKey) {
+    _wallets.creator = { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) };
+    console.log(`[contractService] Creator wallet initialized: ${_wallets.creator.address}`);
+  }
+  if (backerKey) {
+    _wallets.backer = { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) };
+    console.log(`[contractService] Backer wallet initialized: ${_wallets.backer.address}`);
+  }
+  if (Object.keys(_wallets).length === 0) {
+    console.warn('[contractService] No wallet keys set — all chain writes will fail');
     return;
   }
-  _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
-  _wallets = {
-    creator: { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) },
-    backer: { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) },
-  };
-  console.log(`[contractService] Creator wallet initialized`);
-  console.log(`[contractService] Backer wallet initialized`);
   _initialized = true;
 }
 
