@@ -10,6 +10,7 @@ interface Props {
   campaigns: Campaign[];
   milestones: Milestone[];
   contributions: CampaignContribution[];
+  loading?: boolean;
   onViewCampaign: (id: string) => void;
   onCreateCampaign: () => void;
 }
@@ -18,6 +19,7 @@ export default function CreatorDashboard({
   campaigns,
   milestones,
   contributions,
+  loading = false,
   onViewCampaign,
   onCreateCampaign,
 }: Props) {
@@ -61,6 +63,18 @@ export default function CreatorDashboard({
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
     return { active, funded, totalRaised, totalTarget, totalMilestones, completedMilestones };
   }, [campaigns, milestones]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">Creator Dashboard</h2>
+          <Button variant="neon" onClick={onCreateCampaign}>New Campaign</Button>
+        </div>
+        <LoadingSkeleton variant="card" count={4} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

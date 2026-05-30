@@ -90,3 +90,10 @@ export async function getTotalContributedByUser(address: string): Promise<Servic
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch total' };
   return { success: true, data: res.data.total };
 }
+
+export async function getCreatorContributions(address: string): Promise<ServiceResponse<CampaignContribution[]>> {
+  const res = await api.get<{ contributions: CampaignContribution[] }>(`/campaigns/creator/${address}/contributions`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch creator contributions' };
+  const items = (res.data?.contributions || []).map(c => ({ ...c, timestamp: c.timestamp || (c as any).createdAt || Date.now() }));
+  return { success: true, data: items };
+}

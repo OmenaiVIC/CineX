@@ -28,6 +28,7 @@ export default function CampaignPage() {
   const [lastChainUrl, setLastChainUrl] = useState<string | null>(null);
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [formError, setFormError] = useState('');
   const [chainState, setChainState] = useState<{ escrow: Record<string, unknown>; module: Record<string, unknown> } | null>(null);
   const [chainStateLoading, setChainStateLoading] = useState(false);
   useEffect(() => {
@@ -45,7 +46,9 @@ export default function CampaignPage() {
   const handleContribute = async () => {
     if (!currentUser || !id) return;
     const amt = parseFloat(contributeAmount);
-    if (isNaN(amt) || amt <= 0) { tx.fail('Enter a valid amount'); return; }
+    if (isNaN(amt) || amt <= 0) { setFormError('Enter a valid amount'); return; }
+    setFormError('');
+    setClaimAction('contribute');
 
     tx.open('Contributing', `Depositing ₦${amt.toLocaleString()} to ${campaign?.title}`);
     setTimeout(async () => {
@@ -54,7 +57,7 @@ export default function CampaignPage() {
         addFeedEvent('campaign_funded', currentUser.address, `Contributed ₦${amt.toLocaleString()} to ${campaign?.title}`, id);
         const chainUrl = (res as { chainUrl?: string }).chainUrl || undefined;
         setLastChainUrl(chainUrl || null);
-        tx.succeed(res.transactionId || 'tx_success', chainUrl);
+        tx.succeed(res.transactionId || `contrib_${id}_${Date.now()}`, chainUrl);
         setTimeout(() => {
           tx.close();
           setContributeAmount('');
@@ -79,7 +82,7 @@ export default function CampaignPage() {
       const res = await claimBackerYield(id);
       if (res.success) {
         addFeedEvent('system', currentUser?.address || '', `Claimed yield from campaign #${id}`, id);
-        tx.succeed(res.transactionId || 'tx_yield_success');
+        tx.succeed(res.transactionId || `yield_${id}_${Date.now()}`);
       } else {
         tx.fail(res.error || 'Failed to claim yield');
       }
@@ -95,7 +98,7 @@ export default function CampaignPage() {
       const res = await claimCreatorBonus(id);
       if (res.success) {
         addFeedEvent('system', currentUser?.address || '', `Claimed creator bonus from campaign #${id}`, id);
-        tx.succeed(res.transactionId || 'tx_bonus_success');
+        tx.succeed(res.transactionId || `bonus_${id}_${Date.now()}`);
       } else {
         tx.fail(res.error || 'Failed to claim bonus');
       }
@@ -111,7 +114,7 @@ export default function CampaignPage() {
       const res = await claimCampaignFunds(id);
       if (res.success) {
         addFeedEvent('campaign_funded', currentUser?.address || '', `Claimed all funds for campaign #${id}`, id);
-        tx.succeed(res.transactionId || 'tx_claim_success');
+        tx.succeed(res.transactionId || `claim_${id}_${Date.now()}`);
         setTimeout(() => {
           tx.close();
           setClaimAction(null);
@@ -230,6 +233,7 @@ export default function CampaignPage() {
                     onChange={(e) => setContributeMessage(e.target.value)}
                   />
                 </div>
+                {formError && <p className="text-xs text-red-400 text-center">{formError}</p>}
                 <Button variant="primary" className="w-full" onClick={handleContribute}>
                   Contribute
                 </Button>
@@ -260,7 +264,7 @@ export default function CampaignPage() {
           </Card>
 
           <Card variant="light" padding="default">
-            <h3 className="text-sm font-semibold text-white mb-2">On-Chain Status</h3>
+            <h3 className="text-sm font-semibold text-white mb-2">Verification Status</h3>
             {chainStateLoading ? (
               <p className="text-xs text-gray-500">Loading...</p>
             ) : chainState?.escrow ? (
@@ -337,7 +341,7 @@ export default function CampaignPage() {
           if (claimAction === 'yield') handleClaimYield();
           else if (claimAction === 'bonus') handleClaimBonus();
           else if (claimAction === 'funds') handleClaimFunds();
-          else handleContribute();
+          else if (claimAction === 'contribute') handleContribute();
         }}
       />
     </div>

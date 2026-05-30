@@ -24,6 +24,7 @@ export default function PoolDetailPage() {
   const [contributeAmount, setContributeAmount] = useState('');
   const [proposalCampaignId, setProposalCampaignId] = useState('');
   const [proposalAmount, setProposalAmount] = useState('');
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const load = async () => {
     if (!id) return;
@@ -50,11 +51,12 @@ export default function PoolDetailPage() {
 
   const handleJoin = async () => {
     if (!id || !currentUser || !joinAmount) return;
+    setPendingAction('join');
     tx.open('Joining Pool', `Committing ₦${parseFloat(joinAmount).toLocaleString()}`);
     setTimeout(async () => {
       const res = await joinPool(id, currentUser.address, joinAmount);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_join');
+        tx.succeed(res.transactionId || `join_${id}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to join');
@@ -65,11 +67,12 @@ export default function PoolDetailPage() {
 
   const handleContribute = async () => {
     if (!id || !currentUser || !contributeAmount) return;
+    setPendingAction('contribute');
     tx.open('Contributing', `Depositing ₦${parseFloat(contributeAmount).toLocaleString()}`);
     setTimeout(async () => {
       const res = await contributeToPool(id, currentUser.address, contributeAmount);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_contrib');
+        tx.succeed(res.transactionId || `contrib_${id}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to contribute');
@@ -80,11 +83,12 @@ export default function PoolDetailPage() {
 
   const handlePropose = async () => {
     if (!id || !currentUser || !proposalCampaignId || !proposalAmount) return;
+    setPendingAction('propose');
     tx.open('Creating Proposal', `Proposing ₦${parseFloat(proposalAmount).toLocaleString()} to campaign #${proposalCampaignId}`);
     setTimeout(async () => {
       const res = await createProposal(id, currentUser.address, proposalCampaignId, proposalAmount);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_proposal');
+        tx.succeed(res.transactionId || `proposal_${id}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to create proposal');
@@ -95,11 +99,12 @@ export default function PoolDetailPage() {
 
   const handleVote = async (proposalId: string, approve: boolean) => {
     if (!currentUser) return;
+    setPendingAction('vote');
     tx.open(approve ? 'Approving' : 'Rejecting', 'Casting your vote');
     setTimeout(async () => {
       const res = await voteOnProposal(proposalId, currentUser.address, approve);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_vote');
+        tx.succeed(res.transactionId || `vote_${proposalId}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to vote');
@@ -109,11 +114,12 @@ export default function PoolDetailPage() {
   };
 
   const handleExecute = async (proposalId: string) => {
+    setPendingAction('execute');
     tx.open('Executing', 'Funding campaign from pool');
     setTimeout(async () => {
       const res = await executeProposal(proposalId);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_exec');
+        tx.succeed(res.transactionId || `exec_${proposalId}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to execute');
@@ -124,17 +130,33 @@ export default function PoolDetailPage() {
 
   const handleClose = async () => {
     if (!id) return;
+    setPendingAction('close');
     tx.open('Closing Pool', 'Ending pool contributions');
     setTimeout(async () => {
       const res = await closePool(id);
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_close');
+        tx.succeed(res.transactionId || `close_${id}_${Date.now()}`);
         setTimeout(() => { tx.close(); load(); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to close');
         setTimeout(() => tx.close(), 1000);
       }
     }, 600);
+  };
+
+  const handleRetry = () => {
+    const action = pendingAction;
+    setPendingAction(null);
+    if (!action) return;
+    const handlers: Record<string, () => void> = {
+      join: handleJoin,
+      contribute: handleContribute,
+      propose: handlePropose,
+      vote: () => {},
+      execute: () => {},
+      close: handleClose,
+    };
+    handlers[action]?.();
   };
 
   if (loading) {
@@ -304,7 +326,7 @@ export default function PoolDetailPage() {
         txId={tx.txId}
         error={tx.error}
         onClose={() => tx.close()}
-        onRetry={() => {}}
+        onRetry={handleRetry}
       />
     </div>
   );

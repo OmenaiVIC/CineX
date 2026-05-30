@@ -7,8 +7,10 @@ import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import CreatorDashboard from '../components/dashboard/CreatorDashboard';
 import BackerDashboard from '../components/dashboard/BackerDashboard';
-import { useCreatorCampaigns, useBackerContributions } from '../hooks/useCampaigns';
-import { getAll } from '../contexts/DemoStorage';
+import { useCreatorCampaigns, useBackerContributions, useCreatorContributions } from '../hooks/useCampaigns';
+import { getCampaigns } from '../services/campaignService';
+import { getPools } from '../services/poolService';
+import { getCreatorMilestones } from '../services/milestoneService';
 import type { Campaign, Milestone, Pool } from '../types';
 
 export default function DashboardPage() {
@@ -21,17 +23,26 @@ export default function DashboardPage() {
   const role = isDemo ? (currentUser?.role || 'backer') : (user?.role || currentUser?.role || 'backer');
 
   const { campaigns, loading: campaignsLoading } = useCreatorCampaigns(activeUser?.address || '');
-  const { contributions, refresh: refreshContributions } = useBackerContributions(activeUser?.address || '');
+  const { contributions, loading: contributionsLoading } = useBackerContributions(activeUser?.address || '');
+  const { contributions: creatorContribs, loading: creatorContribsLoading } = useCreatorContributions(activeUser?.address || '');
 
   const [allMilestones, setAllMilestones] = useState<Milestone[]>([]);
   const [allPoolz, setAllPoolz] = useState<Pool[]>([]);
   const [allCampaigns, setAllCampaigns] = useState<Campaign[]>([]);
+  const [loadingExtra, setLoadingExtra] = useState(true);
 
   useEffect(() => {
-    setAllMilestones(getAll<Milestone>('milestones'));
-    setAllPoolz(getAll<Pool>('pools'));
-    setAllCampaigns(getAll<Campaign>('campaigns'));
-  }, []);
+    Promise.all([
+      getCampaigns(),
+      getPools(),
+      getCreatorMilestones(activeUser?.address || ''),
+    ]).then(([campRes, poolRes, msRes]) => {
+      if (campRes.success && campRes.data) setAllCampaigns(campRes.data);
+      if (poolRes.success && poolRes.data) setAllPoolz(poolRes.data);
+      if (msRes.success && msRes.data) setAllMilestones(msRes.data);
+      setLoadingExtra(false);
+    });
+  }, [activeUser?.address]);
 
   if (!activeUser) {
     return (
@@ -66,7 +77,8 @@ export default function DashboardPage() {
         <CreatorDashboard
           campaigns={campaigns}
           milestones={allMilestones}
-          contributions={[]}
+          contributions={creatorContribs}
+          loading={campaignsLoading || creatorContribsLoading || loadingExtra}
           onViewCampaign={(id) => navigate(`/campaign/${id}`)}
           onCreateCampaign={() => navigate('/campaign/new')}
         />
@@ -84,6 +96,7 @@ export default function DashboardPage() {
         contributions={contributions}
         campaigns={allCampaigns}
         pools={allPoolz}
+        loading={contributionsLoading || loadingExtra}
         onViewCampaign={(id) => navigate(`/campaign/${id}`)}
         onExplore={() => navigate('/explore')}
       />

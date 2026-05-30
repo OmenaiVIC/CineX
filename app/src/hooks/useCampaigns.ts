@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Campaign, CampaignContribution } from '../types';
-import { getCampaigns, getCampaign, getCampaignContributions, contributeToCampaign, createCampaign, getCreatorCampaigns, getBackerContributions } from '../services/campaignService';
+import { getCampaigns, getCampaign, getCampaignContributions, contributeToCampaign, createCampaign, getCreatorCampaigns, getBackerContributions, getCreatorContributions } from '../services/campaignService';
 
 export function useCampaigns(status?: Campaign['status']) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -45,22 +45,43 @@ export function useCampaignContributions(campaignId: string) {
 
 export function useCreatorCampaigns(address: string) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   const refresh = useCallback(() => {
+    setLoading(true);
     getCreatorCampaigns(address).then(res => {
       if (res.success && res.data) setCampaigns(res.data);
+      setLoading(false);
     });
   }, [address]);
   useEffect(() => { refresh(); }, [refresh]);
-  return { campaigns, refresh };
+  return { campaigns, loading, refresh };
 }
 
 export function useBackerContributions(address: string) {
   const [contributions, setContributions] = useState<CampaignContribution[]>([]);
+  const [loading, setLoading] = useState(true);
   const refresh = useCallback(() => {
+    setLoading(true);
     getBackerContributions(address).then(res => {
       if (res.success && res.data) setContributions(res.data);
+      setLoading(false);
     });
   }, [address]);
   useEffect(() => { refresh(); }, [refresh]);
-  return { contributions, refresh };
+  return { contributions, loading, refresh };
+}
+
+export function useCreatorContributions(address: string) {
+  const [contributions, setContributions] = useState<CampaignContribution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const refresh = useCallback(() => {
+    if (!address) { setContributions([]); setLoading(false); return; }
+    setLoading(true);
+    getCreatorContributions(address).then(res => {
+      if (res.success && res.data) setContributions(res.data);
+      setLoading(false);
+    });
+  }, [address]);
+  useEffect(() => { refresh(); }, [refresh]);
+  return { contributions, loading, refresh };
 }

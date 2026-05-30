@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import LoadingSkeleton from '../common/LoadingSkeleton';
 import TransactionModal, { useTxModal } from '../common/TransactionModal';
 import { claimBackerYield } from '../../services/yieldService';
 import type { Campaign, CampaignContribution, Pool } from '../../types';
@@ -9,6 +10,7 @@ interface Props {
   contributions: CampaignContribution[];
   campaigns: Campaign[];
   pools: Pool[];
+  loading?: boolean;
   onViewCampaign: (id: string) => void;
   onExplore: () => void;
 }
@@ -17,6 +19,7 @@ export default function BackerDashboard({
   contributions,
   campaigns,
   pools,
+  loading = false,
   onViewCampaign,
   onExplore,
 }: Props) {
@@ -55,6 +58,15 @@ export default function BackerDashboard({
     const backedIds = new Set(contributions.map(c => c.campaignId));
     return campaigns.filter(c => backedIds.has(c.id));
   }, [campaigns, contributions]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-white">Backer Dashboard</h2>
+        <LoadingSkeleton variant="card" count={3} />
+      </div>
+    );
+  }
 
   if (contributions.length === 0) {
     return (

@@ -251,7 +251,7 @@ export default function VerificationPage() {
             </div>
             <h2 className="text-lg font-semibold text-white mb-2">Approved — Final Step</h2>
             <p className="text-sm text-gray-400 mb-4">
-              Your application is approved. Complete the on-chain registration to activate your verification.
+              Your application is approved. Complete the final registration to activate your verification.
             </p>
             {!walletInstalled ? (
               <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-sm text-yellow-300 mb-3">

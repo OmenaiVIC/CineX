@@ -161,6 +161,22 @@ router.get('/user/:address/total-contributed', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /campaigns/creator/:address/contributions — all contributions across a creator's campaigns
+router.get('/creator/:address/contributions', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const contributions = await db.all(`
+      SELECT c.id, c.campaign_id, c.contributor, c.amount, c.message, c.tx_id, c.created_at
+      FROM contributions c
+      INNER JOIN campaigns ca ON ca.id = c.campaign_id
+      WHERE ca.creator = $1
+      ORDER BY c.created_at DESC
+    `, [req.params.address]);
+    db.release();
+    res.json({ contributions });
+  } catch (err) { next(err); }
+});
+
 // POST /campaigns/:id/claim-funds — creator claims raised funds after goal met
 // Calls milestone-escrow directly (withdraw-from-campaign + collect-campaign-fee are unguarded)
 router.post('/:id/claim-funds', requireAuth, async (req, res, next) => {

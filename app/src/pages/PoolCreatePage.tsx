@@ -27,10 +27,12 @@ export default function PoolCreatePage() {
   const [maxMembers, setMaxMembers] = useState('10');
   const [category, setCategory] = useState('short-film');
   const [deadline, setDeadline] = useState('');
+  const [formError, setFormError] = useState('');
 
   const handleCreate = async () => {
     if (!currentUser) return;
-    if (!name || !targetAmount || !deadline) { tx.fail('Name, target amount, and deadline are required'); return; }
+    if (!name || !targetAmount || !deadline) { setFormError('Name, target amount, and deadline are required'); return; }
+    setFormError('');
     tx.open('Creating Pool', `Launching pool: ${name}`);
     setTimeout(async () => {
       const res = await createPool(
@@ -44,7 +46,7 @@ export default function PoolCreatePage() {
         new Date(deadline).getTime(),
       );
       if (res.success) {
-        tx.succeed(res.transactionId || 'tx_pool_created');
+        tx.succeed(res.transactionId || `pool_${Date.now()}`);
         setTimeout(() => { tx.close(); navigate(`/pools/${res.data?.id}`); }, 1000);
       } else {
         tx.fail(res.error || 'Failed to create pool');
@@ -97,6 +99,7 @@ export default function PoolCreatePage() {
           <label className="block text-xs text-gray-400 mb-1">Deadline *</label>
           <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
         </div>
+        {formError && <p className="text-xs text-red-400 text-center">{formError}</p>}
         <Button variant="primary" className="w-full" onClick={handleCreate}>Create Pool</Button>
       </Card>
 

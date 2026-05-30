@@ -5,6 +5,21 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
+router.get('/creator/:address', async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const milestones = await db.all(`
+      SELECT m.* FROM milestones m
+      INNER JOIN campaigns c ON c.id = m.campaign_id
+      WHERE c.creator = $1
+      ORDER BY m.created_at DESC
+    `, [req.params.address]);
+    const parsed = milestones.map(m => ({ ...m, deliverables: tryParseJson(m.deliverables, []) }));
+    db.release();
+    res.json(parsed);
+  } catch (err) { next(err); }
+});
+
 router.get('/campaign/:campaignId', async (req, res, next) => {
   try {
     const db = await getDb();

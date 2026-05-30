@@ -23,6 +23,12 @@ function toMilestone(m: Record<string, unknown>): Milestone {
   };
 }
 
+export async function getCreatorMilestones(address: string): Promise<ServiceResponse<Milestone[]>> {
+  const res = await api.get<Record<string, unknown>[]>(`/milestones/creator/${address}`);
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch milestones' };
+  return { success: true, data: (res.data || []).map(toMilestone) };
+}
+
 export async function getCampaignMilestones(campaignId: string): Promise<ServiceResponse<Milestone[]>> {
   const res = await api.get<Record<string, unknown>[]>(`/milestones/campaign/${campaignId}`);
   if (!res.success) return { success: false, error: res.error || 'Failed to fetch milestones' };
