@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { getPools } from '../services/poolService';
 import type { Pool } from '../types';
 
@@ -20,6 +21,8 @@ const STATUSES = [
 export default function PoolExplorePage() {
   const navigate = useNavigate();
   const { currentUser } = useDemoMode();
+  const { user } = useAuth();
+  const activeUser = currentUser || user;
   const [pools, setPools] = useState<Pool[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -44,7 +47,7 @@ export default function PoolExplorePage() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Funding Pools</h1>
-        {currentUser && (
+        {activeUser && (
           <Button variant="neon" onClick={() => navigate('/pools/create')}>Create Pool</Button>
         )}
       </div>

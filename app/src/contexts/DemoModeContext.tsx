@@ -38,7 +38,7 @@ function generateAddress(name: string, role: string): string {
 
 function loadIdentity(): OnboardingState | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as OnboardingState;
   } catch {
@@ -48,15 +48,15 @@ function loadIdentity(): OnboardingState | null {
 
 function saveIdentity(state: OnboardingState): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    console.error('Failed to persist identity to sessionStorage');
+    console.warn('Failed to persist identity to localStorage');
   }
 }
 
 function clearIdentity(): void {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
     //
   }
@@ -84,7 +84,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       isDemo: true,
     };
     setState(newState);
-    try { sessionStorage.setItem('cinex_demo_name', name); } catch { /* ignore */ }
+    try { localStorage.setItem('cinex_demo_name', name); } catch { /* ignore */ }
   }, []);
 
   const logout = useCallback(() => {

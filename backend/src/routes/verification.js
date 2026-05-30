@@ -114,16 +114,33 @@ router.get('/onchain-status/:address', async (req, res, next) => {
 // POST /verification/proxy-register — wallet-free Quick Register (backend signs for user)
 router.post('/proxy-register', requireAuth, async (req, res, next) => {
   try {
+    const db = await getDb();
     const { address, name, portfolioUrl, projectVertical, verificationLevel } = req.body;
-    if (!address || !name) return res.status(400).json({ error: 'address and name required' });
-    const chainResult = await contractService.proxyRegisterCreator(
-      address,
-      name,
-      portfolioUrl || '',
-      projectVertical || 'film',
-      verificationLevel || 1,
-    );
-    res.json({ status: 'registered', ...chainResult });
+    if (!address || !name) { db.release(); return res.status(400).json({ error: 'address and name required' }); }
+
+    // DB write first (dual-write pattern)
+    const now = Math.floor(Date.now() / 1000);
+    await db.run(`
+      INSERT INTO profiles (address, username, bio, portfolio_url, updated_at)
+      VALUES ($1, $2, '', $3, $4)
+      ON CONFLICT(address) DO UPDATE SET username = COALESCE($2, username), updated_at = $4
+    `, [address, name, portfolioUrl || '', now]);
+    db.release();
+
+    let chainResult = null;
+    try {
+      chainResult = await contractService.proxyRegisterCreator(
+        address,
+        name,
+        portfolioUrl || '',
+        projectVertical || 'film',
+        verificationLevel || 1,
+      );
+    } catch (chainErr) {
+      console.warn(`[verification] Chain proxy-register failed (DB succeeded): ${chainErr.message}`);
+    }
+
+    res.json({ status: 'registered', db: true, chain: chainResult });
   } catch (err) { next(err); }
 });
 

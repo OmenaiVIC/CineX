@@ -87,12 +87,16 @@ router.post('/', requireAuth, async (req, res, next) => {
       await db.run(`INSERT INTO feed_events (event_type, event_data, actor, campaign_id) VALUES ($1, $2, $3, $4)`,
         ['campaign_created', JSON.stringify({ summary: `Campaign '${title}' launched` }), creator, campaignId]);
     }
+    const deadlineS = deadline ? Math.floor(Number(deadline) / 1000) : 0;
+    const durationBlocks = deadlineS > 0
+      ? Math.min(8640, Math.max(4320, Math.floor((deadlineS - now) / 600)))
+      : 8640;
     let chainResult = null;
     try {
       chainResult = await contractService.createCampaignInModule(
         `${title}: ${(description || '').slice(0, 200)}`,
         Number(target_amount),
-        2592000,
+        durationBlocks,
         1,
         'Standard'
       );

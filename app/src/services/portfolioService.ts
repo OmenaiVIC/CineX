@@ -2,6 +2,8 @@ import type { PortfolioItem, ServiceResponse } from '../types';
 import * as api from './api';
 
 function toItem(m: Record<string, unknown>): PortfolioItem {
+  const rawMedia = m.mediaUrls ?? (m as Record<string, unknown>)['media_urls'];
+  const rawThumb = m.thumbnailUrl ?? (m as Record<string, unknown>)['thumbnail_url'];
   return {
     id: String(m.id || ''),
     address: String(m.address || ''),
@@ -10,8 +12,8 @@ function toItem(m: Record<string, unknown>): PortfolioItem {
     category: (m.category as PortfolioItem['category']) || 'short-film',
     role: String(m.role || ''),
     year: Number(m.year || new Date().getFullYear()),
-    mediaUrls: Array.isArray(m.mediaUrls) ? m.mediaUrls : [],
-    thumbnailUrl: m.thumbnailUrl ? String(m.thumbnailUrl) : undefined,
+    mediaUrls: Array.isArray(rawMedia) ? rawMedia : [],
+    thumbnailUrl: rawThumb ? String(rawThumb) : undefined,
     awards: Array.isArray(m.awards) ? m.awards : undefined,
   };
 }
