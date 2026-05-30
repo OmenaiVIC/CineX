@@ -103,7 +103,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - DeFi logo: `https://drive.google.com/file/d/1BqNdw4Veddit0hWauS20bUBXbWWwot6v/view`
 - Social banner: `https://drive.google.com/file/d/1lwAbgwtyy5hMfAyxdLt1hpdJ7A5yUSe0/view`
 
-## Session Context (2026-05-30)
+## Session Context (2026-05-30) — v2
 
 ### Done This Session
 - **v2 contract deployed** on testnet at `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12.project-verification-module-v2` (nonce 4) — confirmed via `get-module-name` = `"project-verification-module-v2"`
