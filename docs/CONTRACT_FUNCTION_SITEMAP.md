@@ -265,7 +265,7 @@ Minimal base trait — no bridging needed.
 | Contract | In Testnet Plan? | Notes |
 |---|---|---|
 | All 29 contracts (except v2) | ✅ In `default.testnet-plan.yaml` | Deployed under `ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM` |
-| `project-verification-module-v2` | ❌ NOT in any testnet plan | Deployed manually via script to `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12` — **will be lost on redeploy** |
+| `project-verification-module-v2` | ❌ NOT in any testnet plan | ✅ Deployed via Render backend to `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12` (nonce 4) — standalone, no trait deps |
 
 ## Diagnostic/Admin Functions (not in contract tables)
 

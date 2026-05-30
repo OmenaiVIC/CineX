@@ -102,3 +102,30 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - App icon: `https://drive.google.com/file/d/1Y_Zu9nltx6mPxlqsBObGM3Ikw9YrbLXz/view`
 - DeFi logo: `https://drive.google.com/file/d/1BqNdw4Veddit0hWauS20bUBXbWWwot6v/view`
 - Social banner: `https://drive.google.com/file/d/1lwAbgwtyy5hMfAyxdLt1hpdJ7A5yUSe0/view`
+
+## Session Context (2026-05-30)
+
+### Done This Session
+- **v2 contract deployed** on testnet at `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12.project-verification-module-v2` (nonce 4) — confirmed via `get-module-name` = `"project-verification-module-v2"`
+- **6 bug-fix commits** pushed to `main`: portfolio thumbnail (camelCase/snake_case), campaign duration (blocks, clamped 4320–8640), pool UI (localStorage), Quick Register v2 fallback, init() lenient, ensureNonce trusts chain, deployContract fee scaling
+- **`requireAuth` added** to `POST /api/deploy/contract`
+- **Sitemap** corrected at `docs/CONTRACT_FUNCTION_SITEMAP.md` — v2 deployment status updated
+
+### Verified
+- `clarinet check` passes (30 contracts, 0 errors)
+- 227 tests pass across 11 test files
+- Backend starts cleanly on Render (`https://cinex-backend-zo1r.onrender.com`)
+- Wallet debug: `creator` = `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12`, nonces healthy
+- `module-base` and `project-verification-module-v2` both deployed and responding
+
+### Next Steps
+1. **Test Quick Register end-to-end** via `POST /api/verification/proxy-register` (needs auth token)
+2. **Deploy to Vercel** — auto-deploys on push to `main`
+3. **Render deploy hook** — configure in Render dashboard for CI/CD
+4. **Redeploy all 29 old contracts** under new deployer (cleanup sprint, deferred)
+
+### Key URLs
+- Backend: `https://cinex-backend-zo1r.onrender.com`
+- Vercel: `https://cinex.vercel.app`
+- Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
+- Hiro API: `https://api.testnet.hiro.so`

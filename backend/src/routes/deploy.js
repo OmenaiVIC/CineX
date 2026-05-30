@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import contractService from '../services/contractService.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const router = Router();
 
 // POST /deploy/contract — deploy a smart contract from the contracts/ directory
-router.post('/contract', async (req, res, next) => {
+router.post('/contract', requireAuth, async (req, res, next) => {
   try {
     const { contractName } = req.body;
     if (!contractName) return res.status(400).json({ error: 'contractName required' });
