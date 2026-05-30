@@ -23,7 +23,7 @@ import { StacksTestnet } from '@stacks/network';
 const API_URL = 'https://api.testnet.hiro.so';
 const EXPLORER_URL = 'https://explorer.hiro.so/txid';
 const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-const V2_DEPLOYER = DEPLOYER;
+const V2_DEPLOYER = 'STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12';
 
 let _initialized = false;
 let _wallets = null;
