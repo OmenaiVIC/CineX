@@ -112,6 +112,8 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Sitemap** corrected at `docs/CONTRACT_FUNCTION_SITEMAP.md` — v2 deployment status updated
 - **Vercel deployment fixed** — fresh build deployed from `app/` directory; JS bundle hash changed `index-BFItlxEo.js` → `index-D_UcI-rU.js`
 - **Root `vercel.json` fixed** — removed invalid `rootDirectory: "app"` property (conflicted with `.vercel/project.json` `rootDirectory: null`)
+- **proxy-register SQL bug fixed** — `COALESCE($2, username)` → direct `$2` assignment (column ref `username` was ambiguous inside ON CONFLICT DO UPDATE SET expression on `node:sqlite`)
+- **Quick Register E2E test initiated** — registered test user `email_10`, confirmed auth flow works, but proxy-register SQL bug blocks completion until Render deploys fix
 
 ### Verified
 - `clarinet check` passes (30 contracts, 0 errors)
@@ -124,10 +126,13 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - `vercel --prod` from root no longer blocked
 
 ### Next Steps
-1. **Test Quick Register end-to-end** via frontend login → `POST /api/verification/proxy-register`
-2. **Check frontend console** — open `https://cine-x-iota.vercel.app`, verify no JS errors, all API calls succeed
-3. **Render deploy hook** — configure in Render dashboard for CI/CD
-4. **Redeploy all 29 old contracts** under new deployer (cleanup sprint, deferred)
+1. **Trigger Render redeploy** — push `main` currently blocked by Render auto-deploy being unconfigured. Either:
+   - Open Render dashboard → Manual Deploy → Deploy from Branch
+   - Configure Render Deploy Hook URL in dashboard and add to repo secrets
+2. **Verify proxy-register fix** — after deploy, re-run `POST /api/verification/proxy-register` with `email_10`'s auth token
+3. **Test Quick Register end-to-end** via frontend login → `POST /api/verification/proxy-register`
+4. **Check frontend console** — open `https://cine-x-iota.vercel.app`, verify no JS errors, all API calls succeed
+5. **Redeploy all 29 old contracts** under new deployer (cleanup sprint, deferred)
 
 ### Key URLs
 - Backend: `https://cinex-backend-zo1r.onrender.com`
