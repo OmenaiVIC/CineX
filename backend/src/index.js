@@ -18,6 +18,7 @@ import authRouter from './routes/auth.js';
 import contactRouter from './routes/contact.js';
 import yieldRouter from './routes/yield.js';
 import escrowRouter from './routes/escrow.js';
+import adminRouter from './routes/admin.js';
 import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
@@ -96,6 +97,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/yield', yieldRouter);
 app.use('/api/escrow', escrowRouter);
+app.use('/api/admin', adminRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);

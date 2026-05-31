@@ -68,6 +68,7 @@ export default function Navbar() {
     { path: '/wallet', label: 'Wallet' },
     { path: '/contact', label: 'Contact' },
     ...(displayUser?.address ? [{ path: `/profile/${displayUser.address}`, label: 'Profile' }] : []),
+    ...(displayUser?.role === 'admin' ? [{ path: '/admin', label: 'Admin' }] : []),
   ];
 
   return (

@@ -29,6 +29,13 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+export async function requireAdmin(req, res, next) {
+  // requireAuth must have populated req.user first
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
+  next();
+}
+
 export function optionalAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {

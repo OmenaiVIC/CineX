@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getDb } from '../database.js';
 import contractService from '../services/contractService.js';
 import { requireAuth } from '../middleware/auth.js';
+import { getNgnPerStx, ngnToUstx } from '../utils/currency.js';
 
 const router = Router();
 
@@ -100,10 +101,13 @@ router.post('/', requireAuth, async (req, res, next) => {
 
     let chainResult = null;
     try {
+      const rate = await getNgnPerStx(() => contractService.getStxPrice());
+      const targetUstx = rate ? ngnToUstx(target_amount, rate) : null;
+      const minUstx = rate ? ngnToUstx(min_commitment || '1', rate) : 1;
       chainResult = await contractService.createPoolInContract(
         name.slice(0, 64),
-        Number(target_amount),
-        Number(min_commitment) || 1,
+        targetUstx || Number(target_amount),
+        minUstx || 1,
         50,
         86400,
         max_members || 10,
@@ -138,7 +142,9 @@ router.post('/:id/join', requireAuth, async (req, res, next) => {
 
     let chainResult = null;
     try {
-      chainResult = await contractService.joinPoolInContract(Number(req.params.id), Number(amount));
+      const rate = await getNgnPerStx(() => contractService.getStxPrice());
+      const ustxAmount = rate ? ngnToUstx(amount, rate) : Number(amount);
+      chainResult = await contractService.joinPoolInContract(Number(req.params.id), ustxAmount);
       console.log(`[pools] Chain join pool: ${chainResult.explorer_url}`);
     } catch (chainErr) {
       console.warn(`[pools] Chain join pool failed (DB succeeded): ${chainErr.message}`);
@@ -160,7 +166,9 @@ router.post('/:id/contribute', requireAuth, async (req, res, next) => {
 
     let chainResult = null;
     try {
-      chainResult = await contractService.contributeToPoolContract(Number(req.params.id), Number(amount));
+      const rate = await getNgnPerStx(() => contractService.getStxPrice());
+      const ustxAmount = rate ? ngnToUstx(amount, rate) : Number(amount);
+      chainResult = await contractService.contributeToPoolContract(Number(req.params.id), ustxAmount);
       console.log(`[pools] Chain contribute: ${chainResult.explorer_url}`);
     } catch (chainErr) {
       console.warn(`[pools] Chain contribute failed (DB succeeded): ${chainErr.message}`);
@@ -187,7 +195,9 @@ router.post('/:id/proposals', requireAuth, async (req, res, next) => {
 
     let chainResult = null;
     try {
-      chainResult = await contractService.proposeAllocation(Number(req.params.id), Number(campaign_id), Number(amount));
+      const rate = await getNgnPerStx(() => contractService.getStxPrice());
+      const ustxAmount = rate ? ngnToUstx(amount, rate) : Number(amount);
+      chainResult = await contractService.proposeAllocation(Number(req.params.id), Number(campaign_id), ustxAmount);
       console.log(`[pools] Chain proposal: ${chainResult.explorer_url}`);
     } catch (chainErr) {
       console.warn(`[pools] Chain proposal failed (DB succeeded): ${chainErr.message}`);
@@ -199,7 +209,15 @@ router.post('/:id/proposals', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /pools/proposals/:id — get proposal details
+// GET /pools/:id/onchain-member/:address — get member from chain
+router.get('/:id/onchain-member/:address', async (req, res, next) => {
+  try {
+    const data = await contractService.getPoolMember(Number(req.params.id), req.params.address);
+    res.json({ data });
+  } catch (err) { next(err); }
+});
+
+// GET /pools/proposals/:id
 router.get('/proposals/:id', async (req, res, next) => {
   try {
     const db = await getDb();
@@ -214,6 +232,14 @@ router.get('/proposals/:id', async (req, res, next) => {
     } catch (_) { /* chain may not exist */ }
 
     res.json({ proposal, votes, chain: chainProposal });
+  } catch (err) { next(err); }
+});
+
+// GET /pools/proposals/:id/onchain-vote/:voter — get proposal vote from chain
+router.get('/proposals/:id/onchain-vote/:voter', async (req, res, next) => {
+  try {
+    const data = await contractService.getProposalVote(Number(req.params.id), req.params.voter);
+    res.json({ data });
   } catch (err) { next(err); }
 });
 
@@ -299,6 +325,14 @@ router.post('/:id/close', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /pools/:id/claim-yield — claim backer yield from pool's campaign
+router.post('/:id/claim-yield', requireAuth, async (req, res, next) => {
+  try {
+    const result = await contractService.claimBackerYield(Number(req.params.id));
+    res.json(result);
+  } catch (err) { next(err); }
+});
+
 // POST /pools/:id/withdraw — withdraw unused funds
 router.post('/:id/withdraw', requireAuth, async (req, res, next) => {
   try {
@@ -308,7 +342,9 @@ router.post('/:id/withdraw', requireAuth, async (req, res, next) => {
 
     let chainResult = null;
     try {
-      chainResult = await contractService.withdrawUnused(Number(req.params.id), Number(amount));
+      const rate = await getNgnPerStx(() => contractService.getStxPrice());
+      const ustxAmount = rate ? ngnToUstx(amount, rate) : Number(amount);
+      chainResult = await contractService.withdrawUnused(Number(req.params.id), ustxAmount);
       console.log(`[pools] Chain withdraw: ${chainResult.explorer_url}`);
     } catch (chainErr) {
       console.warn(`[pools] Chain withdraw failed (DB succeeded): ${chainErr.message}`);

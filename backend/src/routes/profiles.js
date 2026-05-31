@@ -26,7 +26,19 @@ router.get('/:address', async (req, res, next) => {
     const ratings = await db.all('SELECT * FROM ratings WHERE target_address = $1 ORDER BY created_at DESC', [req.params.address]);
     const avg = await db.get('SELECT COALESCE(AVG(score), 0) as avg_score, COUNT(*) as count FROM ratings WHERE target_address = $1', [req.params.address]);
     db.release();
-    res.json({ profile, portfolio, ratings, ratingSummary: avg });
+
+    // Surface on-chain reputation
+    let onchainRep = null;
+    try {
+      onchainRep = await contractService.getAverageRating(req.params.address);
+    } catch (_) { /* chain not available */ }
+
+    let verifiedStatus = null;
+    try {
+      verifiedStatus = await contractService.isCreatorCurrentlyVerified(req.params.address);
+    } catch (_) { /* chain not available */ }
+
+    res.json({ profile, portfolio, ratings, ratingSummary: avg, onchainRep, verifiedStatus });
   } catch (err) { next(err); }
 });
 
@@ -162,6 +174,17 @@ router.put('/:address/portfolio/:id', requireAuth, async (req, res, next) => {
     db.release();
     if (updated) { updated.media_urls = tryParseJson(updated.media_urls, []); updated.awards = tryParseJson(updated.awards, []); }
     res.json(updated);
+  } catch (err) { next(err); }
+});
+
+// GET /profiles/:address/reputation — on-chain reputation
+router.get('/:address/reputation', async (req, res, next) => {
+  try {
+    const rating = await contractService.getAverageRating(req.params.address);
+    const verified = await contractService.isCreatorCurrentlyVerified(req.params.address);
+    const cap = await contractService.getCreatorFundingCap(req.params.address);
+    const identity = await contractService.getCreatorIdentity(req.params.address);
+    res.json({ rating, verified, fundingCap: cap, identity });
   } catch (err) { next(err); }
 });
 

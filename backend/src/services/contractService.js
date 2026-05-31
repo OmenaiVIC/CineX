@@ -584,6 +584,143 @@ async function getCreatorIdentity(creatorAddress) {
   ]);
 }
 
+// ========== ADMIN FUNCTIONS ==========
+
+/// Helper: call an admin function with the creator key.
+async function adminCall(contractName, functionName, functionArgs, contractAddress = DEPLOYER) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const txHash = await callContract(pk, contractName, functionName, functionArgs, contractAddress);
+  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+}
+
+// --- funding-pool ---
+async function adminSetPoolContractAddresses(verification, reputation, escrow) {
+  return adminCall('funding-pool', 'set-contract-addresses', [
+    standardPrincipalCV(verification), standardPrincipalCV(reputation), standardPrincipalCV(escrow),
+  ]);
+}
+async function adminSetPoolPauseState(pause) {
+  return adminCall('funding-pool', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminPoolEmergencyWithdraw(amount, recipient) {
+  return adminCall('funding-pool', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)]);
+}
+async function adminEmergencyClosePool(poolId) {
+  return adminCall('funding-pool', 'emergency-close-pool', [uintCV(poolId)]);
+}
+async function adminEmergencyRefundMember(poolId, memberAddress) {
+  return adminCall('funding-pool', 'emergency-refund-member', [uintCV(poolId), standardPrincipalCV(memberAddress)]);
+}
+
+// --- campaign-module-2 ---
+async function adminSetCampaignVerificationContract(verification) {
+  return adminCall('campaign-module-2', 'set-verification-contract', [standardPrincipalCV(verification)]);
+}
+async function adminSetCampaignEscrowContract(escrow) {
+  return adminCall('campaign-module-2', 'set-escrow-contract', [standardPrincipalCV(escrow)]);
+}
+async function adminSetCampaignPauseState(pause) {
+  return adminCall('campaign-module-2', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminCampaignEmergencyWithdraw(campaignId, amount, recipient) {
+  return adminCall('campaign-module-2', 'emergency-withdraw', [uintCV(campaignId), uintCV(amount), standardPrincipalCV(recipient)]);
+}
+
+// --- milestone-escrow ---
+async function adminSetEscrowFeeParameters(feeBps, collector) {
+  return adminCall('milestone-escrow', 'set-fee-parameters', [uintCV(feeBps), standardPrincipalCV(collector)]);
+}
+async function adminSetEscrowVerificationContract(verification) {
+  return adminCall('milestone-escrow', 'set-verification-contract', [standardPrincipalCV(verification)]);
+}
+async function adminSetEscrowPauseState(pause) {
+  return adminCall('milestone-escrow', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminEscrowEmergencyWithdraw(amount, recipient) {
+  return adminCall('milestone-escrow', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)]);
+}
+
+// --- milestone-verification ---
+async function adminSetVerificationEscrow(escrow) {
+  return adminCall('milestone-verification', 'set-milestone-escrow', [standardPrincipalCV(escrow)]);
+}
+async function adminSetVerificationPauseState(pause) {
+  return adminCall('milestone-verification', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminVerificationEmergencyWithdraw(amount, recipient) {
+  return adminCall('milestone-verification', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)]);
+}
+
+// --- yield-escrow ---
+async function adminDistributePlatformYield(campaignId) {
+  return adminCall('yield-escrow', 'distribute-platform-yield', [uintCV(campaignId)]);
+}
+async function adminSetYieldStrategy(strategyContract) {
+  return adminCall('yield-escrow', 'set-strategy', [contractPrincipalCV(DEPLOYER, strategyContract)]);
+}
+async function adminSetYieldMilestoneEscrow(escrow) {
+  return adminCall('yield-escrow', 'set-milestone-escrow', [standardPrincipalCV(escrow)]);
+}
+async function adminSetYieldMilestoneVerification(verification) {
+  return adminCall('yield-escrow', 'set-milestone-verification', [standardPrincipalCV(verification)]);
+}
+async function adminSetYieldPauseState(pause) {
+  return adminCall('yield-escrow', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminYieldEmergencyWithdraw(amount, recipient) {
+  return adminCall('yield-escrow', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)]);
+}
+
+// --- project-verification-module (v1) ---
+async function adminV1EmergencyRevokeVerification(creatorAddress) {
+  return adminCall('project-verification-module', 'emergency-revoke-verification', [standardPrincipalCV(creatorAddress)]);
+}
+async function adminV1SetContractAdmin(newAdmin) {
+  return adminCall('project-verification-module', 'set-contract-admin', [standardPrincipalCV(newAdmin)]);
+}
+async function adminV1SetPauseState(pause) {
+  return adminCall('project-verification-module', 'set-pause-state', [boolCV(pause)]);
+}
+async function adminV1EmergencyWithdraw(amount, recipient) {
+  return adminCall('project-verification-module', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)]);
+}
+
+// --- project-verification-module-v2 ---
+async function adminV2EmergencyVerifyCreator(creatorAddress, expirationBlock) {
+  return adminCall('project-verification-module-v2', 'emergency-verify-creator', [
+    standardPrincipalCV(creatorAddress), uintCV(expirationBlock),
+  ], V2_DEPLOYER);
+}
+async function adminV2EmergencyRevokeVerification(creatorAddress) {
+  return adminCall('project-verification-module-v2', 'emergency-revoke-verification', [standardPrincipalCV(creatorAddress)], V2_DEPLOYER);
+}
+async function adminV2SetPauseState(pause) {
+  return adminCall('project-verification-module-v2', 'set-pause-state', [boolCV(pause)], V2_DEPLOYER);
+}
+async function adminV2EmergencyWithdraw(amount, recipient) {
+  return adminCall('project-verification-module-v2', 'emergency-withdraw', [uintCV(amount), standardPrincipalCV(recipient)], V2_DEPLOYER);
+}
+
+// --- oracle-proxy ---
+async function adminSetPriceOracle(oracleAddress) {
+  return adminCall('oracle-proxy', 'set-price-oracle', [standardPrincipalCV(oracleAddress)]);
+}
+async function adminUpdatePrice(newPrice) {
+  return adminCall('oracle-proxy', 'update-price', [uintCV(newPrice)]);
+}
+async function adminEmergencySetPrice(newPrice) {
+  return adminCall('oracle-proxy', 'emergency-set-price', [uintCV(newPrice)]);
+}
+async function getStxPrice() {
+  return readOnlyCall('oracle-proxy', 'get-stx-price', []);
+}
+
+// --- reputation ---
+async function adminSetVerificationGate(reputationContract) {
+  return adminCall('reputation', 'set-verification-gate', [standardPrincipalCV(reputationContract)]);
+}
+
 // ========== POOL FUNCTIONS ==========
 
 async function createPoolInContract(name, targetAmount, minContribution, minReputation, duration, maxMembers) {
@@ -781,4 +918,40 @@ export default {
   getProposalFromContract,
   getPoolMember,
   getProposalVote,
+  // Admin
+  adminSetPoolContractAddresses,
+  adminSetPoolPauseState,
+  adminPoolEmergencyWithdraw,
+  adminEmergencyClosePool,
+  adminEmergencyRefundMember,
+  adminSetCampaignVerificationContract,
+  adminSetCampaignEscrowContract,
+  adminSetCampaignPauseState,
+  adminCampaignEmergencyWithdraw,
+  adminSetEscrowFeeParameters,
+  adminSetEscrowVerificationContract,
+  adminSetEscrowPauseState,
+  adminEscrowEmergencyWithdraw,
+  adminSetVerificationEscrow,
+  adminSetVerificationPauseState,
+  adminVerificationEmergencyWithdraw,
+  adminDistributePlatformYield,
+  adminSetYieldStrategy,
+  adminSetYieldMilestoneEscrow,
+  adminSetYieldMilestoneVerification,
+  adminSetYieldPauseState,
+  adminYieldEmergencyWithdraw,
+  adminV1EmergencyRevokeVerification,
+  adminV1SetContractAdmin,
+  adminV1SetPauseState,
+  adminV1EmergencyWithdraw,
+  adminV2EmergencyVerifyCreator,
+  adminV2EmergencyRevokeVerification,
+  adminV2SetPauseState,
+  adminV2EmergencyWithdraw,
+  adminSetPriceOracle,
+  adminUpdatePrice,
+  adminEmergencySetPrice,
+  getStxPrice,
+  adminSetVerificationGate,
 };
