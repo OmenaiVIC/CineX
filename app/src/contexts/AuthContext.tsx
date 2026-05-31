@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token && !user) {
+    if (token) {
       fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       }).then(r => r.json()).then(data => {
