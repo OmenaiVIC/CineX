@@ -1,5 +1,7 @@
 import type { FeedEvent, ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 interface BackendFeedEvent {
   id: number;
@@ -32,6 +34,7 @@ function toFeedEvent(e: BackendFeedEvent): FeedEvent {
 }
 
 export async function getFeed(limit = 20, offset = 0): Promise<ServiceResponse<FeedEvent[]>> {
+  if (isDemoMode()) return mock.getFeed(limit, offset);
   const res = await api.get<FeedResponse>(`/feed/global?limit=${limit}&offset=${offset}`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch feed' };
   const events = (res.data.events || []).map(toFeedEvent);
@@ -39,6 +42,7 @@ export async function getFeed(limit = 20, offset = 0): Promise<ServiceResponse<F
 }
 
 export async function getUserFeed(address: string, limit = 20): Promise<ServiceResponse<FeedEvent[]>> {
+  if (isDemoMode()) return mock.getUserFeed(address, limit);
   const res = await api.get<FeedResponse>(`/feed/user/${address}?limit=${limit}`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch feed' };
   const events = (res.data.events || []).map(toFeedEvent);
@@ -52,6 +56,7 @@ export async function addFeedEvent(
   targetId?: string,
   metadata?: Record<string, unknown>
 ): Promise<ServiceResponse<FeedEvent>> {
+  if (isDemoMode()) return mock.addFeedEvent(type, actor, summary, targetId, metadata);
   const res = await api.post<{ id: number }>('/feed/event', {
     eventType: type,
     eventData: JSON.stringify({ summary, ...metadata }),

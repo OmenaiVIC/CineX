@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useGuide } from '../../contexts/GuideContext';
 
 export default function Navbar() {
-  const { currentUser, isOnboarded, logout: demoLogout } = useDemoMode();
+  const { currentUser, isOnboarded, isDemoMode, toggleDemoMode, resetDemoData, logout: demoLogout } = useDemoMode();
   const { user, isAuthenticated, logout: authLogout } = useAuth();
   const { openGuide } = useGuide();
   const navigate = useNavigate();
@@ -17,6 +17,13 @@ export default function Navbar() {
     if (isAuthenticated) authLogout();
     if (isOnboarded) demoLogout();
     navigate('/');
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Reset all demo data to seed? This cannot be undone.')) {
+      resetDemoData();
+      window.location.reload();
+    }
   };
 
   if (!loggedIn) {
@@ -68,48 +75,69 @@ export default function Navbar() {
     { path: '/wallet', label: 'Wallet' },
     { path: '/contact', label: 'Contact' },
     ...(displayUser?.address ? [{ path: `/profile/${displayUser.address}`, label: 'Profile' }] : []),
-    ...(displayUser?.role === 'admin' ? [{ path: '/admin', label: 'Admin' }] : []),
+    ...(displayUser?.role === 'admin' || isDemoMode ? [{ path: '/admin', label: 'Admin' }] : []),
   ];
 
   return (
-    <nav className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-md border-b border-[#1a1a2e]">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span
-            className="text-lg font-bold text-[#4ade80] cursor-pointer"
-            onClick={() => navigate('/dashboard')}
-          >
-            CineX
-          </span>
-          <div className="hidden sm:flex items-center gap-1">
-            {links.map(link => (
-              <button
-                key={link.path}
-                onClick={() => navigate(link.path)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                  location.pathname === link.path
-                    ? 'text-white bg-gray-800'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
+    <>
+      {isDemoMode && (
+        <div className="bg-[#4ade80]/10 border-b border-[#4ade80]/20 px-4 py-1.5 text-center text-xs text-[#4ade80] flex items-center justify-center gap-3">
+          <span>⚡ Demo Mode — all data is simulated client-side. No chain transactions.</span>
+          <a href="https://cine-x-iota.vercel.app/signup" target="_blank" rel="noopener noreferrer" className="text-[10px] px-2 py-0.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] hover:bg-[#4ade80]/30 hover:text-white transition-colors font-medium">Convert to Real</a>
+          <button onClick={handleReset} className="underline hover:text-white text-[10px]">Reset</button>
+          <button onClick={toggleDemoMode} className="underline hover:text-white text-[10px]">Exit Demo</button>
+        </div>
+      )}
+      <nav className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-md border-b border-[#1a1a2e]">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span
+              className="text-lg font-bold text-[#4ade80] cursor-pointer"
+              onClick={() => navigate('/dashboard')}
+            >
+              CineX
+            </span>
+            <div className="hidden sm:flex items-center gap-1">
+              {links.map(link => (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    location.pathname === link.path
+                      ? 'text-white bg-gray-800'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleDemoMode}
+              className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
+                isDemoMode
+                  ? 'bg-[#4ade80]/20 text-[#4ade80] hover:bg-[#4ade80]/30'
+                  : 'bg-gray-800 text-gray-500 hover:text-white'
+              }`}
+              title={isDemoMode ? 'Switch to live chain' : 'Switch to demo mode'}
+            >
+              {isDemoMode ? 'DEMO' : 'LIVE'}
+            </button>
+            <span className="text-xs text-gray-500 hidden sm:block">
+              {displayUser?.name?.slice(0, 8) || displayUser?.email?.split('@')[0]?.slice(0, 8) || 'User'}...
+              {displayUser?.role ? ` · ${displayUser.role}` : ''}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 hidden sm:block">
-            {displayUser?.name?.slice(0, 8) || displayUser?.email?.split('@')[0]?.slice(0, 8) || 'User'}...
-            {displayUser?.role ? ` · ${displayUser.role}` : ''}
-          </span>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-gray-500 hover:text-red-400 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }

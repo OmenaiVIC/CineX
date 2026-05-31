@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { UserRole, OnboardingState } from '../types';
+import { demoState } from '../services/demoState';
+import { isDemoMode, setDemoMode } from '../services/demo';
+import { resetToSeed } from './DemoStorage';
 
 interface CurrentUser {
   address: string;
@@ -10,10 +13,14 @@ interface CurrentUser {
 interface DemoModeContextValue {
   currentUser: CurrentUser | null;
   isOnboarded: boolean;
+  isDemoMode: boolean;
   completeOnboarding: (name: string, role: UserRole) => void;
   logout: () => void;
   updateName: (name: string) => void;
   updateRole: (role: UserRole) => void;
+  toggleDemoMode: () => void;
+  resetDemoData: () => void;
+  grantAdmin: (address: string) => void;
 }
 
 const DemoModeContext = createContext<DemoModeContextValue | null>(null);
@@ -57,23 +64,28 @@ function saveIdentity(state: OnboardingState): void {
 function clearIdentity(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    //
-  }
+  } catch { /* ignore */ }
 }
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<OnboardingState>(() => {
+  const [identity, setIdentity] = useState<OnboardingState>(() => {
     const saved = loadIdentity();
     if (saved) return saved;
     return { address: '', role: null, isOnboarded: false, isDemo: true };
   });
+  const [mockOn, setMockOn] = useState<boolean>(() => isDemoMode());
 
   useEffect(() => {
-    if (state.isOnboarded) {
-      saveIdentity(state);
+    if (identity.isOnboarded) {
+      saveIdentity(identity);
     }
-  }, [state]);
+  }, [identity]);
+
+  useEffect(() => {
+    if (identity.isOnboarded) {
+      demoState.ensureProfile(identity.address);
+    }
+  }, [identity.address, identity.isOnboarded]);
 
   const completeOnboarding = useCallback((name: string, role: UserRole) => {
     const address = generateAddress(name, role);
@@ -83,46 +95,67 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       isOnboarded: true,
       isDemo: true,
     };
-    setState(newState);
+    setIdentity(newState);
+    setDemoMode(true);
+    setMockOn(true);
     try { localStorage.setItem('cinex_demo_name', name); } catch { /* ignore */ }
+    demoState.ensureProfile(address);
   }, []);
 
   const logout = useCallback(() => {
     clearIdentity();
-    setState({ address: '', role: null, isOnboarded: false, isDemo: true });
+    setIdentity({ address: '', role: null, isOnboarded: false, isDemo: true });
   }, []);
 
   const updateName = useCallback((name: string) => {
-    if (!state.role) return;
-    const address = generateAddress(name, state.role);
-    const newState = { ...state, address, name: address };
-    setState(newState);
-  }, [state]);
+    if (!identity.role) return;
+    const address = generateAddress(name, identity.role);
+    const newState = { ...identity, address, name: address };
+    setIdentity(newState);
+  }, [identity]);
 
   const updateRole = useCallback((role: UserRole) => {
-    if (!state.address) return;
-    const newState = { ...state, role };
-    const address = generateAddress(
-      state.address,
-      role
-    );
-    newState.address = address;
-    setState(newState);
-  }, [state]);
+    if (!identity.address) return;
+    const address = generateAddress(identity.address, role);
+    setIdentity({ ...identity, role, address });
+  }, [identity]);
 
-  const currentUser: CurrentUser | null = state.isOnboarded
-    ? { address: state.address, name: state.address, role: state.role! }
+  const toggleDemoMode = useCallback(() => {
+    setMockOn(prev => {
+      const next = !prev;
+      setDemoMode(next);
+      return next;
+    });
+  }, []);
+
+  const resetDemoData = useCallback(() => {
+    resetToSeed();
+    if (identity.isOnboarded) {
+      demoState.ensureProfile(identity.address);
+    }
+  }, [identity]);
+
+  const grantAdmin = useCallback((address: string) => {
+    demoState.grantAdmin(address);
+  }, []);
+
+  const currentUser: CurrentUser | null = identity.isOnboarded
+    ? { address: identity.address, name: identity.address, role: identity.role! }
     : null;
 
   return (
     <DemoModeContext.Provider
       value={{
         currentUser,
-        isOnboarded: state.isOnboarded,
+        isOnboarded: identity.isOnboarded,
+        isDemoMode: mockOn,
         completeOnboarding,
         logout,
         updateName,
         updateRole,
+        toggleDemoMode,
+        resetDemoData,
+        grantAdmin,
       }}
     >
       {children}

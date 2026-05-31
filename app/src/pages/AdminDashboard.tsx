@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useDemoMode } from '../contexts/DemoModeContext';
+import { demoState } from '../services/demoState';
 import * as api from '../services/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -50,6 +52,84 @@ const ADMIN_ACTIONS: AdminAction[] = [
 
 const GROUPS = [...new Set(ADMIN_ACTIONS.map(a => a.contractGroup))];
 
+async function demoAdminCall(action: AdminAction, params: Record<string, unknown>): Promise<{ success: boolean; data?: unknown }> {
+  await new Promise(r => setTimeout(r, 300));
+  const label = action.label;
+  const filtered = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== 0));
+
+  const dummyTx = { tx_id: '0x' + Math.random().toString(36).slice(2, 14).padStart(64, '0'), status: 'success' as const, block_height: 99999 };
+
+  if (label.includes('Toggle') || label.includes('set-pause')) {
+    const paused = filtered.paused === true || filtered.paused === 'true';
+    demoState.setContractState(action.contractGroup.toLowerCase(), { paused });
+    return { success: true, data: { ...dummyTx, state: paused ? 'paused' : 'active' } };
+  }
+
+  if (label.includes('Emergency Withdraw')) {
+    return { success: true, data: { ...dummyTx, amount: filtered.amount, recipient: filtered.recipient } };
+  }
+
+  if (label.includes('Emergency Close Pool')) {
+    const pool = demoState.getData().pools.find(p => p.id === String(filtered.poolId));
+    if (pool) {
+      const data = demoState.getData();
+      data.pools = data.pools.map(p => p.id === String(filtered.poolId) ? { ...p, status: 'closed' as const } : p);
+      demoState.persist(data);
+      demoState.emit('pool:closed', filtered.poolId);
+    }
+    return { success: true, data: { ...dummyTx, poolId: filtered.poolId, status: 'closed' } };
+  }
+
+  if (label.includes('Emergency Refund') || label.includes('Emergency Refund Member')) {
+    return { success: true, data: { ...dummyTx, poolId: filtered.poolId, member: filtered.memberAddress, refunded: true } };
+  }
+
+  if (label.includes('Emergency Verify')) {
+    const t = demoState.getData();
+    const existingVerifier = t.profiles.find((p: { address: string }) => p.address === String(filtered.creatorAddress));
+    if (existingVerifier) {
+      const updatedProfiles = t.profiles.map((p: { address: string; verificationStatus?: string }) =>
+        p.address === String(filtered.creatorAddress) ? { ...p, verificationStatus: 'verified' as const } : p
+      );
+      t.profiles = updatedProfiles;
+      demoState.persist(t);
+      demoState.emit('profile:updated', filtered.creatorAddress);
+    }
+    return { success: true, data: { ...dummyTx, creator: filtered.creatorAddress, status: 'verified' } };
+  }
+
+  if (label.includes('Emergency Revoke')) {
+    const t = demoState.getData();
+    t.profiles = t.profiles.map((p: { address: string; verificationStatus?: string }) =>
+      p.address === String(filtered.creatorAddress) ? { ...p, verificationStatus: 'unverified' as const } : p
+    );
+    demoState.persist(t);
+    demoState.emit('profile:updated', filtered.creatorAddress);
+    return { success: true, data: { ...dummyTx, creator: filtered.creatorAddress, status: 'revoked' } };
+  }
+
+  if (label.includes('Distribute Yield')) {
+    return { success: true, data: { ...dummyTx, campaignId: filtered.campaignId, distributed: true } };
+  }
+
+  if (label.includes('Set Admin')) {
+    const address = String(filtered.newAdmin);
+    demoState.grantAdmin(address);
+    return { success: true, data: { ...dummyTx, admin: address } };
+  }
+
+  if (label.includes('Update Price') || label.includes('Emergency Set Price')) {
+    demoState.setOraclePrice(Number(filtered.price));
+    return { success: true, data: { ...dummyTx, price: filtered.price } };
+  }
+
+  if (label.includes('Set Pool Addresses')) {
+    return { success: true, data: { ...dummyTx, addresses: filtered } };
+  }
+
+  return { success: true, data: { ...dummyTx, message: `Simulated: ${label}`, params: filtered } };
+}
+
 function FormField({ label, value, onChange, type }: { label: string; value: unknown; onChange: (v: unknown) => void; type?: string }) {
   const id = `field-${label.replace(/\s+/g, '-')}`;
   return (
@@ -67,6 +147,7 @@ function FormField({ label, value, onChange, type }: { label: string; value: unk
 }
 
 function ActionCard({ action }: { action: AdminAction }) {
+  const { isDemoMode } = useDemoMode();
   const [params, setParams] = useState<Record<string, unknown>>({ ...action.body });
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -75,9 +156,14 @@ function ActionCard({ action }: { action: AdminAction }) {
     setLoading(true);
     setResult(null);
     try {
-      const filtered = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== 0));
-      const res = await api.post<unknown>(action.endpoint, filtered);
-      setResult(res.success ? JSON.stringify(res.data, null, 2) : res.error || 'Error');
+      if (isDemoMode) {
+        const res = await demoAdminCall(action, params);
+        setResult(res.success ? JSON.stringify(res.data, null, 2) : 'Error');
+      } else {
+        const filtered = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== 0));
+        const res = await api.post<unknown>(action.endpoint, filtered);
+        setResult(res.success ? JSON.stringify(res.data, null, 2) : res.error || 'Error');
+      }
     } catch (err: unknown) {
       setResult(err instanceof Error ? err.message : String(err));
     }
@@ -88,6 +174,7 @@ function ActionCard({ action }: { action: AdminAction }) {
     <Card className="p-3">
       <h4 className="text-sm font-semibold text-white mb-1">{action.label}</h4>
       <p className="text-xs text-gray-500 mb-2">{action.endpoint}</p>
+      {isDemoMode && <span className="inline-block px-1.5 py-0.5 rounded bg-[#4ade80]/20 text-[10px] text-[#4ade80] mb-2">DEMO</span>}
       {Object.keys(action.body || {}).map(key => (
         <FormField
           key={key}
@@ -111,16 +198,23 @@ function ActionCard({ action }: { action: AdminAction }) {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { isDemoMode, currentUser, grantAdmin } = useDemoMode();
   const [activeTab, setActiveTab] = useState(GROUPS[0]);
   const [sysInfo, setSysInfo] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     api.get<Record<string, unknown>>('/admin/system-status').then((r: { success: boolean; data?: Record<string, unknown> }) => {
       if (r.success && r.data) setSysInfo(r.data);
-    });
+    }).catch(() => {});
   }, []);
 
-  if (!user || user.role !== 'admin') {
+  useEffect(() => {
+    if (isDemoMode && currentUser) {
+      grantAdmin(currentUser.address);
+    }
+  }, [isDemoMode, currentUser, grantAdmin]);
+
+  if ((!user || user.role !== 'admin') && !isDemoMode) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
@@ -133,11 +227,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-xs text-gray-500 mt-1">
-          {sysInfo ? `${sysInfo.network as string} · ${sysInfo.deployer as string}` : 'loading...'}
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+          <p className="text-xs text-gray-500 mt-1">
+            {sysInfo ? `${sysInfo.network as string} · ${sysInfo.deployer as string}` : isDemoMode ? 'Demo Mode · Simulated' : 'loading...'}
+          </p>
+        </div>
+        {isDemoMode && (
+          <span className="px-2 py-1 rounded bg-[#4ade80]/20 text-xs text-[#4ade80] font-medium">DEMO MODE — Actions are simulated</span>
+        )}
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">

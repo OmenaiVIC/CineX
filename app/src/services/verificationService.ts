@@ -1,5 +1,7 @@
 import type { VerificationApplication, VerifiedFilmmaker, ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 interface StatusResponse {
   applied: boolean;
@@ -9,6 +11,7 @@ interface StatusResponse {
 }
 
 export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker }>> {
+  if (isDemoMode()) return mock.getVerificationStatus(address);
   const res = await api.get<StatusResponse>(`/verification/status/${address}`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to get verification status' };
   return {
@@ -31,6 +34,7 @@ export async function applyForVerification(
   socialMedia?: { twitter?: string; linkedin?: string; instagram?: string; website?: string },
   bondAmount?: string
 ): Promise<ServiceResponse<VerificationApplication>> {
+  if (isDemoMode()) return mock.applyForVerification(applicant, name, bio, portfolioUrl, previousWorks, socialMedia, bondAmount);
   const res = await api.post<VerificationApplication>('/verification/apply', {
     applicant,
     name,
@@ -45,12 +49,14 @@ export async function applyForVerification(
 }
 
 export async function getPendingApplications(): Promise<ServiceResponse<VerificationApplication[]>> {
+  if (isDemoMode()) return mock.getPendingApplications();
   const res = await api.get<VerificationApplication[]>('/verification/pending');
   if (!res.success) return { success: false, error: res.error || 'Failed to fetch pending applications' };
   return { success: true, data: res.data || [] };
 }
 
 export async function reviewApplication(id: string, reviewer: string, approved: boolean, rejectionReason?: string): Promise<ServiceResponse<VerificationApplication>> {
+  if (isDemoMode()) return mock.reviewApplication(id, reviewer, approved, rejectionReason);
   const res = await api.post<VerificationApplication>(`/verification/${id}/review`, {
     reviewer,
     approved,
@@ -61,6 +67,7 @@ export async function reviewApplication(id: string, reviewer: string, approved: 
 }
 
 export async function getAllVerifiedFilmmakers(): Promise<ServiceResponse<VerifiedFilmmaker[]>> {
+  if (isDemoMode()) return mock.getAllVerifiedFilmmakers();
   const res = await api.get<VerifiedFilmmaker[]>('/verification/filmmakers');
   if (!res.success) return { success: false, error: res.error || 'Failed to fetch filmmakers' };
   return { success: true, data: res.data || [] };

@@ -1,5 +1,7 @@
 import type { PortfolioItem, ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 function toItem(m: Record<string, unknown>): PortfolioItem {
   const rawMedia = m.mediaUrls ?? (m as Record<string, unknown>)['media_urls'];
@@ -19,6 +21,7 @@ function toItem(m: Record<string, unknown>): PortfolioItem {
 }
 
 export async function getPortfolioForUser(address: string): Promise<ServiceResponse<PortfolioItem[]>> {
+  if (isDemoMode()) return mock.getPortfolioForUser(address);
   const res = await api.get<Record<string, unknown>[]>(`/profiles/${address}/portfolio`);
   if (!res.success) return { success: false, error: res.error || 'Failed to fetch portfolio' };
   const items = (res.data || []).map(toItem);
@@ -26,6 +29,7 @@ export async function getPortfolioForUser(address: string): Promise<ServiceRespo
 }
 
 export async function createPortfolioItem(item: Omit<PortfolioItem, 'id'>): Promise<ServiceResponse<PortfolioItem>> {
+  if (isDemoMode()) return mock.createPortfolioItem(item);
   const res = await api.post<Record<string, unknown>>(`/profiles/${item.address}/portfolio`, {
     title: item.title,
     description: item.description,
@@ -41,6 +45,7 @@ export async function createPortfolioItem(item: Omit<PortfolioItem, 'id'>): Prom
 }
 
 export async function updatePortfolioItem(id: string, updates: Partial<PortfolioItem>, address: string): Promise<ServiceResponse<PortfolioItem>> {
+  if (isDemoMode()) return mock.updatePortfolioItem(id, updates, address);
   const body: Record<string, unknown> = {};
   if (updates.title !== undefined) body.title = updates.title;
   if (updates.description !== undefined) body.description = updates.description;
@@ -56,6 +61,7 @@ export async function updatePortfolioItem(id: string, updates: Partial<Portfolio
 }
 
 export async function deletePortfolioItem(id: string, address: string): Promise<ServiceResponse<boolean>> {
+  if (isDemoMode()) return mock.deletePortfolioItem(id, address);
   const res = await api.del<{ deleted: boolean }>(`/profiles/${address}/portfolio/${id}`);
   if (!res.success) return { success: false, error: res.error || 'Portfolio item not found' };
   return { success: true, data: true };

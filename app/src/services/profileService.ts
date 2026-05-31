@@ -1,5 +1,7 @@
 import type { Profile, Rating, ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 interface ProfileApiResponse {
   profile: Profile;
@@ -41,12 +43,14 @@ function toProfile(row: ProfileRow): Profile {
 }
 
 export async function getProfile(address: string): Promise<ServiceResponse<Profile>> {
+  if (isDemoMode()) return mock.getProfile(address);
   const res = await api.get<ProfileApiResponse>(`/profiles/${address}`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Profile not found' };
   return { success: true, data: toProfile(res.data.profile as unknown as ProfileRow) };
 }
 
 export async function getOrCreateProfile(address: string): Promise<ServiceResponse<Profile>> {
+  if (isDemoMode()) return mock.getOrCreateProfile(address);
   const existing = await getProfile(address);
   if (existing.success && existing.data) return existing;
 
@@ -58,6 +62,7 @@ export async function getOrCreateProfile(address: string): Promise<ServiceRespon
 }
 
 export async function updateProfile(address: string, updates: Partial<Profile>): Promise<ServiceResponse<Profile>> {
+  if (isDemoMode()) return mock.updateProfile(address, updates);
   const body: Record<string, unknown> = {};
   if (updates.displayName !== undefined) body.username = updates.displayName;
   if (updates.bio !== undefined) body.bio = updates.bio;
@@ -73,6 +78,7 @@ export async function updateProfile(address: string, updates: Partial<Profile>):
 }
 
 export async function getAllProfiles(): Promise<ServiceResponse<Profile[]>> {
+  if (isDemoMode()) return mock.getAllProfiles();
   const res = await api.get<ProfileRow[]>('/profiles');
   if (!res.success) return { success: false, error: res.error || 'Failed to fetch profiles' };
   const profiles = (res.data || []).map(toProfile);
@@ -80,6 +86,7 @@ export async function getAllProfiles(): Promise<ServiceResponse<Profile[]>> {
 }
 
 export async function searchProfiles(query: string): Promise<ServiceResponse<Profile[]>> {
+  if (isDemoMode()) return mock.searchProfiles(query);
   const res = await getAllProfiles();
   if (!res.success || !res.data) return res;
   const q = query.toLowerCase();

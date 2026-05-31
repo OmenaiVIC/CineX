@@ -1,5 +1,7 @@
 import type { Rating, ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 interface RatingsResponse {
   ratings: Rating[];
@@ -20,6 +22,7 @@ function toRating(r: Record<string, unknown>): Rating {
 }
 
 export async function getRatingsForUser(address: string): Promise<ServiceResponse<Rating[]>> {
+  if (isDemoMode()) return mock.getRatingsForUser(address);
   const res = await api.get<RatingsResponse>(`/profiles/${address}/ratings`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to fetch ratings' };
   const ratings = (res.data.ratings || []).map(toRating);
@@ -27,6 +30,7 @@ export async function getRatingsForUser(address: string): Promise<ServiceRespons
 }
 
 export async function getRatingsByUser(address: string): Promise<ServiceResponse<Rating[]>> {
+  if (isDemoMode()) return mock.getRatingsByUser(address);
   const all = await getAllRatings();
   if (!all.success || !all.data) return all;
   return { success: true, data: all.data.filter(r => r.rater === address) };
@@ -39,12 +43,14 @@ async function getAllRatings(): Promise<ServiceResponse<Rating[]>> {
 }
 
 export async function getAverageRating(address: string): Promise<ServiceResponse<{ average: number; count: number }>> {
+  if (isDemoMode()) return mock.getAverageRating(address);
   const res = await api.get<RatingsResponse>(`/profiles/${address}/ratings`);
   if (!res.success || !res.data) return { success: true, data: { average: 0, count: 0 } };
   return { success: true, data: res.data.summary || { average: 0, count: 0 } };
 }
 
 export async function getRatingBreakdown(address: string): Promise<ServiceResponse<Record<string, { average: number; count: number }>>> {
+  if (isDemoMode()) return mock.getRatingBreakdown(address);
   const res = await getRatingsForUser(address);
   if (!res.success || !res.data) return { success: true, data: {} };
   const breakdown: Record<string, { average: number; count: number }> = {};
@@ -67,6 +73,7 @@ export async function addRating(
   category?: string,
   projectId?: string
 ): Promise<ServiceResponse<Rating>> {
+  if (isDemoMode()) return mock.addRating(rater, ratee, score, review, category, projectId);
   if (score < 1 || score > 5) return { success: false, error: 'Rating must be between 1 and 5' };
   if (rater === ratee) return { success: false, error: 'Cannot rate yourself' };
   const res = await api.post<Rating>(`/profiles/${ratee}/ratings`, {

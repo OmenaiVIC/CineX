@@ -109,13 +109,14 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Full sitemap audit** — cross-referenced all ✅ entries against actual code; fixed 11+ route paths, 8+ wrapper names; promoted 4 v1 admin functions ◻️→✅; demoted 2 fake oracle entries; reclassified `get-stx-price` as 🔶
 - **`POST /api/auth/bootstrap-admin` endpoint** added to `backend/src/routes/auth.js` — accepts `{ email, adminKey }`, validates against `ADMIN_BOOTSTRAP_KEY` env var, promotes user to admin and returns a session token
 - **AGENTS.md** updated with `ADMIN_BOOTSTRAP_KEY` env var
+- **isDemoFailing() toggle** — added `isDemoFailing()`, `setDemoFailing()` to `demo.ts`, `simulateFail()` helper in `mockContractService.ts` injected into all 23 mutation functions (∼30% fail rate)
 - 227 tests pass, `clarinet check` passes (30 contracts, 0 errors)
 
 ### Next Steps
-1. **Set `ADMIN_BOOTSTRAP_KEY` env var** in Render dashboard, then `curl POST /api/auth/bootstrap-admin` to promote your user
-2. **Delete the env var** from Render after use (one-time bootstrap)
-3. **Bridge `reputation.get-reputation-score`** — highest-impact unbridged function
-4. **Bridge `funding-pool.get-proposal-vote`** — already has backend wrapper, needs frontend
+1. **"Convert to Real" CTA** — add link to Navbar demo banner pointing to the production signup page
+2. **Build check** — run `npm run build` (or `npx tsc --noEmit`) to catch any type issues
+3. **Commit** — commit remaining 14+5 files as "Demo V1: complete service mocks + fail simulation"
+4. **Set `ADMIN_BOOTSTRAP_KEY` env var** in Render dashboard, then `curl POST /api/auth/bootstrap-admin` to promote your user
 
 ### Key URLs
 - Backend: `https://cinex-backend-zo1r.onrender.com`

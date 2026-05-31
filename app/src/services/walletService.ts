@@ -1,5 +1,7 @@
 import type { ServiceResponse } from '../types';
 import * as api from './api';
+import * as mock from './mockContractService';
+import { isDemoMode } from './demo';
 
 export interface WalletBalance {
   address: string;
@@ -38,6 +40,7 @@ function toBalance(wallet: BackendWallet): WalletBalance {
 }
 
 export async function getWalletBalance(address: string): Promise<ServiceResponse<WalletBalance>> {
+  if (isDemoMode()) return mock.getWalletBalance(address) as Promise<ServiceResponse<WalletBalance>>;
   const res = await api.get<{ wallet: BackendWallet }>(`/wallets/${address}`);
   if (res.success && res.data?.wallet) {
     return { success: true, data: toBalance(res.data.wallet) };
@@ -53,6 +56,7 @@ export async function getWalletBalance(address: string): Promise<ServiceResponse
 }
 
 export async function creditWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
+  if (isDemoMode()) return mock.creditWallet(address, stxAmount) as Promise<ServiceResponse<WalletBalance>>;
   const res = await api.post<{ wallet: BackendWallet }>('/wallets/deposit', {
     user_id: address,
     amount_sbtc: stxAmount,
@@ -62,6 +66,7 @@ export async function creditWallet(address: string, stxAmount: string): Promise<
 }
 
 export async function depositToWallet(address: string, amount: number, currency: 'NGN' | 'USD' | 'STX'): Promise<ServiceResponse<WalletBalance>> {
+  if (isDemoMode()) return mock.depositToWallet(address, amount, currency) as Promise<ServiceResponse<WalletBalance>>;
   const body: Record<string, unknown> = { user_id: address };
   if (currency === 'NGN') body.amount_naira = amount;
   else if (currency === 'USD') body.amount_usd = amount;
@@ -82,6 +87,7 @@ export async function confirmDeposit(reference: string): Promise<ServiceResponse
 }
 
 export async function debitWallet(address: string, stxAmount: string): Promise<ServiceResponse<WalletBalance>> {
+  if (isDemoMode()) return mock.debitWallet(address, stxAmount) as Promise<ServiceResponse<WalletBalance>>;
   const res = await api.post<{ wallet: BackendWallet }>('/wallets/send', {
     user_id: address,
     amount: parseInt(stxAmount, 10),
@@ -97,6 +103,7 @@ export async function sendFunds(
   amount: number,
   currency: 'NGN' | 'USD' | 'STX'
 ): Promise<ServiceResponse<WalletBalance>> {
+  if (isDemoMode()) return mock.sendFunds(senderAddress, recipientId, amount, currency) as Promise<ServiceResponse<WalletBalance>>;
   const res = await api.post<{ wallet: BackendWallet }>('/wallets/send', {
     user_id: senderAddress,
     amount,
@@ -112,6 +119,7 @@ export async function convertCurrency(
   to: 'stx' | 'usd' | 'ngn',
   amount: string
 ): Promise<ServiceResponse<{ amount: string; rate: string; fee: string }>> {
+  if (isDemoMode()) return mock.convertCurrency(from, to, amount);
   const res = await api.post<{ result: { amount: string; rate: string } }>('/wallets/rates/convert', { amount, from, to });
   if (!res.success || !res.data) {
     const fallback = localConvert(from, to, amount);
@@ -128,6 +136,7 @@ export async function convertCurrency(
 }
 
 export async function getConversionRates(): Promise<ServiceResponse<{ ngnPerUsd: number; spread: number }>> {
+  if (isDemoMode()) return mock.getConversionRates();
   const res = await api.get<{ ngnPerUsd: number; spread: number }>('/wallets/rates/all');
   if (res.success && res.data) return { success: true, data: res.data };
   return { success: true, data: { ngnPerUsd: 1400, spread: 0.0075 } };
