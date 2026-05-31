@@ -51,7 +51,7 @@ Legend:
 | `submit-milestone-proof` | public | `submitProof` | `POST /api/escrow/milestone-proof` | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
 | `approve-milestone` | public | `approve` | `POST /api/escrow/approve-milestone` | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
 | `release-milestone-funds` | public | `release` | `POST /api/escrow/release-milestone` | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
-| `set-fee-parameters` | public | `adminSetEscrowFeeParameters` | `POST /api/admin/escrow/set-fee` | — | `AdminDashboard` | ✅ |
+| `set-fee-parameters` | public | `adminSetEscrowFeeParameters` | `POST /api/admin/escrow/set-fees` | — | `AdminDashboard` | ✅ |
 | `initialize` | public | — | — | — | — | ◻️ (deploy-time) |
 | `set-verification-contract` | public | `adminSetEscrowVerificationContract` | `POST /api/admin/escrow/set-verification` | — | `AdminDashboard` | ✅ |
 | `set-pause-state` | public | `adminSetEscrowPauseState` | `POST /api/admin/escrow/set-pause` | — | `AdminDashboard` | ✅ |
@@ -72,12 +72,12 @@ Legend:
 | Function | Type | Backend Wrapper | HTTP Route | Frontend Service | UI Page/Component | Status |
 |---|---|---|---|---|---|---|
 | `initialize` | public | — | — | — | — | ◻️ (deploy-time) |
-| `set-milestone-escrow` | public | `adminSetVerificationMilestoneEscrow` | `POST /api/admin/verification/set-milestone-escrow` | — | `AdminDashboard` | ✅ |
+| `set-milestone-escrow` | public | `adminSetVerificationEscrow` | `POST /api/admin/verification/set-escrow` | — | `AdminDashboard` | ✅ |
 | `create-milestones` | public | `createMilestones` | `POST /api/milestones` | `createMilestones` | `PoolCreatePage` / `CreateCampaignPage` | ✅ |
 | `submit-milestone` | public | `submitMilestone` | `PUT /api/milestones/:id/status` (→active) | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
 | `endorse-milestone` | public | `endorseMilestone` | `POST /api/milestones/:id/vote` | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
 | `finalize-milestone` | public | `finalizeMilestone` | `PUT /api/milestones/:id/status` (→completed) | (via `MilestoneList`) | `CampaignPage` > `MilestoneList` | ✅ |
-| `set-pause-state` | public | `adminSetVerificationPauseState` | `POST /api/admin/verification/pause` | — | `AdminDashboard` | ✅ |
+| `set-pause-state` | public | `adminSetVerificationPauseState` | `POST /api/admin/verification/set-pause` | — | `AdminDashboard` | ✅ |
 | `emergency-withdraw` | public | `adminVerificationEmergencyWithdraw` | `POST /api/admin/verification/emergency-withdraw` | — | `AdminDashboard` | ✅ |
 | `is-bonus-forfeited` | read-only | — | — | — | — | ◻️ |
 | `get-creator-standing` | read-only | — | — | — | — | ◻️ |
@@ -97,7 +97,7 @@ Legend:
 | `withdraw-from-yield-escrow` | public | — | — | — | — | 🔧 (called by milestone-escrow) |
 | `claim-backer-yield` | public | `claimBackerYield` | `POST /api/yield/claim-yield/:campaignId` | `claimBackerYield` | `CampaignPage` / `BackerDashboard` / `CreatorDashboard` | ✅ |
 | `claim-creator-bonus` | public | `claimCreatorBonus` | `POST /api/yield/claim-bonus/:campaignId` | `claimCreatorBonus` | `CampaignPage` / `CreatorDashboard` | ✅ |
-| `distribute-platform-yield` | public | `adminDistributePlatformYield` | `POST /api/admin/yield/distribute-platform` | — | `AdminDashboard` | ✅ |
+| `distribute-platform-yield` | public | `adminDistributePlatformYield` | `POST /api/admin/yield/distribute` | — | `AdminDashboard` | ✅ |
 | `set-strategy` | public | `adminSetYieldStrategy` | `POST /api/admin/yield/set-strategy` | — | `AdminDashboard` | ✅ |
 | `set-milestone-escrow` | public | `adminSetYieldMilestoneEscrow` | `POST /api/admin/yield/set-milestone-escrow` | — | `AdminDashboard` | ✅ |
 | `set-milestone-verification` | public | `adminSetYieldMilestoneVerification` | `POST /api/admin/yield/set-milestone-verification` | — | `AdminDashboard` | ✅ |
@@ -126,11 +126,11 @@ Legend:
 | `execute-allocation` | public | `executeAllocation` | `POST /api/proposals/:id/execute` | `executeProposal` | `PoolDetailPage` | ✅ |
 | `close-pool` | public | `closePoolInContract` | `POST /api/pools/:id/close` | `closePool` | `PoolDetailPage` | ✅ |
 | `withdraw-unused` | public | `withdrawUnused` | `POST /api/pools/:id/withdraw` | `withdrawFromPool` | `PoolDetailPage` | ✅ |
-| `set-contract-addresses` | public | `adminSetPoolContractAddresses` | `POST /api/admin/pool/set-contracts` | — | `AdminDashboard` | ✅ |
-| `set-pause-state` | public | `adminSetPoolPauseState` | `POST /api/admin/pool/set-pause` | — | `AdminDashboard` | ✅ |
-| `emergency-withdraw` | public | `adminPoolEmergencyWithdraw` | `POST /api/admin/pool/emergency-withdraw` | — | `AdminDashboard` | ✅ |
-| `emergency-close-pool` | public | `adminPoolEmergencyClose` | `POST /api/admin/pool/emergency-close` | — | `AdminDashboard` | ✅ |
-| `emergency-refund-member` | public | `adminPoolEmergencyRefund` | `POST /api/admin/pool/emergency-refund` | — | `AdminDashboard` | ✅ |
+| `set-contract-addresses` | public | `adminSetPoolContractAddresses` | `POST /api/admin/funding-pool/set-addresses` | — | `AdminDashboard` | ✅ |
+| `set-pause-state` | public | `adminSetPoolPauseState` | `POST /api/admin/funding-pool/set-pause` | — | `AdminDashboard` | ✅ |
+| `emergency-withdraw` | public | `adminPoolEmergencyWithdraw` | `POST /api/admin/funding-pool/emergency-withdraw` | — | `AdminDashboard` | ✅ |
+| `emergency-close-pool` | public | `adminEmergencyClosePool` | `POST /api/admin/funding-pool/emergency-close-pool` | — | `AdminDashboard` | ✅ |
+| `emergency-refund-member` | public | `adminEmergencyRefundMember` | `POST /api/admin/funding-pool/emergency-refund-member` | — | `AdminDashboard` | ✅ |
 | `get-pool` | read-only | `getPoolFromContract` | `GET /api/pools/:id` (chain data panel) | — | — | ✅ |
 | `get-pool-members` | read-only | — | — | — | — | ◻️ (stub in contract) |
 | `get-proposal` | read-only | `getProposalFromContract` | `GET /api/pools/proposals/:id` (chain data panel) | — | — | ✅ |
@@ -159,15 +159,15 @@ Legend:
 | `pay-verification-fee` | public | — | — | — | — | ◻️ |
 | `verify-creator` | public | — | — | — | — | ◻️ (admin/timelock) |
 | `emergency-verify-creator` | public | `emergencyVerifyCreator` | `POST /api/verification/:id/review` / `POST /api/verification/notify-registered` | (used in admin review flow) | (admin panel) | ⚠️ (admin-only route) |
-| `emergency-revoke-verification` | public | — | — | — | — | ◻️ (admin) |
+| `emergency-revoke-verification` | public | `adminV1EmergencyRevokeVerification` | `POST /api/admin/v1/emergency-revoke` | — | `AdminDashboard` | ✅ |
 | `update-filmmaker-expiration-period` | public | — | — | — | — | ◻️ (admin) |
 | `add-filmmaker-endorsement` | public | — | — | — | — | ◻️ |
-| `set-contract-admin` | public | — | — | — | — | ◻️ (admin) |
+| `set-contract-admin` | public | `adminV1SetContractAdmin` | `POST /api/admin/v1/set-admin` | — | `AdminDashboard` | ✅ |
 | `set-core-contract` | public | — | — | — | — | ◻️ (admin) |
 | `set-renewal-extension-contract` | public | — | — | — | — | ◻️ (admin) |
 | `set-third-party-endorser` | public | — | — | — | — | ◻️ (admin) |
-| `set-pause-state` | public | — | — | — | — | ◻️ (admin) |
-| `emergency-withdraw` | public | — | — | — | — | ◻️ (admin) |
+| `set-pause-state` | public | `adminV1SetPauseState` | `POST /api/admin/v1/set-pause` | — | `AdminDashboard` | ✅ |
+| `emergency-withdraw` | public | `adminV1EmergencyWithdraw` | `POST /api/admin/v1/emergency-withdraw` | — | `AdminDashboard` | ✅ |
 | `is-portfolio-available` | read-only | — | — | — | — | ◻️ |
 | `is-creator-currently-verified` | read-only | `isCreatorCurrentlyVerified` | `GET /api/verification/onchain-status/:address` | (used in verification status panel) | `VerificationPage` | ✅ |
 | `get-verification-funding-cap` | read-only | `getCreatorFundingCap` | `GET /api/verification/onchain-status/:address` | (used in verification status panel) | — | ✅ |
@@ -190,10 +190,10 @@ Legend:
 | `initialize` | public | — | — | — | — | ◻️ (deploy-time) |
 | `proxy-register-creator` | public | `proxyRegisterCreator` | `POST /api/auth/register` (creator path) | `register` / `quickRegister` | `RegisterPage` / Quick Register | ✅ |
 | `register-creator` | public | — | — | — | — | ◻️ (wallet-based, v2 fallback) |
-| `emergency-verify-creator` | public | `adminVerifyCreatorV2` | `POST /api/admin/v2/verification/emergency-verify` | — | `AdminDashboard` | ✅ |
-| `emergency-revoke-verification` | public | `adminRevokeVerificationV2` | `POST /api/admin/v2/verification/revoke` | — | `AdminDashboard` | ✅ |
-| `set-pause-state` | public | `adminSetVerificationV2PauseState` | `POST /api/admin/v2/verification/pause` | — | `AdminDashboard` | ✅ |
-| `emergency-withdraw` | public | `adminSetVerificationV2EmergencyWithdraw` | `POST /api/admin/v2/verification/emergency-withdraw` | — | `AdminDashboard` | ✅ |
+| `emergency-verify-creator` | public | `adminV2EmergencyVerifyCreator` | `POST /api/admin/v2/emergency-verify` | — | `AdminDashboard` | ✅ |
+| `emergency-revoke-verification` | public | `adminV2EmergencyRevokeVerification` | `POST /api/admin/v2/emergency-revoke` | — | `AdminDashboard` | ✅ |
+| `set-pause-state` | public | `adminV2SetPauseState` | `POST /api/admin/v2/set-pause` | — | `AdminDashboard` | ✅ |
+| `emergency-withdraw` | public | `adminV2EmergencyWithdraw` | `POST /api/admin/v2/emergency-withdraw` | — | `AdminDashboard` | ✅ |
 | `is-creator-currently-verified` | read-only | `isCreatorCurrentlyVerified` (v2 first) | `GET /api/verification/onchain-status/:address` | — | `VerificationPage` | ✅ |
 | `get-creator-identity` | read-only | `getCreatorIdentity` (v2 first) | `GET /api/verification/onchain-status/:address` | — | — | ✅ |
 | `get-filmmaker-identity` | read-only | (backward-compat) | — | — | — | ◻️ |
@@ -225,11 +225,11 @@ Legend:
 | Function | Type | Backend Wrapper | HTTP Route | Frontend Service | UI Page/Component | Status |
 |---|---|---|---|---|---|---|
 | `initialize` | public | — | — | — | — | ◻️ (deploy-time) |
-| `set-price-oracle` | public | `adminSetOraclePriceOracle` | `POST /api/admin/oracle/set-price-oracle` | — | `AdminDashboard` | ✅ |
-| `update-price` | public | `adminUpdateOraclePrice` | `POST /api/admin/oracle/update-price` | — | `AdminDashboard` | ✅ |
-| `emergency-set-price` | public | `adminEmergencySetOraclePrice` | `POST /api/admin/oracle/emergency-set-price` | — | `AdminDashboard` | ✅ |
-| `get-stx-price` | read-only | `adminGetOracleStxPrice` | `GET /api/admin/oracle/stx-price` | — | `AdminDashboard` | ✅ |
-| `get-stx-price-with-fallback` | read-only | `adminGetOracleStxPriceWithFallback` | `GET /api/admin/oracle/stx-price-fallback` | — | `AdminDashboard` | ✅ |
+| `set-price-oracle` | public | `adminSetPriceOracle` | `POST /api/admin/oracle/set-oracle` | — | `AdminDashboard` | ✅ |
+| `update-price` | public | `adminUpdatePrice` | `POST /api/admin/oracle/update-price` | — | `AdminDashboard` | ✅ |
+| `emergency-set-price` | public | `adminEmergencySetPrice` | `POST /api/admin/oracle/emergency-set-price` | — | `AdminDashboard` | ✅ |
+| `get-stx-price` | read-only | `getStxPrice` | (used internally by pool routes) | — | — | 🔶 |
+| `get-stx-price-with-fallback` | read-only | — | — | — | — | ◻️ |
 | `get-last-updated` | read-only | — | — | — | — | ◻️ |
 | `get-admin-contract` / `get-emergency-admin` | read-only | — | — | — | — | ◻️ |
 
@@ -283,12 +283,12 @@ Minimal base trait — no bridging needed.
 ## Summary Statistics
 
 | Status | Count | Notes |
-|---|---|---|
-| ✅ Fully Bridged | 77 | Backend wrapper + HTTP route + frontend service + UI |
+|---|---|---|---|
+| ✅ Fully Bridged | 78 | Backend wrapper + HTTP route + frontend service + UI |
 | ⚠️ Partial | 1 | Has backend wrapper, missing HTTP route or full UI |
-| 🔶 Backend Only | 3 | Has backend wrapper, no frontend |
+| 🔶 Backend Only | 4 | Has backend wrapper, no frontend |
 | 🔧 Internal | 3 | Called by other contracts, not directly bridged |
-| ◻️ Not Bridged | 44+ | Admin functions, read-only getters, governance, support contracts |
+| ◻️ Not Bridged | 40 | Admin functions, read-only getters, governance, support contracts |
 
 ### Fully Bridged Functions
 
@@ -337,38 +337,36 @@ Minimal base trait — no bridging needed.
 43. `campaign-module-2.set-escrow-contract` → `POST /api/admin/campaign/set-escrow` → `AdminDashboard`
 44. `campaign-module-2.set-pause-state` → `POST /api/admin/campaign/set-pause` → `AdminDashboard`
 45. `campaign-module-2.emergency-withdraw` → `POST /api/admin/campaign/emergency-withdraw` → `AdminDashboard`
-46. `milestone-escrow.set-fee-parameters` → `POST /api/admin/escrow/set-fee` → `AdminDashboard`
+46. `milestone-escrow.set-fee-parameters` → `POST /api/admin/escrow/set-fees` → `AdminDashboard`
 47. `milestone-escrow.set-verification-contract` → `POST /api/admin/escrow/set-verification` → `AdminDashboard`
 48. `milestone-escrow.set-pause-state` → `POST /api/admin/escrow/set-pause` → `AdminDashboard`
 49. `milestone-escrow.emergency-withdraw` → `POST /api/admin/escrow/emergency-withdraw` → `AdminDashboard`
-50. `milestone-verification.set-milestone-escrow` → `POST /api/admin/verification/set-milestone-escrow` → `AdminDashboard`
-51. `milestone-verification.set-pause-state` → `POST /api/admin/verification/pause` → `AdminDashboard`
+50. `milestone-verification.set-milestone-escrow` → `POST /api/admin/verification/set-escrow` → `AdminDashboard`
+51. `milestone-verification.set-pause-state` → `POST /api/admin/verification/set-pause` → `AdminDashboard`
 52. `milestone-verification.emergency-withdraw` → `POST /api/admin/verification/emergency-withdraw` → `AdminDashboard`
-53. `yield-escrow.distribute-platform-yield` → `POST /api/admin/yield/distribute-platform` → `AdminDashboard`
+53. `yield-escrow.distribute-platform-yield` → `POST /api/admin/yield/distribute` → `AdminDashboard`
 54. `yield-escrow.set-strategy` → `POST /api/admin/yield/set-strategy` → `AdminDashboard`
 55. `yield-escrow.set-milestone-escrow` → `POST /api/admin/yield/set-milestone-escrow` → `AdminDashboard`
 56. `yield-escrow.set-milestone-verification` → `POST /api/admin/yield/set-milestone-verification` → `AdminDashboard`
 57. `yield-escrow.set-pause-state` → `POST /api/admin/yield/set-pause` → `AdminDashboard`
 58. `yield-escrow.emergency-withdraw` → `POST /api/admin/yield/emergency-withdraw` → `AdminDashboard`
-59. `funding-pool.set-contract-addresses` → `POST /api/admin/pool/set-contracts` → `AdminDashboard`
-60. `funding-pool.set-pause-state` → `POST /api/admin/pool/set-pause` → `AdminDashboard`
-61. `funding-pool.emergency-withdraw` → `POST /api/admin/pool/emergency-withdraw` → `AdminDashboard`
-62. `funding-pool.emergency-close-pool` → `POST /api/admin/pool/emergency-close` → `AdminDashboard`
-63. `funding-pool.emergency-refund-member` → `POST /api/admin/pool/emergency-refund` → `AdminDashboard`
-64. `project-verification-module.emergency-revoke-verification` → `POST /api/admin/v1/verification/revoke` → `AdminDashboard`
-65. `project-verification-module.set-contract-admin` → `POST /api/admin/v1/verification/set-admin` → `AdminDashboard`
-66. `project-verification-module.set-pause-state` → `POST /api/admin/v1/verification/pause` → `AdminDashboard`
-67. `project-verification-module.emergency-withdraw` → `POST /api/admin/v1/verification/emergency-withdraw` → `AdminDashboard`
-68. `project-verification-module-v2.emergency-verify-creator` → `POST /api/admin/v2/verification/emergency-verify` → `AdminDashboard`
-69. `project-verification-module-v2.emergency-revoke-verification` → `POST /api/admin/v2/verification/revoke` → `AdminDashboard`
-70. `project-verification-module-v2.set-pause-state` → `POST /api/admin/v2/verification/pause` → `AdminDashboard`
-71. `project-verification-module-v2.emergency-withdraw` → `POST /api/admin/v2/verification/emergency-withdraw` → `AdminDashboard`
+59. `funding-pool.set-contract-addresses` → `POST /api/admin/funding-pool/set-addresses` → `AdminDashboard`
+60. `funding-pool.set-pause-state` → `POST /api/admin/funding-pool/set-pause` → `AdminDashboard`
+61. `funding-pool.emergency-withdraw` → `POST /api/admin/funding-pool/emergency-withdraw` → `AdminDashboard`
+62. `funding-pool.emergency-close-pool` → `POST /api/admin/funding-pool/emergency-close-pool` → `AdminDashboard`
+63. `funding-pool.emergency-refund-member` → `POST /api/admin/funding-pool/emergency-refund-member` → `AdminDashboard`
+64. `project-verification-module.emergency-revoke-verification` → `POST /api/admin/v1/emergency-revoke` → `AdminDashboard`
+65. `project-verification-module.set-contract-admin` → `POST /api/admin/v1/set-admin` → `AdminDashboard`
+66. `project-verification-module.set-pause-state` → `POST /api/admin/v1/set-pause` → `AdminDashboard`
+67. `project-verification-module.emergency-withdraw` → `POST /api/admin/v1/emergency-withdraw` → `AdminDashboard`
+68. `project-verification-module-v2.emergency-verify-creator` → `POST /api/admin/v2/emergency-verify` → `AdminDashboard`
+69. `project-verification-module-v2.emergency-revoke-verification` → `POST /api/admin/v2/emergency-revoke` → `AdminDashboard`
+70. `project-verification-module-v2.set-pause-state` → `POST /api/admin/v2/set-pause` → `AdminDashboard`
+71. `project-verification-module-v2.emergency-withdraw` → `POST /api/admin/v2/emergency-withdraw` → `AdminDashboard`
 72. `reputation.set-verification-gate` → `POST /api/admin/reputation/set-verification-gate` → `AdminDashboard`
-73. `oracle-proxy.set-price-oracle` → `POST /api/admin/oracle/set-price-oracle` → `AdminDashboard`
+73. `oracle-proxy.set-price-oracle` → `POST /api/admin/oracle/set-oracle` → `AdminDashboard`
 74. `oracle-proxy.update-price` → `POST /api/admin/oracle/update-price` → `AdminDashboard`
 75. `oracle-proxy.emergency-set-price` → `POST /api/admin/oracle/emergency-set-price` → `AdminDashboard`
-76. `oracle-proxy.get-stx-price` → `GET /api/admin/oracle/stx-price` → `AdminDashboard`
-77. `oracle-proxy.get-stx-price-with-fallback` → `GET /api/admin/oracle/stx-price-fallback` → `AdminDashboard`
 
 ### ⚠️ Partial (backend wrapper + partial route, missing full UI)
 
@@ -384,6 +382,7 @@ Minimal base trait — no bridging needed.
 | `funding-pool.get-proposal-vote` | `getProposalVote` | `funding-pool.get-proposal-vote` |
 | `funding-pool.get-member` | `getPoolMember` | `funding-pool.get-member` |
 | `reputation.get-average-rating` | `getAverageRating` | `reputation.get-average-rating` |
+| `oracle-proxy.get-stx-price` | `getStxPrice` | `oracle-proxy.get-stx-price` (used internally by pool rate conversion) |
 
 ### Top Priority Gaps
 

@@ -125,6 +125,50 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ user: req.user });
 });
 
+router.post('/bootstrap-admin', async (req, res, next) => {
+  try {
+    const { email, adminKey } = req.body;
+    if (!email || !adminKey) {
+      return res.status(400).json({ error: 'Provide email and adminKey' });
+    }
+
+    const expectedKey = process.env.ADMIN_BOOTSTRAP_KEY;
+    if (!expectedKey) {
+      return res.status(500).json({ error: 'ADMIN_BOOTSTRAP_KEY not configured on server' });
+    }
+
+    if (adminKey !== expectedKey) {
+      return res.status(403).json({ error: 'Invalid admin bootstrap key' });
+    }
+
+    const db = await getDb();
+    const user = await db.get('SELECT * FROM users WHERE email = $1', [email]);
+    if (!user) { db.release(); return res.status(404).json({ error: 'User not found' }); }
+
+    if (user.role === 'admin') {
+      db.release();
+      return res.json({ message: 'User is already admin', user: { id: user.id, email: user.email, displayName: user.display_name, role: 'admin' } });
+    }
+
+    await db.run('UPDATE users SET role = $1, updated_at = $2 WHERE id = $3', ['admin', Math.floor(Date.now() / 1000), user.id]);
+
+    const now = Math.floor(Date.now() / 1000);
+    const token = generateToken();
+    const expiresAt = now + (SESSION_DAYS * 24 * 3600);
+    await db.run('INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES ($1, $2, $3, $4)',
+      [user.id, token, expiresAt, now]);
+
+    db.release();
+
+    res.json({
+      message: 'User promoted to admin',
+      token,
+      expiresAt: expiresAt * 1000,
+      user: { id: user.id, email: user.email, displayName: user.display_name, role: 'admin' },
+    });
+  } catch (err) { next(err); }
+});
+
 router.post('/logout', requireAuth, async (req, res, next) => {
   try {
     const header = req.headers.authorization;

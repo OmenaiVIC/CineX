@@ -75,7 +75,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 
 - **Vercel**: Root `vercel.json` sets `rootDirectory: "app"`. SPA rewrites in `app/vercel.json`.
 - **Render**: Connected to GitHub repo; auto-deploys on push to `main`.
-- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`.
+- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_BOOTSTRAP_KEY`.
 
 ## Testing
 
@@ -103,36 +103,19 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - DeFi logo: `https://drive.google.com/file/d/1BqNdw4Veddit0hWauS20bUBXbWWwot6v/view`
 - Social banner: `https://drive.google.com/file/d/1lwAbgwtyy5hMfAyxdLt1hpdJ7A5yUSe0/view`
 
-## Session Context (2026-05-30) — v2
+## Session Context (2026-05-31)
 
 ### Done This Session
-- **v2 contract deployed** on testnet at `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12.project-verification-module-v2` (nonce 4) — confirmed via `get-module-name` = `"project-verification-module-v2"`
-- **6 bug-fix commits** pushed to `main`: portfolio thumbnail (camelCase/snake_case), campaign duration (blocks, clamped 4320–8640), pool UI (localStorage), Quick Register v2 fallback, init() lenient, ensureNonce trusts chain, deployContract fee scaling
-- **`requireAuth` added** to `POST /api/deploy/contract`
-- **Sitemap** corrected at `docs/CONTRACT_FUNCTION_SITEMAP.md` — v2 deployment status updated
-- **Vercel deployment fixed** — fresh build deployed from `app/` directory; JS bundle hash changed `index-BFItlxEo.js` → `index-D_UcI-rU.js`
-- **Root `vercel.json` fixed** — removed invalid `rootDirectory: "app"` property (conflicted with `.vercel/project.json` `rootDirectory: null`)
-- **proxy-register SQL bug fixed** — `COALESCE($2, username)` → direct `$2` assignment (column ref `username` was ambiguous inside ON CONFLICT DO UPDATE SET expression on `node:sqlite`)
-- **Quick Register E2E test initiated** — registered test user `email_10`, confirmed auth flow works, but proxy-register SQL bug blocks completion until Render deploys fix
-
-### Verified
-- `clarinet check` passes (30 contracts, 0 errors)
-- 227 tests pass across 11 test files
-- Backend alive on Render — `GET /api/profiles` returns 12 profiles
-- Wallet debug: `creator` = `STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12`, nonces healthy
-- `module-base` and `project-verification-module-v2` both deployed and responding
-- Frontend deployed at `https://cine-x-iota.vercel.app` — latest bundle confirmed
-- `VITE_API_BACKEND` env var set in Vercel cloud (encrypted, set 3 days ago)
-- `vercel --prod` from root no longer blocked
+- **Full sitemap audit** — cross-referenced all ✅ entries against actual code; fixed 11+ route paths, 8+ wrapper names; promoted 4 v1 admin functions ◻️→✅; demoted 2 fake oracle entries; reclassified `get-stx-price` as 🔶
+- **`POST /api/auth/bootstrap-admin` endpoint** added to `backend/src/routes/auth.js` — accepts `{ email, adminKey }`, validates against `ADMIN_BOOTSTRAP_KEY` env var, promotes user to admin and returns a session token
+- **AGENTS.md** updated with `ADMIN_BOOTSTRAP_KEY` env var
+- 227 tests pass, `clarinet check` passes (30 contracts, 0 errors)
 
 ### Next Steps
-1. **Trigger Render redeploy** — push `main` currently blocked by Render auto-deploy being unconfigured. Either:
-   - Open Render dashboard → Manual Deploy → Deploy from Branch
-   - Configure Render Deploy Hook URL in dashboard and add to repo secrets
-2. **Verify proxy-register fix** — after deploy, re-run `POST /api/verification/proxy-register` with `email_10`'s auth token
-3. **Test Quick Register end-to-end** via frontend login → `POST /api/verification/proxy-register`
-4. **Check frontend console** — open `https://cine-x-iota.vercel.app`, verify no JS errors, all API calls succeed
-5. **Redeploy all 29 old contracts** under new deployer (cleanup sprint, deferred)
+1. **Set `ADMIN_BOOTSTRAP_KEY` env var** in Render dashboard, then `curl POST /api/auth/bootstrap-admin` to promote your user
+2. **Delete the env var** from Render after use (one-time bootstrap)
+3. **Bridge `reputation.get-reputation-score`** — highest-impact unbridged function
+4. **Bridge `funding-pool.get-proposal-vote`** — already has backend wrapper, needs frontend
 
 ### Key URLs
 - Backend: `https://cinex-backend-zo1r.onrender.com`
