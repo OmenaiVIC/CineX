@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGuide } from '../contexts/GuideContext';
+
+const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901';
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const { openGuide } = useGuide();
   const [lightbox, setLightbox] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -75,6 +73,7 @@ export default function HomePage() {
         ref={canvasRef}
         style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
       />
+
       {/* HERO */}
       <section className="lp-hero">
         <div className="lp-hero-content">
@@ -82,56 +81,31 @@ export default function HomePage() {
           <h1>Fintech Infrastructure for<br /><em>African Creative IP</em></h1>
           <p className="lp-hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative work investable, verifiable, and bankable — on a unified financial rail.</p>
           <div className="lp-hero-actions">
-            <button onClick={() => navigate('/signup')} className="lp-btn lp-btn-primary">Get Started →</button>
-            <button onClick={() => navigate('/demo')} className="lp-btn lp-btn-secondary">Try Demo</button>
-            <a href="#features" className="lp-btn lp-btn-ghost">Explore Model</a>
+            <a href={WAITLIST} target="_blank" rel="noopener" className="lp-btn lp-btn-primary">Join the Waitlist →</a>
+            <a href="#demo" className="lp-btn lp-btn-secondary">See Live Demo</a>
+            <a href="#how-it-works" className="lp-btn lp-btn-ghost">How It Works</a>
           </div>
         </div>
       </section>
 
-      {/* GATEKEEPER */}
-      <section className="lp-section" id="gatekeeper">
-        <div className="lp-section-inner">
-          <div className="lp-label">Strategic Moat</div>
-          <h2 className="lp-title">Not Just a Waitlist — a Movement of Gatekeepers</h2>
-          <p className="lp-sub" style={{ marginBottom: 8 }}>In Africa, adoption is tribal. We recruited 34 guild leaders, association heads, and industry influencers through trust‑based meetups — zero paid ads. Global players spent millions on marketing but ignored cultural trust. CineX is built around Africa's reality.</p>
-          <div className="lp-gk-grid">
-            <div className="lp-gk-visual lp-glass">
-              <div className="lp-gk-network">
-                <div className="lp-gk-node"><div className="lp-gk-dot"></div><span><strong>34 Gatekeepers</strong> <span style={{ color: 'var(--text-dim)', fontSize: '.85rem' }}>— guild leaders, association heads</span></span></div>
-                <div className="lp-gk-line"></div>
-                <div className="lp-gk-branch">
-                  <div className="lp-gk-leaf">Filmmakers Guild — 200+ members</div>
-                  <div className="lp-gk-leaf">Music Producers Network — 150+ members</div>
-                  <div className="lp-gk-leaf">Game Developers Collective — 80+ members</div>
-                  <div className="lp-gk-leaf">Fashion Creatives Hub — 120+ members</div>
-                  <div className="lp-gk-leaf" style={{ borderColor: 'rgba(74,222,128,.2)', color: 'var(--text)' }}>+30 more gatekeepers × 100+ creatives each</div>
-                </div>
-                <div className="lp-gk-mult">×100+</div>
-                <div className="lp-gk-node" style={{ borderColor: 'rgba(74,222,128,.2)' }}>
-                  <div className="lp-gk-dot" style={{ boxShadow: '0 0 8px var(--green-glow)' }}></div>
-                  <span><strong style={{ color: 'var(--green)' }}>3,400+</strong> <span style={{ color: 'var(--text-dim)', fontSize: '.85rem' }}>potential users at zero marginal CAC</span></span>
-                </div>
-              </div>
-            </div>
-            <div className="lp-gk-text">
-              <h3>Distribution That Mirrors Reality</h3>
-              <p>In Nigeria, creative communities organize around trusted leaders — guild presidents, association chairs, industry elders. They decide what tools their tribe adopts.</p>
-              <p>CineX's GTM is built around this cultural reality: <strong style={{ color: '#fff' }}>tribesmen decide the success of a village.</strong> We don't buy ads. We earn trust. One gatekeeper endorsement unlocks their entire network.</p>
-              <p style={{ color: 'var(--green)', fontWeight: 500, fontSize: '.9rem' }}>34 gatekeepers × 100+ creatives each = 3,400+ potential users at zero marginal cost. Adoption spreads like political parties — through tribe leaders.</p>
-            </div>
+      {/* THE PROBLEM */}
+      <section className="lp-problem">
+        <div className="lp-problem-inner">
+          <div className="lp-problem-stat">The Status Quo Is Broken</div>
+          <div className="lp-problem-quote">
+            Right now, if you're a filmmaker in Lagos with a finished script, a producer attached, and a cast ready to go — you still can't access capital unless you know someone who knows someone. The system is relationship-based, not merit-based. Gatekeeping isn't the problem. What's missing is a way to earn trust through proof of work. CineX turns your creative process into a verifiable track record — so your next project raises itself.
           </div>
         </div>
       </section>
 
-      {/* STATS */}
+      {/* TRUST STATS */}
       <section className="lp-section" style={{ paddingTop: 0 }}>
         <div className="lp-section-inner">
           <div className="lp-stats-grid">
             <div className="lp-stat-card lp-glass">
               <div className="lp-stat-number">34+</div>
               <div className="lp-stat-label">Verified Gatekeepers</div>
-              <div className="lp-stat-detail">Not users — guild leaders</div>
+              <div className="lp-stat-detail">Guild leaders, not users</div>
             </div>
             <div className="lp-stat-card lp-glass">
               <div className="lp-stat-number">$1M+</div>
@@ -152,225 +126,191 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="lp-section" id="features">
-        <div className="lp-section-inner">
-          <div className="lp-label">The CineX Engine</div>
-          <h2 className="lp-title">Financing Infrastructure, Not a Donation Page</h2>
-          <p className="lp-sub">Four interconnected capabilities that make creative IP a real asset class.</p>
-          <div className="lp-features-grid">
-            <div className="lp-feature-card lp-glass">
-              <div className="lp-feature-icon">✓</div>
-              <h3>Verified Project Onboarding</h3>
-              <div className="stat-line">34 gatekeepers already committed</div>
-              <p>No blind funding. Every project is vouched for by a trusted gatekeeper before it reaches our platform.</p>
-            </div>
-            <div className="lp-feature-card lp-glass">
-              <div className="lp-feature-icon">◈</div>
-              <h3>Milestone‑Gated Payouts</h3>
-              <div className="stat-line">$1M+ pipeline in active conversation</div>
-              <p>Capital releases in stages, only when deliverables are proven. No lump-sum risk. Backers see exactly where their money goes.</p>
-            </div>
-            <div className="lp-feature-card lp-glass">
-              <div className="lp-feature-icon">⟁</div>
-              <h3>Productive Escrow Yield</h3>
-              <div className="stat-line">70% backers / 20% platform / 10% creator bonus</div>
-              <p>Idle capital doesn't sit still — it earns yield through secure DeFi strategies. No lock-ups, no waste, no speculation.</p>
-            </div>
-            <div className="lp-feature-card lp-glass">
-              <div className="lp-feature-icon">◆</div>
-              <h3>Nigeria‑First, Built for Africa</h3>
-              <div className="stat-line">$5B+ market today → $200B by 2030</div>
-              <p>Designed for African creative realities from day one. NGN/USD wallet abstraction. Mobile-first. Tribal GTM.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PILOT PROJECTS */}
-      <section className="lp-section" id="pilots">
-        <div className="lp-section-inner">
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div className="lp-label">Traction — Cohort 0</div>
-            <h2 className="lp-title">Four Pilot Projects in the Pipeline</h2>
-            <p className="lp-sub" style={{ margin: '0 auto' }}>Real creative works being structured for milestone‑based financing. Each represents a creative sector CineX serves.</p>
-          </div>
-          <div className="lp-pilot-grid">
-            {/* Rain Series */}
-            <div className="lp-pilot-card lp-glass">
-              <h3>Rain</h3>
-              <div className="lp-pilot-format">Series Development • TV / Streaming</div>
-              <p className="lp-pilot-pitch">A gripping Nigerian drama series exploring love, loss, and redemption against the backdrop of Lagos — structured as CineX's first episodic milestone model.</p>
-              <div className="lp-flip-grid" style={{ marginTop: 16 }}>
-                <div className="lp-flip-card">
-                  <div className="lp-flip-inner">
-                    <div className="lp-flip-front">
-                      <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Concept%20Cover%20pics.png" alt="Rain Series Concept Cover" loading="lazy" />
-                      <div className="lp-flip-label">Concept Cover</div>
-                    </div>
-                    <div className="lp-flip-back">
-                      <strong>The Visual Identity</strong>
-                      <p>The world of Rain — a rich, atmospheric Lagos where every frame tells a story of contrast: wealth and struggle, tradition and ambition.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="lp-flip-card">
-                  <div className="lp-flip-inner">
-                    <div className="lp-flip-front">
-                      <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Story%20format%20type%20pics.png" alt="Rain Series Format" loading="lazy" />
-                      <div className="lp-flip-label">Story Format</div>
-                    </div>
-                    <div className="lp-flip-back">
-                      <strong>Format: TV Series</strong>
-                      <p>Genre: Drama. Target: Streaming platforms. Structured in milestone-aligned episodes — each episode unlocks the next tranche of financing.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="lp-flip-card">
-                  <div className="lp-flip-inner">
-                    <div className="lp-flip-front">
-                      <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Logline%20pics.png" alt="Rain Series Logline" loading="lazy" />
-                      <div className="lp-flip-label">Logline</div>
-                    </div>
-                    <div className="lp-flip-back">
-                      <strong>The Core Story</strong>
-                      <p>When a young Lagos filmmaker returns home after a decade abroad, she discovers the family estate — and its secrets — are crumbling alongside her mother's health.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="lp-flip-card">
-                  <div className="lp-flip-inner">
-                    <div className="lp-flip-front">
-                      <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Rain%20Series%20Synopsis%20pics.png" alt="Rain Series Synopsis" loading="lazy" />
-                      <div className="lp-flip-label">Synopsis</div>
-                    </div>
-                    <div className="lp-flip-back">
-                      <strong>The Journey</strong>
-                      <p>A story of identity, belonging, and the rain that washes away more than dirt. Each episode milestone maps to a phase of the protagonist's reckoning.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Death of Eternity */}
-            <div className="lp-pilot-card lp-glass">
-              <h3>The Death of Eternity</h3>
-              <div className="lp-pilot-format">Narrative Film • Feature</div>
-              <p className="lp-pilot-pitch">A thought‑provoking feature film that questions immortality, legacy, and the price of forever — a showcase for CineX's full lifecycle milestone model.</p>
-              <div className="lp-doe-grid" style={{ marginTop: 16 }}>
-                {[
-                  { id: 'doe1', src: 'Death%20of%20Eternity%20Concept%20pics.png', label: 'View Concept →' },
-                  { id: 'doe2', src: 'Death%20of%20Eternity%20Concept%20pics2.png', label: 'View Concept →' },
-                  { id: 'doe3', src: 'Death%20of%20Eternity%20Concept%20Premise%20pics.png', label: 'View Premise →' },
-                  { id: 'doe4', src: 'Death%20of%20Eternity%20Logline%20pics.png', label: 'View Logline →' },
-                ].map(item => (
-                  <div key={item.id} className="lp-doe-cell" onClick={() => setLightbox(item.id)}>
-                    <img src={`/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/${item.src}`} alt={item.label} loading="lazy" />
-                    <div className="lp-doe-overlay"><span>{item.label}</span></div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 16, color: 'var(--text-dim)', fontSize: '.8rem', textAlign: 'center' }}>Click any image to expand — cinematic mood board</div>
-            </div>
-
-            {/* PrePARE VR */}
-            <div className="lp-pilot-card lp-glass" style={{ background: 'linear-gradient(135deg,rgba(74,222,128,.04),rgba(34,197,94,.02))' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320, textAlign: 'center' }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: 16, opacity: 0.5 }}>◉</div>
-                <h3>PrePARE VR</h3>
-                <div className="lp-pilot-format">Immersive Media • VR Experience</div>
-                <p className="lp-pilot-pitch" style={{ maxWidth: 500 }}>An immersive virtual reality experience preparing users for real‑world emergency situations — combining education with experiential storytelling. CineX's first immersive media pilot.</p>
-              </div>
-            </div>
-
-            {/* Northern Travels */}
-            <div className="lp-pilot-card lp-glass" style={{ background: 'linear-gradient(135deg,rgba(74,222,128,.04),rgba(34,197,94,.02))' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320, textAlign: 'center' }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: 16, opacity: 0.5 }}>⊡</div>
-                <h3>Northern Travels</h3>
-                <div className="lp-pilot-format">Factual / Travel Content</div>
-                <p className="lp-pilot-pitch" style={{ maxWidth: 500 }}>A documentary travel series exploring the rich cultural heritage, landscapes, and untold stories of Northern Nigeria — bridging regional narratives to global audiences.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="lp-section" style={{ background: 'radial-gradient(ellipse at center,rgba(74,222,128,.02),transparent 60%)' }}>
         <div className="lp-section-inner">
           <div className="lp-label" style={{ textAlign: 'center' }}>How It Works</div>
           <h2 className="lp-title" style={{ textAlign: 'center' }}>Three Steps to Bankable Creativity</h2>
-          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>Plain English. No technical jargon. Just a better way to finance creative work.</p>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>No crypto knowledge required. Think of it as a smart contract that releases funds when you prove your work.</p>
           <div className="lp-how-grid">
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">1</div>
-              <h3>Verified Intake</h3>
-              <p>Gatekeepers invite vetted creatives. Projects are validated for quality and feasibility before any funding is raised. No blind pitches.</p>
+              <h3>Verify Yourself ✅</h3>
+              <p>Connect your identity — social links, portfolio, past work, references. A trusted gatekeeper vouches for you. Once verified, your profile becomes your on-chain reputation. No more starting from scratch every time.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">2</div>
-              <h3>Milestone Gating</h3>
-              <p>Funds release in stages, secured by automated agreements on a digital ledger. Each deliverable is verified before the next tranche unlocks.</p>
+              <h3>Create Milestones 📌</h3>
+              <p>Break your project into stages: script locked → principal photography → post-production → delivery. Each milestone gets a description, a deadline, and a funding amount. Backers can see exactly what they're funding and when.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">3</div>
-              <h3>Productive Escrow</h3>
-              <p>Idle capital earns yield automatically through secure strategies — no lock-ups, no waste. Backers earn while projects develop. Creators get a success bonus (70/20/10 split).</p>
+              <h3>Release Funds on Proof 💸</h3>
+              <p>Submit proof for each milestone (photos, videos, files, endorser sign-off). A neutral endorser verifies the work. Funds release automatically. No chasing people. No awkward conversations about money.</p>
             </div>
           </div>
-          <div style={{ textAlign: 'center', marginTop: 36 }}>
-            <button
-              onClick={openGuide}
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-[#4ade80] border border-[rgba(74,222,128,0.3)] hover:bg-[rgba(74,222,128,0.1)] hover:border-[#4ade80] rounded-full transition-all"
+        </div>
+      </section>
+
+      {/* LIVE DEMO */}
+      <section id="demo" className="lp-demo">
+        <div className="lp-demo-inner">
+          <div className="lp-label" style={{ textAlign: 'center' }}>Live Demo</div>
+          <h2 className="lp-title" style={{ textAlign: 'center' }}>See It Working Right Now</h2>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto 48px' }}>
+          These are live smart contracts deployed on the Stacks testnet. No backend simulation. No video. No screenshots. You are looking at the actual contracts that will power CineX.
+          </p>
+
+          <div
+            style={{
+              background: 'rgba(74,222,128,0.06)',
+              borderRadius: '12px',
+              padding: '1rem 1.5rem',
+              marginBottom: '1.5rem',
+              border: '1px solid rgba(74,222,128,0.15)',
+              fontSize: '0.95rem',
+              textAlign: 'center',
+            }}
+          >
+            🎥 First time? Watch the{' '}
+            <a
+              href="https://www.youtube.com/watch?v=CeOaRRDBIDw"
+              target="_blank"
+              rel="noopener"
+              style={{ color: 'var(--green)', fontWeight: 600 }}
             >
-              See the Complete Lifecycle →
-            </button>
+              2-minute walkthrough
+            </a>{' '}
+            → How to Install Hiro Wallet, Switch to Testnet &amp; Get Free STX
           </div>
-        </div>
-      </section>
 
-      {/* COMPETITIVE MATRIX */}
-      <section className="lp-section">
-        <div className="lp-section-inner">
-          <div className="lp-label">Why CineX</div>
-          <h2 className="lp-title">Built Different for a Different Reality</h2>
-          <div className="lp-matrix-wrap">
-            <table className="lp-matrix-table lp-glass" style={{ padding: 0, overflow: 'hidden' }}>
-              <thead>
-                <tr><th>Feature</th><th>Traditional Crowdfunding</th><th>Generic Crypto Platforms</th><th style={{ color: 'var(--green)' }}>CineX</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Milestone control</td><td><span className="lp-cross">✗</span> Lump-sum</td><td><span className="lp-cross">✗</span> Usually none</td><td><span className="lp-check">✓</span> Staged releases</td></tr>
-                <tr><td>Escrow visibility</td><td>Opaque</td><td>Pseudonymous</td><td><span className="lp-check">✓</span> Fully transparent</td></tr>
-                <tr><td>Yield on idle capital</td><td><span className="lp-cross">✗</span> None</td><td>Sometimes speculative</td><td><span className="lp-check">✓</span> Productive escrow (70/20/10)</td></tr>
-                <tr><td>Africa‑specific tribes</td><td><span className="lp-cross">✗</span> Ignored</td><td><span className="lp-cross">✗</span> Western-centric</td><td><span className="lp-check">✓</span> Built on gatekeeper trust</td></tr>
-                <tr><td>Admin security</td><td>Centralized</td><td>Variable</td><td><span className="lp-check">✓</span> 2-of-3 multisig + timelock</td></tr>
-                <tr><td style={{ borderBottom: 'none' }}>Smart contract audit readiness</td><td style={{ borderBottom: 'none' }}>N/A</td><td style={{ borderBottom: 'none' }}>Varies</td><td style={{ borderBottom: 'none', color: 'var(--green)', fontWeight: 600 }}>29 contracts, 50+ tests</td></tr>
-              </tbody>
-            </table>
+          {/* PRE‑DEMO SETUP – added */}
+          <div style={{ background: 'rgba(74,222,128,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(74,222,128,0.2)' }}>
+            <h4 style={{ marginBottom: '0.5rem' }}>🧪 Before you start (5 minutes, free)</h4>
+            <ol style={{ marginLeft: '1.5rem', lineHeight: '1.7', color: 'var(--text-dim)' }}>
+              <li>Install the <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener" style={{ color: 'var(--green)' }}>Hiro Wallet</a> browser extension.</li>
+              <li>In the wallet, click the network dropdown → select <strong>Testnet</strong>.</li>
+              <li>Copy your testnet address (starts with <code>ST</code>).</li>
+              <li>Go to the <a href="https://explorer.hiro.so/sandbox/faucet?chain=testnet" target="_blank" rel="noopener" style={{ color: 'var(--green)' }}>Hiro Faucet</a>, paste your address, and request free STX (gas).</li>
+              <li>Wait 1–2 minutes, then refresh your wallet balance. You’ll see a small amount of testnet STX – no real value.</li>
+            </ol>
+            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>✅ Now you’re ready to call the contracts below.</p>
           </div>
-        </div>
-      </section>
 
-      {/* MARKET OPPORTUNITY */}
-      <section className="lp-section">
-        <div className="lp-section-inner">
-          <div className="lp-label">Market Opportunity</div>
-          <h2 className="lp-title">A $200 Billion Market by 2030</h2>
-          <div className="lp-market-bar-wrap">
-            <div style={{ position: 'relative', marginBottom: 24 }}>
-              <div className="lp-market-bar"><div className="lp-market-fill" style={{ width: '1%' }}>$1M+ Pipeline</div></div>
-              <div className="lp-market-bar"><div className="lp-market-fill" style={{ width: '15%' }}>$5B+ Today</div></div>
-              <div className="lp-market-bar"><div className="lp-market-fill" style={{ width: '100%', background: 'linear-gradient(90deg,rgba(74,222,128,.2),rgba(74,222,128,.05))', color: 'var(--text-dim)' }}>$200B by 2030</div></div>
+          <div className="lp-demo-step">
+            <h4>Step 1: Get Verified</h4>
+            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
+            Anyone can become a verified creator on CineX. This contract registers your identity on-chain so backers know you're real.
+            </p>
+            <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
+            👉 Inside the iframe, click on <strong>verify-creator</strong>, enter a name and any details, then click “Call”. Your wallet will ask you to confirm the transaction.
+            </p>
+            <iframe
+              className="lp-demo-iframe"
+              src="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/verify-creator?chain=testnet"
+              title="CineX Creator Verification Contract"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              loading="lazy"
+            />
+          </div>
+
+          <div className="lp-demo-step">
+            <h4>Step 2: Create a Campaign with Milestones</h4>
+            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
+            Once verified, create a funded campaign. Set your goal, define milestones — each with its own release conditions. Backers deposit into escrow. Funds only move forward when you prove your work.
+            </p>
+            <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
+            👉 Inside the iframe, click on <strong>create-campaign</strong>, fill in the parameters (campaign ID, milestones, goal), then submit. Confirm the transaction in your wallet.
+            </p>
+            <iframe
+              className="lp-demo-iframe"
+              src="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
+              title="CineX Milestone Escrow Contract"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              loading="lazy"
+            />
             </div>
-            <div className="lp-market-source">Source: <a href="https://www.brookings.edu/articles/the-rise-of-africas-creative-economy/" target="_blank" rel="noopener" style={{ color: 'var(--text-dim)', textDecoration: 'underline' }}>Brookings Institution — Africa's Creative Economy</a></div>
+
+          <div className="lp-demo-note">
+            <strong>What you're seeing:</strong> Two live Clarity smart contracts on the Stacks testnet. The <strong>Verification Module</strong> registers creators and tracks their reputation. The <strong>Milestone Escrow</strong> holds deposited STX and releases funds when milestones are endorsed. These are part of a suite of <strong>27+ contracts</strong> powering the full CineX protocol — including escrow yield, reputation scoring, portfolio tracking, and admin controls. <br /><br />
+            <em>This is the raw engine view — the final CineX dashboard will wrap these contracts in a clean, friendly interface.</em><br /><br />
+            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Just follow the hints inside each iframe. No real money involved – testnet STX have zero value.
+          </div>
+
+          <div className="lp-demo-closing">
+            This is not a mockup. This is the protocol, live and functional.
+          </div>
+          </div>
+        </section>
+
+      {/* WHY IT MATTERS NOW */}
+      <section className="lp-why">
+        <div className="lp-why-inner">
+          <div className="lp-label">Why It Matters Now</div>
+          <div className="lp-why-highlight">$200 Billion</div>
+          <p className="lp-why-body">
+            Africa's creative economy is projected to reach $200 billion by 2030, according to the Brookings Institution. Yet less than 1% of creative projects in Nigeria can access formal financing. The infrastructure simply doesn't exist. CineX is building it.
+          </p>
+          <div className="lp-why-note">
+            The market is ready. The technology is ready. What's missing is the financial rail connecting them.
           </div>
         </div>
       </section>
 
-      {/* TEAM */}
+      {/* PILOT PROJECTS — COHORT 0 */}
+      <section className="lp-section" id="pilots">
+        <div className="lp-section-inner">
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <div className="lp-label">Traction — Cohort 0</div>
+            <h2 className="lp-title">Four Pilot Projects in the Pipeline</h2>
+            <p className="lp-sub" style={{ margin: '0 auto' }}>Real creative works being structured for milestone‑based financing. Each represents a sector CineX serves.</p>
+          </div>
+          <div className="lp-pilot-grid">
+            <div className="lp-pilot-card lp-glass">
+              <div className="lp-pilot-icon">🎬</div>
+              <h3>Rain</h3>
+              <div className="lp-pilot-format">TV / Streaming • Drama Series</div>
+              <p className="lp-pilot-pitch">A gripping Nigerian drama series exploring love, loss, and redemption against the backdrop of Lagos — structured as CineX's first episodic milestone model.</p>
+              <div className="lp-pilot-sectors">
+                <span className="lp-pilot-sector">Nollywood</span>
+                <span className="lp-pilot-sector">Series</span>
+              </div>
+            </div>
+            <div className="lp-pilot-card lp-glass">
+              <div className="lp-pilot-icon">🎥</div>
+              <h3>The Death of Eternity</h3>
+              <div className="lp-pilot-format">Feature Film • Narrative</div>
+              <p className="lp-pilot-pitch">A thought‑provoking feature film that questions immortality, legacy, and the price of forever — a showcase for CineX's full lifecycle milestone model.</p>
+              <div className="lp-pilot-sectors">
+                <span className="lp-pilot-sector">Film</span>
+                <span className="lp-pilot-sector">Feature</span>
+              </div>
+            </div>
+            <div className="lp-pilot-card lp-glass">
+              <div className="lp-pilot-icon">🥽</div>
+              <h3>PrePARE VR</h3>
+              <div className="lp-pilot-format">Immersive Media • VR Experience</div>
+              <p className="lp-pilot-pitch">An immersive virtual reality experience preparing users for real‑world emergency situations — combining education with experiential storytelling. CineX's first immersive media pilot.</p>
+              <div className="lp-pilot-sectors">
+                <span className="lp-pilot-sector">VR</span>
+                <span className="lp-pilot-sector">EdTech</span>
+              </div>
+            </div>
+            <div className="lp-pilot-card lp-glass">
+              <div className="lp-pilot-icon">🌍</div>
+              <h3>Northern Travels</h3>
+              <div className="lp-pilot-format">Factual • Travel Content</div>
+              <p className="lp-pilot-pitch">A documentary travel series exploring the rich cultural heritage, landscapes, and untold stories of Northern Nigeria — bridging regional narratives to global audiences.</p>
+              <div className="lp-pilot-sectors">
+                <span className="lp-pilot-sector">Documentary</span>
+                <span className="lp-pilot-sector">Travel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TEAM & ADVISORS */}
       <section className="lp-section" id="team">
         <div className="lp-section-inner">
           <div className="lp-label">Team & Advisors</div>
@@ -416,7 +356,7 @@ export default function HomePage() {
               <div className="lp-rm-dot"></div>
               <div className="lp-rm-date">Q2 2026</div>
               <div className="lp-rm-title">Strategic Reset</div>
-              <div className="lp-rm-desc">Completed. 29 contracts deployed on testnet. 50+ tests passing. 2-of-3 multisig live. Backend on Render, new frontend placeholder.</div>
+              <div className="lp-rm-desc">Completed. 27+ contracts deployed on testnet. 227 tests passing. 2-of-3 multisig live. Backend on Render, frontend staging live.</div>
             </div>
             <div className="lp-rm-item">
               <div className="lp-rm-dot current"></div>
@@ -440,16 +380,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TEAM / BUILDING IN PUBLIC */}
+      {/* INVESTOR ASK */}
       <section className="lp-section" style={{ textAlign: 'center' }}>
         <div className="lp-section-inner">
-          <div className="lp-label">Building in Public</div>
-          <h2 className="lp-title">Backed by Stacks Ascent + DeGrants</h2>
-          <p className="lp-sub" style={{ margin: '0 auto 24px' }}>
-            Non-dilutive grant funding from the Stacks ecosystem. Read our economic litepaper for the full breakdown — cap table, use of funds, token model, and long-term vision.
+          <div className="lp-label">For Investors</div>
+          <h2 className="lp-title">We Are Raising Our Pre-Seed Round</h2>
+          <p className="lp-sub" style={{ margin: '0 auto 24px', maxWidth: 600 }}>
+            CineX is building the financial infrastructure for Africa's creative economy. We have 34+ gatekeepers, a $1M+ pipeline, 27+ deployed smart contracts, and non-dilutive grant backing. We are looking for angel investors and early-stage funds who see the $200B opportunity in African creative IP.
           </p>
-          <a href="/litepaper.html" target="_blank" rel="noopener" className="lp-btn lp-btn-primary" style={{ fontSize: '1rem', padding: '16px 40px' }}>
-            Read Economic Litepaper →
+          <p className="lp-sub" style={{ margin: '0 auto 36px', color: 'var(--green)', fontSize: '.9rem' }}>
+            Contact: <a href="mailto:mediacinex@gmail.com" style={{ color: '#4ade80', textDecoration: 'underline' }}>mediacinex@gmail.com</a>
+          </p>
+          <a href="mailto:mediacinex@gmail.com" className="lp-btn lp-btn-primary" style={{ fontSize: '1rem', padding: '16px 40px' }}>
+            Request Investment Deck →
+          </a>
+        </div>
+      </section>
+
+      {/* FINAL WAITLIST CTA */}
+      <section className="lp-waitlist">
+        <div className="lp-waitlist-inner">
+          <h2>Join the Waitlist</h2>
+          <p>Be the first to know when CineX launches. Early waitlist members get priority access, creator onboarding support, and exclusive updates.</p>
+          <a href={WAITLIST} target="_blank" rel="noopener" className="lp-btn lp-btn-primary" style={{ fontSize: '1.1rem', padding: '18px 48px' }}>
+            Join the Waitlist →
           </a>
         </div>
       </section>
@@ -468,18 +422,6 @@ export default function HomePage() {
         </div>
         <p>© 2026 CineX. All rights reserved.</p>
       </footer>
-
-      {/* LIGHTBOX */}
-      {lightbox && (
-        <div className="lp-lightbox active" onClick={() => setLightbox(null)}>
-          <button className="lp-lightbox-close" onClick={(e) => { e.stopPropagation(); setLightbox(null); }}>✕</button>
-          {lightbox === 'doe1' && <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics.png" alt="" onClick={e => e.stopPropagation()} />}
-          {lightbox === 'doe2' && <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20pics2.png" alt="" onClick={e => e.stopPropagation()} />}
-          {lightbox === 'doe3' && <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Concept%20Premise%20pics.png" alt="" onClick={e => e.stopPropagation()} />}
-          {lightbox === 'doe4' && <img src="/assets/images/Pilot%20Creative%20projects_2%20of%20the%204/Death%20of%20Eternity%20Logline%20pics.png" alt="" onClick={e => e.stopPropagation()} />}
-        </div>
-      )}
-
     </div>
   );
 }

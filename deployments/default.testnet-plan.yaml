@@ -212,6 +212,13 @@ plan:
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
+            contract-name: project-verification-module-v2
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 118030
+            path: "contracts\\project-verification-module-v2.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
             contract-name: yield-escrow-trait
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             cost: 16120

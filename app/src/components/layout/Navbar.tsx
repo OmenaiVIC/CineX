@@ -55,12 +55,14 @@ export default function Navbar() {
             >
               Sign In
             </button>
-            <button
-              onClick={() => navigate('/signup')}
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901"
+              target="_blank"
+              rel="noopener"
               className="px-4 py-1.5 rounded-full bg-[#4ade80] text-black text-xs font-semibold hover:shadow-[0_0_20px_rgba(74,222,128,0.2)] transition-all"
             >
-              Get Started
-            </button>
+              Join Waitlist
+            </a>
           </div>
         </div>
       </nav>
