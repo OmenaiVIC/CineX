@@ -11,7 +11,7 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: app
 
   deploy-backend:
