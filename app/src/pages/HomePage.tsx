@@ -203,15 +203,17 @@ export default function HomePage() {
             Anyone can become a verified creator on CineX. This contract registers your identity on-chain so backers know you're real.
             </p>
             <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
-            👉 Inside the iframe, click on <strong>verify-creator</strong>, enter a name and any details, then click “Call”. Your wallet will ask you to confirm the transaction.
+            👉 Click the button below to open the sandbox. Select <strong>verify-creator</strong>, enter a name and any details, then click “Call”. Your wallet will ask you to confirm the transaction.
             </p>
-            <iframe
-              className="lp-demo-iframe"
-              src="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/verify-creator?chain=testnet"
-              title="CineX Creator Verification Contract"
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              loading="lazy"
-            />
+            <a
+              className="lp-demo-sandbox-button"
+              href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/verify-creator?chain=testnet"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="lp-demo-sandbox-label">Open Step 1 Demo</span>
+              <span className="lp-demo-sandbox-badge">new tab ↗</span>
+            </a>
           </div>
 
           <div className="lp-demo-step">
@@ -220,21 +222,23 @@ export default function HomePage() {
             Once verified, create a funded campaign. Set your goal, define milestones — each with its own release conditions. Backers deposit into escrow. Funds only move forward when you prove your work.
             </p>
             <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
-            👉 Inside the iframe, click on <strong>create-campaign</strong>, fill in the parameters (campaign ID, milestones, goal), then submit. Confirm the transaction in your wallet.
+            👉 Click the button below to open the sandbox. Select <strong>create-campaign</strong>, fill in the parameters (campaign ID, milestones, goal), then submit. Confirm the transaction in your wallet.
             </p>
-            <iframe
-              className="lp-demo-iframe"
-              src="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
-              title="CineX Milestone Escrow Contract"
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              loading="lazy"
-            />
+            <a
+              className="lp-demo-sandbox-button"
+              href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="lp-demo-sandbox-label">Open Step 2 Demo</span>
+              <span className="lp-demo-sandbox-badge">new tab ↗</span>
+            </a>
             </div>
 
           <div className="lp-demo-note">
             <strong>What you're seeing:</strong> Two live Clarity smart contracts on the Stacks testnet. The <strong>Verification Module</strong> registers creators and tracks their reputation. The <strong>Milestone Escrow</strong> holds deposited STX and releases funds when milestones are endorsed. These are part of a suite of <strong>27+ contracts</strong> powering the full CineX protocol — including escrow yield, reputation scoring, portfolio tracking, and admin controls. <br /><br />
             <em>This is the raw engine view — the final CineX dashboard will wrap these contracts in a clean, friendly interface.</em><br /><br />
-            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Just follow the hints inside each iframe. No real money involved – testnet STX have zero value.
+            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Just click each demo button above — they open in a new tab. No real money involved – testnet STX have zero value.
           </div>
 
           <div className="lp-demo-closing">
