@@ -33,6 +33,7 @@ export default function DemoStepVerify() {
 
     const addr = connected && walletAddress ? walletAddress : await connectWallet();
     if (!addr) { tx.fail('Connect your Stacks wallet first'); return; }
+    if (!addr.startsWith('S')) { tx.fail('Invalid wallet address. Make sure your wallet is on testnet.'); return; }
 
     tx.open('Registering', 'Sign the transaction in your wallet...');
     try {

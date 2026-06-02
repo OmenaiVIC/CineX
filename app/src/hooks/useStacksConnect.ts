@@ -21,7 +21,7 @@ export function useStacksConnect() {
   const connectWallet = useCallback(async (): Promise<string | null> => {
     try {
       const result = await stacksConnect();
-      const addr = result?.addresses?.[0]?.address ?? null;
+      const addr = result?.addresses?.stx?.[0]?.address ?? null;
       if (addr) {
         setAddress(addr);
         setConnected(true);

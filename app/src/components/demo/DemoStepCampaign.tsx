@@ -56,6 +56,7 @@ export default function DemoStepCampaign() {
   const handleCreate = async () => {
     const addr = connected && walletAddress ? walletAddress : await connectWallet();
     if (!addr) { tx.fail('Connect your Stacks wallet first'); return; }
+    if (!addr.startsWith('S')) { tx.fail('Invalid wallet address. Make sure your wallet is on testnet.'); return; }
 
     if (!allocationValid) { tx.fail('Milestone amounts must equal the goal'); return; }
 
