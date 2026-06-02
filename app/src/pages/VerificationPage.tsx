@@ -163,7 +163,7 @@ export default function VerificationPage() {
   if (!activeUser) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <p className="text-gray-400">Please sign in to apply for verification.</p>
+        <p className="text-gray-400">Create a profile in Demo Mode or connect your wallet to apply for verification.</p>
       </div>
     );
   }

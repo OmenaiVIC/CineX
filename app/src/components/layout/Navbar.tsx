@@ -40,20 +40,14 @@ export default function Navbar() {
             <button onClick={openGuide} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               How It Works
             </button>
-            <button onClick={() => navigate('/explore')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
-              Explore
+            <button onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+              Explore the Demo
             </button>
             <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               Litepaper
             </a>
             <button onClick={() => navigate('/contact')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               Contact
-            </button>
-            <button
-              onClick={() => navigate('/signin')}
-              className="text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              Sign In
             </button>
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901"
@@ -85,7 +79,6 @@ export default function Navbar() {
       {isDemoMode && (
         <div className="bg-[#4ade80]/10 border-b border-[#4ade80]/20 px-4 py-1.5 text-center text-xs text-[#4ade80] flex items-center justify-center gap-3">
           <span>⚡ Demo Mode — all data is simulated client-side. No chain transactions.</span>
-          <a href="https://cine-x-iota.vercel.app/signup" target="_blank" rel="noopener noreferrer" className="text-[10px] px-2 py-0.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] hover:bg-[#4ade80]/30 hover:text-white transition-colors font-medium">Convert to Real</a>
           <button onClick={handleReset} className="underline hover:text-white text-[10px]">Reset</button>
           <button onClick={toggleDemoMode} className="underline hover:text-white text-[10px]">Exit Demo</button>
         </div>

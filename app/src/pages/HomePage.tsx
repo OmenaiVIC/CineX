@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import DemoStepVerify from '../components/demo/DemoStepVerify';
+import DemoStepCampaign from '../components/demo/DemoStepCampaign';
 
 const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901';
 
@@ -83,7 +85,6 @@ export default function HomePage() {
           <div className="lp-hero-actions">
             <a href={WAITLIST} target="_blank" rel="noopener" className="lp-btn lp-btn-primary">Join the Waitlist →</a>
             <a href="#demo" className="lp-btn lp-btn-secondary">See Live Demo</a>
-            <a href="#how-it-works" className="lp-btn lp-btn-ghost">How It Works</a>
           </div>
         </div>
       </section>
@@ -126,27 +127,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* HOW IT WORKS — Escrow Lifecycle */}
       <section id="how-it-works" className="lp-section" style={{ background: 'radial-gradient(ellipse at center,rgba(74,222,128,.02),transparent 60%)' }}>
         <div className="lp-section-inner">
           <div className="lp-label" style={{ textAlign: 'center' }}>How It Works</div>
-          <h2 className="lp-title" style={{ textAlign: 'center' }}>Three Steps to Bankable Creativity</h2>
-          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>No crypto knowledge required. Think of it as a smart contract that releases funds when you prove your work.</p>
+          <h2 className="lp-title" style={{ textAlign: 'center' }}>The Milestone Escrow Lifecycle</h2>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>CineX uses milestone-gated escrow contracts. Funds only move when work is verified — no trust required.</p>
           <div className="lp-how-grid">
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">1</div>
-              <h3>Verify Yourself ✅</h3>
-              <p>Connect your identity — social links, portfolio, past work, references. A trusted gatekeeper vouches for you. Once verified, your profile becomes your on-chain reputation. No more starting from scratch every time.</p>
+              <h3>Get Verified</h3>
+              <p>Register your identity on-chain. Name, project vertical, and wallet address are recorded in the verification contract. This is Step 1 of the demo — a live contract call on testnet.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">2</div>
-              <h3>Create Milestones 📌</h3>
-              <p>Break your project into stages: script locked → principal photography → post-production → delivery. Each milestone gets a description, a deadline, and a funding amount. Backers can see exactly what they're funding and when.</p>
+              <h3>Create Escrow Campaign</h3>
+              <p>Define your project milestones and funding goal in the milestone-escrow contract. Each milestone has a name and release amount. Funds are locked in escrow — only the contract controls disbursement. This is Step 2 of the demo.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">3</div>
-              <h3>Release Funds on Proof 💸</h3>
-              <p>Submit proof for each milestone (photos, videos, files, endorser sign-off). A neutral endorser verifies the work. Funds release automatically. No chasing people. No awkward conversations about money.</p>
+              <h3>Backers Fund Escrow</h3>
+              <p>Backers deposit STX directly into the escrow contract. Funds are held by the contract, not by the creator. The contract tracks total deposits per campaign. No one — not even the creator — can withdraw without milestone verification.</p>
+            </div>
+            <div className="lp-how-step lp-glass">
+              <div className="lp-how-num">4</div>
+              <h3>Submit Proof of Work</h3>
+              <p>Complete a milestone and submit proof on-chain. Photos, videos, files — whatever demonstrates the work was done. The submission is recorded in the contract and visible to endorsers and backers.</p>
+            </div>
+            <div className="lp-how-step lp-glass">
+              <div className="lp-how-num">5</div>
+              <h3>Endorse &amp; Release</h3>
+              <p>A designated endorser (gatekeeper or backer representative) verifies the submission on-chain. If approved, the milestone amount is released from escrow to the creator. Failed milestones can be disputed.</p>
+            </div>
+            <div className="lp-how-step lp-glass">
+              <div className="lp-how-num">6</div>
+              <h3>Project Finalized</h3>
+              <p>When all milestones are released, the campaign completes. The full lifecycle — from registration to final withdrawal — is recorded on-chain. Verifiable, transparent, and automated.</p>
             </div>
           </div>
         </div>
@@ -200,21 +216,38 @@ export default function HomePage() {
           <div className="lp-demo-step">
             <h4>Step 1: Get Verified</h4>
             <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
-            Anyone can become a verified creator on CineX. This contract registers your identity on-chain so backers know you're real.
+            This calls <strong>register-creator</strong> on the <strong>project-verification-module</strong> contract. It registers your identity on-chain — name and project vertical — so backers and gatekeepers can verify who you are.
             </p>
-            <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
-            👉 Click the button below to open the sandbox. Select <strong>verify-creator</strong>, enter a name and any details, then click “Call”. Your wallet will ask you to confirm the transaction.
-            </p>
-            <a
-              className="lp-demo-sandbox-button"
-              href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/verify-creator?chain=testnet"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="lp-demo-sandbox-label">Open Step 1 Demo</span>
-              <span className="lp-demo-sandbox-badge">new tab ↗</span>
-            </a>
+            <DemoStepVerify />
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <a
+                href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/register-creator?chain=testnet"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
+              >
+                or open in Hiro Sandbox ↗
+              </a>
+            </div>
           </div>
+
+          <div className="lp-demo-step">
+            <h4>Step 2: Create a Campaign with Milestones</h4>
+            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
+            This calls <strong>create-campaign</strong> on the <strong>milestone-escrow</strong> contract. Define your project ID, funding goal, and milestones. Each milestone has a name and amount — funds only release when work is verified.
+            </p>
+            <DemoStepCampaign />
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <a
+                href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
+              >
+                or open in Hiro Sandbox ↗
+              </a>
+            </div>
+            </div>
 
           <div className="lp-demo-step">
             <h4>Step 2: Create a Campaign with Milestones</h4>

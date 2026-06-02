@@ -204,7 +204,9 @@ body {
   font-size: clamp(1.1rem, 2.2vw, 1.35rem);
   line-height: 1.8;
   color: var(--text);
-  font-weight: 400;
+  font-weight: 600;
+  font-style: italic;
+  font-family: 'Space Grotesk', 'Georgia', serif;
   padding: 40px;
   position: relative;
 }

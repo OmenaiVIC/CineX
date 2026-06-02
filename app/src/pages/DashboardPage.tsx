@@ -58,12 +58,14 @@ export default function DashboardPage() {
         <p className="text-sm font-medium text-white">You are in Demo Mode</p>
         <p className="text-xs text-gray-400 mt-0.5">Create a real account to save your progress and access live features.</p>
       </div>
-      <button
-        onClick={() => navigate('/signup?from=demo')}
+      <a
+        href="https://cine-x-iota.vercel.app/signup"
+        target="_blank"
+        rel="noopener noreferrer"
         className="shrink-0 px-4 py-2 text-xs font-semibold text-black bg-[#4ade80] hover:bg-[#22c55e] rounded-lg transition-all"
       >
-        Create Real Account →
-      </button>
+        Go to Live Site →
+      </a>
     </div>
   ) : null;
 
