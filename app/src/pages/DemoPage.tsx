@@ -1,16 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import DemoOnboarding from '../components/onboarding/DemoOnboarding';
-import { useDemoMode } from '../contexts/DemoModeContext';
-import type { UserRole } from '../types';
-
 export default function DemoPage() {
-  const { completeOnboarding } = useDemoMode();
-  const navigate = useNavigate();
-
-  const handleComplete = (name: string, role: UserRole) => {
-    completeOnboarding(name, role);
-    navigate('/dashboard');
-  };
-
-  return <DemoOnboarding onComplete={handleComplete} />;
+  return (
+    <div style={{ width: '100%', height: '100vh' }}>
+      <iframe
+        src="https://cinex-milestone-flow.vercel.app"
+        width="100%"
+        height="100%"
+        style={{ border: 'none' }}
+        title="CineX Interactive Demo"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+      />
+    </div>
+  );
 }

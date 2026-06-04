@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import DemoStepVerify from '../components/demo/DemoStepVerify';
-import DemoStepCampaign from '../components/demo/DemoStepCampaign';
 
 const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901';
 
@@ -13,7 +11,7 @@ export default function HomePage() {
     if (!c) return;
     const ctx = c.getContext('2d');
     if (!ctx) return;
-    let w: number, h: number;
+    let w = 0, h = 0;
     const COUNT = 60;
     const particles: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
     let animId: number;
@@ -214,64 +212,34 @@ export default function HomePage() {
           </div>
 
           <div className="lp-demo-step">
-            <h4>Step 1: Get Verified</h4>
+            <h4>Interactive Demo</h4>
             <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
-            This calls <strong>register-creator</strong> on the <strong>project-verification-module</strong> contract. It registers your identity on-chain — name and project vertical — so backers and gatekeepers can verify who you are.
+              Click the button below to open the full interactive demo. It guides you through all five steps:
+              register creator → create campaign → deposit → approve milestone → release funds.
             </p>
-            <DemoStepVerify />
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <a
-                href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module/register-creator?chain=testnet"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
-              >
-                or open in Hiro Sandbox ↗
-              </a>
-            </div>
-          </div>
-
-          <div className="lp-demo-step">
-            <h4>Step 2: Create a Campaign with Milestones</h4>
-            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
-            This calls <strong>create-campaign</strong> on the <strong>milestone-escrow</strong> contract. Define your project ID, funding goal, and milestones. Each milestone has a name and amount — funds only release when work is verified.
-            </p>
-            <DemoStepCampaign />
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <a
-                href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
-              >
-                or open in Hiro Sandbox ↗
-              </a>
-            </div>
-            </div>
-
-          <div className="lp-demo-step">
-            <h4>Step 2: Create a Campaign with Milestones</h4>
-            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
-            Once verified, create a funded campaign. Set your goal, define milestones — each with its own release conditions. Backers deposit into escrow. Funds only move forward when you prove your work.
-            </p>
-            <p style={{ fontSize: '.85rem', marginBottom: 8, color: 'var(--green)' }}>
-            👉 Click the button below to open the sandbox. Select <strong>create-campaign</strong>, fill in the parameters (campaign ID, milestones, goal), then submit. Confirm the transaction in your wallet.
-            </p>
+            <iframe
+              src="https://cinex-milestone-flow.vercel.app"
+              width="100%"
+              style={{ border: 'none', borderRadius: '16px', minHeight: '700px', height: '100%' }}
+              title="CineX Interactive Demo"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            />
+          <div style={{ marginTop: 12, textAlign: 'center' }}>
             <a
-              className="lp-demo-sandbox-button"
-              href="https://explorer.hiro.so/sandbox/contract-call/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow/create-campaign?chain=testnet"
+              href="https://cinex-milestone-flow.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
+              style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
             >
-              <span className="lp-demo-sandbox-label">Open Step 2 Demo</span>
-              <span className="lp-demo-sandbox-badge">new tab ↗</span>
+              Open full demo in new tab ↗
             </a>
-            </div>
+          </div>
+        </div>
 
           <div className="lp-demo-note">
             <strong>What you're seeing:</strong> Two live Clarity smart contracts on the Stacks testnet. The <strong>Verification Module</strong> registers creators and tracks their reputation. The <strong>Milestone Escrow</strong> holds deposited STX and releases funds when milestones are endorsed. These are part of a suite of <strong>27+ contracts</strong> powering the full CineX protocol — including escrow yield, reputation scoring, portfolio tracking, and admin controls. <br /><br />
             <em>This is the raw engine view — the final CineX dashboard will wrap these contracts in a clean, friendly interface.</em><br /><br />
-            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Just click each demo button above — they open in a new tab. No real money involved – testnet STX have zero value.
+            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Use the interactive demo above. Connect your wallet (Hiro or Xverse) on testnet and follow the five steps. No real money involved – testnet STX have zero value.
           </div>
 
           <div className="lp-demo-closing">
