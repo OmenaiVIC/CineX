@@ -92,7 +92,9 @@ export default function HomePage() {
         <div className="lp-problem-inner">
           <div className="lp-problem-stat">The Status Quo Is Broken</div>
           <div className="lp-problem-quote">
-            Right now, if you're a filmmaker in Lagos with a finished script, a producer attached, and a cast ready to go — you still can't access capital unless you know someone who knows someone. The system is relationship-based, not merit-based. Gatekeeping isn't the problem. What's missing is a way to earn trust through proof of work. CineX turns your creative process into a verifiable track record — so your next project raises itself.
+            Right now, if you're a creative in Jos, Lagos, Port Harcourt, Kano or anywhere in Nigeria – with a creative project ready to go – a film script, a music demo, a game prototype, a fashion collection – and the team to execute it, you still can't access capital unless you know someone who knows someone.<br /><br />
+            The system is relationship‑based, not merit‑based. Gatekeeping isn't the problem. What's missing is a way to earn trust through proof of work.<br /><br />
+            CineX turns your creative process into a verifiable track record — so your next project raises itself.
           </div>
         </div>
       </section>
@@ -425,7 +427,7 @@ export default function HomePage() {
             Victor's LinkedIn
           </a>
         </div>
-        <p>© 2026 CineX. All rights reserved.</p>
+        <p>© 2026 Synergy Brand Storytelling © CineX. All rights reserved.</p>
       </footer>
     </div>
   );
