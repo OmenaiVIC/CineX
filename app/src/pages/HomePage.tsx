@@ -363,7 +363,7 @@ export default function HomePage() {
               <div className="lp-rm-dot"></div>
               <div className="lp-rm-date">Q2 2026</div>
               <div className="lp-rm-title">Strategic Reset</div>
-              <div className="lp-rm-desc">Completed. 27+ contracts deployed on testnet. 227 tests passing. 2-of-3 multisig live. Backend on Render, frontend staging live.</div>
+              <div className="lp-rm-desc">Completed. 27+ contracts deployed on testnet. 227 tests passing. 2-of-3 multisig live. Frontend staging live.</div>
             </div>
             <div className="lp-rm-item">
               <div className="lp-rm-dot current"></div>
