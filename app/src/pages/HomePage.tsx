@@ -195,7 +195,7 @@ export default function HomePage() {
               rel="noopener"
               style={{ color: 'var(--green)', fontWeight: 600 }}
             >
-              2-minute walkthrough
+              6-minute walkthrough
             </a>{' '}
             → How to Install Hiro Wallet, Switch to Testnet &amp; Get Free STX
           </div>
