@@ -190,7 +190,7 @@ export default function HomePage() {
           >
             🎥 First time? Watch the{' '}
             <a
-              href="https://www.youtube.com/watch?v=CeOaRRDBIDw"
+              href="https://www.youtube.com/watch?v=kYELvHIWjIk"
               target="_blank"
               rel="noopener"
               style={{ color: 'var(--green)', fontWeight: 600 }}
