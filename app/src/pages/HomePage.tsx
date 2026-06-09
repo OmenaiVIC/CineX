@@ -247,8 +247,28 @@ export default function HomePage() {
           <div className="lp-demo-closing">
             This is not a mockup. This is the protocol, live and functional.
           </div>
+
+          {/* 🔧 TECHNICAL PREVIEW (expandable) — ADDED */}
+          <div className="technical-preview">
+            <details>
+              <summary>
+                <span>🔧 Technical preview (for curious minds &amp; investors)</span>
+              </summary>
+              <div className="preview-content">
+                <p><strong>✅ Live right now:</strong> These Clarity smart contracts are deployed on the Stacks testnet. The demo calls them directly — no backend, no simulation, no smoke and mirrors.</p>
+                <ul>
+                  <li><code>milestone-escrow</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
+                  <li><code>project-verification-module</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
+                </ul>
+                <p><strong>🔨 Coming in the next sprint:</strong> polished creator/backer dashboards, AI credibility summaries, activity feeds, and wallet abstraction — all informed by your feedback.</p>
+                <p><strong>📜 Full source code:</strong> <a href="https://github.com/mediafintech/CineX/tree/main/contracts" target="_blank" rel="noopener noreferrer">github.com/mediafintech/CineX</a></p>
+                <p><em>Every contract call you make today helps prove the financial engine is real. Your feedback decides what we build next.</em></p>
+              </div>
+            </details>
           </div>
-        </section>
+
+        </div>
+      </section>
 
       {/* WHY IT MATTERS NOW */}
       <section className="lp-why">
@@ -429,6 +449,45 @@ export default function HomePage() {
         </div>
         <p>© 2026 Synergy Brand Storytelling © CineX. All rights reserved.</p>
       </footer>
+
+      {/* Style for Technical Preview (added) */}
+      <style>{`
+        .technical-preview {
+          margin: 2rem 0;
+          padding: 1rem;
+          background: #f9fafb;
+          border-radius: 12px;
+          border-left: 4px solid #3b82f6;
+        }
+        .technical-preview summary {
+          font-weight: 600;
+          cursor: pointer;
+          user-select: none;
+        }
+        .technical-preview summary:focus {
+          outline: none;
+        }
+        .technical-preview .preview-content {
+          margin-top: 1rem;
+          padding-top: 0.5rem;
+          border-top: 1px solid #e5e7eb;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+        .technical-preview a {
+          color: #3b82f6;
+          text-decoration: none;
+        }
+        .technical-preview a:hover {
+          text-decoration: underline;
+        }
+        .technical-preview code {
+          background: #e5e7eb;
+          padding: 0.2rem 0.4rem;
+          border-radius: 6px;
+          font-size: 0.85rem;
+        }
+      `}</style>
     </div>
   );
 }
