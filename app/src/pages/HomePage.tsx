@@ -200,7 +200,7 @@ export default function HomePage() {
             → How to Install Hiro Wallet, Switch to Testnet &amp; Get Free STX
           </div>
 
-          {/* PRE‑DEMO SETUP – added */}
+          {/* PRE‑DEMO SETUP */}
           <div style={{ background: 'rgba(74,222,128,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(74,222,128,0.2)' }}>
             <h4 style={{ marginBottom: '0.5rem' }}>🧪 Before you start (5 minutes, free)</h4>
             <ol style={{ marginLeft: '1.5rem', lineHeight: '1.7', color: 'var(--text-dim)' }}>
@@ -226,17 +226,17 @@ export default function HomePage() {
               title="CineX Interactive Demo"
               sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             />
-          <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <a
-              href="https://cinex-milestone-flow.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
-            >
-              Open full demo in new tab ↗
-            </a>
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <a
+                href="https://cinex-milestone-flow.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
+              >
+                Open full demo in new tab ↗
+              </a>
+            </div>
           </div>
-        </div>
 
           <div className="lp-demo-note">
             <strong>What you're seeing:</strong> Two live Clarity smart contracts on the Stacks testnet. The <strong>Verification Module</strong> registers creators and tracks their reputation. The <strong>Milestone Escrow</strong> holds deposited STX and releases funds when milestones are endorsed. These are part of a suite of <strong>27+ contracts</strong> powering the full CineX protocol — including escrow yield, reputation scoring, portfolio tracking, and admin controls. <br /><br />
@@ -450,42 +450,57 @@ export default function HomePage() {
         <p>© 2026 Synergy Brand Storytelling © CineX. All rights reserved.</p>
       </footer>
 
-      {/* Style for Technical Preview (added) */}
+      {/* Corrected CSS for Technical Preview */}
       <style>{`
         .technical-preview {
           margin: 2rem 0;
-          padding: 1rem;
-          background: #f9fafb;
-          border-radius: 12px;
-          border-left: 4px solid #3b82f6;
+          padding: 1.25rem;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(4px);
+          border-radius: 16px;
+          border-left: 4px solid #4ade80;
+          color: #e5e7eb;
         }
         .technical-preview summary {
           font-weight: 600;
           cursor: pointer;
           user-select: none;
+          color: #f9fafb;
+        }
+        .technical-preview summary:hover {
+          color: #4ade80;
         }
         .technical-preview summary:focus {
           outline: none;
         }
         .technical-preview .preview-content {
           margin-top: 1rem;
-          padding-top: 0.5rem;
-          border-top: 1px solid #e5e7eb;
+          padding-top: 0.75rem;
+          border-top: 1px solid rgba(74, 222, 128, 0.3);
           font-size: 0.95rem;
           line-height: 1.5;
         }
         .technical-preview a {
-          color: #3b82f6;
+          color: #4ade80;
           text-decoration: none;
         }
         .technical-preview a:hover {
           text-decoration: underline;
         }
         .technical-preview code {
-          background: #e5e7eb;
+          background: rgba(0, 0, 0, 0.5);
           padding: 0.2rem 0.4rem;
           border-radius: 6px;
           font-size: 0.85rem;
+          color: #fbbf24;
+          font-family: monospace;
+        }
+        .technical-preview ul {
+          margin: 0.5rem 0;
+          padding-left: 1.5rem;
+        }
+        .technical-preview li {
+          margin: 0.25rem 0;
         }
       `}</style>
     </div>
