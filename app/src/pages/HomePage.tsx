@@ -208,9 +208,9 @@ export default function HomePage() {
               <li>In the wallet, click the network dropdown → select <strong>Testnet</strong>.</li>
               <li>Copy your testnet address (starts with <code>ST</code>).</li>
               <li>Go to the <a href="https://explorer.hiro.so/sandbox/faucet?chain=testnet" target="_blank" rel="noopener" style={{ color: 'var(--green)' }}>Hiro Faucet</a>, paste your address, and request free STX (gas).</li>
-              <li>Wait 1–2 minutes, then refresh your wallet balance. You’ll see a small amount of testnet STX – no real value.</li>
+              <li>Wait 1–2 minutes, then refresh your wallet balance. You'll see a small amount of testnet STX – no real value.</li>
             </ol>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>✅ Now you’re ready to call the contracts below.</p>
+            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>✅ Now you're ready to call the contracts below.</p>
           </div>
 
           <div className="lp-demo-step">
@@ -337,10 +337,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TEAM & ADVISORS */}
+      {/* TEAM & VALIDATION — Updated: Advisors removed, Stacks Foundry Validate badge added (Selected for) */}
       <section className="lp-section" id="team">
         <div className="lp-section-inner">
-          <div className="lp-label">Team & Advisors</div>
+          <div className="lp-label">Team &amp; Validation</div>
           <h2 className="lp-title">The People Building CineX</h2>
           <div className="lp-team-grid">
             {[
@@ -357,18 +357,25 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <h3 style={{ fontFamily: "'Space Grotesk','Inter',sans-serif", fontSize: '1rem', fontWeight: 600, marginTop: 40, marginBottom: 12 }}>Advisors</h3>
-          <div className="lp-advisors-grid">
-            {[
-              { name: 'Setzeus', role: 'Clarity Smart Contracts OG — Stacks Ecosystem Projects Engineering Audit — CineX Mentor' },
-              { name: 'Gary Riger', role: 'Clarity Smart Contracts Working Group Host — Stacks Ecosystem Strategy' },
-              { name: 'Stephen Perrino', role: 'Stacks Ecosystem OG Media & Communication Lead & Host DeOrganized Media' },
-            ].map(a => (
-              <div key={a.name} className="lp-advisor-card lp-glass">
-                <h4>{a.name}</h4>
-                <div className="lp-role">{a.role}</div>
-              </div>
-            ))}
+
+          {/* VALIDATION BADGE — Selected for (completed program) */}
+          <div style={{ marginTop: 48, textAlign: 'center', padding: '1.5rem', background: 'rgba(74,222,128,0.05)', borderRadius: '16px', border: '1px solid rgba(74,222,128,0.2)' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', marginBottom: 4 }}>
+              Selected for
+            </p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--green)' }}>
+              <a
+                href="https://stacksendowment.co/blog/introducing-stacks-foundry-validate"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--green)', textDecoration: 'none' }}
+              >
+                Stacks Foundry Validate Program
+              </a>
+            </p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 4 }}>
+              5‑week structured validation · May–June 2026
+            </p>
           </div>
         </div>
       </section>
@@ -400,7 +407,7 @@ export default function HomePage() {
             <div className="lp-rm-item">
               <div className="lp-rm-dot"></div>
               <div className="lp-rm-date">H1 2027</div>
-              <div className="lp-rm-title">Supply Partners & Scale</div>
+              <div className="lp-rm-title">Supply Partners &amp; Scale</div>
               <div className="lp-rm-desc">Institutional capital partnerships. NGN/USD on-ramps. Pan-African gatekeeper expansion. 100+ projects financed.</div>
             </div>
           </div>
