@@ -13,9 +13,12 @@
     "@stacks/transactions": "^6.17.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "multer": "^2.1.1",
     "nodemailer": "^6.9.16",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "@neondatabase/serverless": "^0.10.0",
+    "ws": "^8.18.0"
   }
 }

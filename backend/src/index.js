@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
@@ -19,11 +20,16 @@ import contactRouter from './routes/contact.js';
 import yieldRouter from './routes/yield.js';
 import escrowRouter from './routes/escrow.js';
 import adminRouter from './routes/admin.js';
+import bosMonitoringRouter from './routes/bosMonitoring.js';
 import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
 import { initEmail } from './services/emailService.js';
+import monitorJob from './services/bos/monitoring/monitorJob.js';
+import * as stuckReaper from './services/bos/stuckStateReaper.js';
+import * as reconciliationWorker from './services/bos/reconciliationWorker.js';
+import * as disbursementService from './services/bos/disbursementService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,6 +104,7 @@ app.use('/api/contact', contactRouter);
 app.use('/api/yield', yieldRouter);
 app.use('/api/escrow', escrowRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/bos/monitoring', bosMonitoringRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);
@@ -120,6 +127,56 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`CineX backend running on http://localhost:${PORT}`);
   });
+
+  // Initialize and start BOS workers
+  const { getDb } = await import('./database.js');
+  const bosCtx = {
+    getDb: () => getDb(),
+    adapters: {
+      stacks: contractService,
+      xreserve: { /* adapter stub — wired in BOS adapter integration */ },
+      yellowcard: { /* adapter stub — wired in BOS adapter integration */ },
+    },
+    emitEvent: async (event) => {
+      try {
+        const db = getDb();
+        await db.run(
+          `INSERT INTO disbursement_audit (disbursement_id, old_status, new_status, action, details, triggered_by, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+          [event.disbursement_id, event.old_status, event.new_status, event.action,
+           JSON.stringify(event.details || {}), event.triggered_by]
+        );
+      } catch (err) {
+        console.error('[bos] Failed to emit audit event:', err.message);
+      }
+    },
+    getLogger: (component) => ({
+      info:  (obj, msg) => console.log(`[${component}]`, msg || '', obj || ''),
+      warn:  (obj, msg) => console.warn(`[${component}]`, msg || '', obj || ''),
+      error: (obj, msg) => console.error(`[${component}]`, msg || '', obj || ''),
+      debug: (obj, msg) => {}, // silence debug in production
+    }),
+  };
+
+  disbursementService.init(bosCtx);
+  stuckReaper.init(bosCtx);
+  reconciliationWorker.init(bosCtx);
+
+  // Start BOS monitor job
+  monitorJob.start();
+  stuckReaper.start();       // 60s interval — flags stuck disbursements
+  reconciliationWorker.start(); // 5min interval — reconciles unrecorded burns/payouts
 }
+
+// Graceful shutdown
+function shutdown() {
+  console.log('[shutdown] Stopping BOS workers...');
+  monitorJob.stop();
+  stuckReaper.stop();
+  reconciliationWorker.stop();
+  process.exit(0);
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 start();
