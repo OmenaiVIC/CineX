@@ -17,6 +17,7 @@
 (impl-trait .module-base-trait.module-base-trait)
 (use-trait asset-registry-trait .asset-registry-trait.asset-registry-trait)
 (use-trait oracle-proxy-trait .oracle-proxy-trait.oracle-proxy-trait)
+(use-trait sip-010-trait .sip-010-trait.sip-010-trait)
 
 ;; ========== ERROR CONSTANTS (u5400-u5423) ==========
 (define-constant ERR-CAMPAIGN-NOT-FOUND (err u5400))
@@ -245,6 +246,59 @@
   (deposit campaign-id amount)
 )
 
+;; Deposit SIP-010 tokens into a campaign's escrow balance
+;; Validates campaign exists and is active, then transfers tokens via sip-010-trait
+;; @param token - SIP-010 token trait (contract-call validated against stored asset)
+;; @param campaign-id - target campaign
+;; @param amount - amount in token's smallest unit
+(define-public (deposit-token
+    (token <sip-010-trait>)
+    (campaign-id uint)
+    (amount uint))
+  (let
+    (
+      (campaign (unwrap! (map-get? campaigns campaign-id) ERR-CAMPAIGN-NOT-FOUND))
+      (new-total (+ (get total-deposited campaign) amount))
+      (funding-cap (unwrap! (contract-call? .project-verification-module
+                             get-verification-funding-cap (get creator campaign))
+                   ERR-NOT-AUTHORIZED))
+    )
+    ;; Campaign must be active
+    (asserts! (is-eq (get status campaign) "active") ERR-CAMPAIGN-COMPLETED)
+
+    ;; Deadline must not have passed
+    (asserts! (<= block-height (get deadline campaign)) ERR-CAMPAIGN-EXPIRED)
+
+    ;; Amount must be positive
+    (asserts! (> amount u0) ERR-INVALID-AMOUNT)
+
+    ;; New total must not exceed the campaign's fundraising goal
+    (asserts! (<= new-total (get total-goal campaign)) ERR-INSUFFICIENT-FUNDS)
+
+    ;; Live funding cap check - creator may have been downgraded mid-campaign
+    (asserts! (<= new-total funding-cap) ERR-FUNDING-CAP-EXCEEDED)
+
+    ;; Token contract must match the campaign's registered asset
+    (asserts! (is-eq (contract-of token) (get asset campaign)) ERR-ASSET-NOT-SUPPORTED)
+
+    ;; Transfer tokens from sender to this contract
+    (unwrap! (contract-call? token transfer amount tx-sender (as-contract tx-sender) none)
+             ERR-TRANSFER-FAILED)
+
+    ;; Update campaign deposited total
+    (map-set campaigns campaign-id (merge campaign { total-deposited: new-total }))
+
+    ;; Record or update contributor's deposit amount
+    (map-set campaign-contributors { campaign-id: campaign-id, contributor: tx-sender } {
+      amount: (+ (default-to u0
+                   (get amount (map-get? campaign-contributors
+                     { campaign-id: campaign-id, contributor: tx-sender }))) amount)
+    })
+
+    (ok true)
+  )
+)
+
 ;; Backward-compat: withdraw funds from escrow to campaign creator
 ;; Called by campaign-module during claim-campaign-funds
 (define-public (withdraw-from-campaign (campaign-id uint) (amount uint))
@@ -388,6 +442,72 @@
 
     ;; Transfer creator payout to campaign creator
     (unwrap! (as-contract (stx-transfer? creator-payout tx-sender (get creator campaign)))
+             ERR-TRANSFER-FAILED)
+
+    ;; Mark milestone as released
+    (map-set milestone-state { campaign-id: campaign-id, milestone-index: milestone-index }
+      (merge current-state { released: true }))
+
+    ;; Update campaign totals and status (auto-complete if all released)
+    (map-set campaigns campaign-id (merge campaign {
+      total-deposited: new-deposited,
+      released-count: new-released,
+      status: new-status
+    }))
+
+    (ok true)
+  )
+)
+
+;; Release funds for an approved milestone using SIP-010 token transfers
+;; Deducts 5% platform fee, sends remainder to creator via token contract
+;; Auto-completes campaign if all milestones are released
+;; @param token - SIP-010 token trait (must match campaign's registered asset)
+;; @param campaign-id - target campaign
+;; @param milestone-index - 0-based milestone index to release
+(define-public (release-milestone-funds-token
+    (token <sip-010-trait>)
+    (campaign-id uint)
+    (milestone-index uint))
+  (let
+    (
+      (campaign (unwrap! (map-get? campaigns campaign-id) ERR-CAMPAIGN-NOT-FOUND))
+      (current-state (default-to (default-milestone-state)
+                       (map-get? milestone-state
+                         { campaign-id: campaign-id, milestone-index: milestone-index })))
+      (milestone (unwrap! (element-at (get milestones campaign) milestone-index)
+                  ERR-MILESTONE-NOT-FOUND))
+      (collector (var-get platform-fee-collector))
+      (fee-rate (var-get fee-bps))
+      (milestone-amount (get amount milestone))
+      (fee-amount (/ (* milestone-amount fee-rate) u10000))
+      (creator-payout (- milestone-amount fee-amount))
+      (new-deposited (- (get total-deposited campaign) milestone-amount))
+      (new-released (+ (get released-count campaign) u1))
+      (all-released (>= new-released (get milestone-count campaign)))
+      (new-status (if all-released "completed" (get status campaign)))
+    )
+    ;; Campaign must be active
+    (asserts! (is-eq (get status campaign) "active") ERR-CAMPAIGN-COMPLETED)
+
+    ;; Milestone must be approved
+    (asserts! (get approved current-state) ERR-NOT-AUTHORIZED)
+
+    ;; Milestone must not already be released
+    (asserts! (not (get released current-state)) ERR-MILESTONE-ALREADY-RELEASED)
+
+    ;; Contract must hold sufficient deposited funds
+    (asserts! (>= (get total-deposited campaign) milestone-amount) ERR-INSUFFICIENT-FUNDS)
+
+    ;; Token contract must match the campaign's registered asset
+    (asserts! (is-eq (contract-of token) (get asset campaign)) ERR-ASSET-NOT-SUPPORTED)
+
+    ;; Transfer platform fee to collector via token contract
+    (unwrap! (as-contract (contract-call? token transfer fee-amount tx-sender collector none))
+             ERR-TRANSFER-FAILED)
+
+    ;; Transfer creator payout to campaign creator via token contract
+    (unwrap! (as-contract (contract-call? token transfer creator-payout tx-sender (get creator campaign) none))
              ERR-TRANSFER-FAILED)
 
     ;; Mark milestone as released

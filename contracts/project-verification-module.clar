@@ -50,6 +50,7 @@
 (define-constant ERR-NOT-ADMIN (err u1018))
 (define-constant ERR-NOT-EMERGENCY-ADMIN (err u1019))
 (define-constant ERR-INVALID-VERTICAL (err u1020))
+(define-constant ERR-BYPASS-NOT-ENABLED (err u1021))
 
 ;; ========== CONSTANTS ==========
 (define-constant basic-verification-level u1)
@@ -60,6 +61,13 @@
 (define-constant standard-verified-id-valid-period (* u52560 u2)) ;; ~2 years
 (define-constant CONTRACT-OWNER tx-sender)
 (define-constant BURN-ADDRESS 'SP000000000000000000002Q6VF78)
+
+;; Compile-time testnet bypass guard.
+;; When false, testnet-bypass-verification returns ERR-BYPASS-NOT-ENABLED.
+;; Set to true ONLY for testnet deployments where team needs fee-free verification.
+;; PRD 2.1: "This bypass is ONLY available when the contract is deployed with
+;; a specific dev-mode flag at deployment time. It is not possible to trigger on mainnet."
+(define-constant TESTNET-BYPASS-ENABLED false)
 
 ;; ========== TIERED FUNDING CAPS (in micro-STX) ==========
 (define-constant UNVERIFIED-FUNDING-CAP u1000000000)    ;; 1,000 STX - bootstrapping, zero barrier
@@ -380,6 +388,59 @@
     )
 )
 
+;; ========== PUBLIC: TESTNET BYPASS (ADMIN PATH) ==========
+
+;; Testnet bypass - grants Basic or Standard Verified without STX fee payment.
+;; Compile-time guarded: returns ERR-BYPASS-NOT-ENABLED when TESTNET-BYPASS-ENABLED is false.
+;; Auth: contract-admin (direct) or admin-contract (timelock).
+;; PRD 2.1: "TESTNET_BYPASS_VERIFICATION=true env var calls an admin function
+;; to grant Basic status without STX fee payment."
+(define-public (testnet-bypass-verification
+    (creator principal)
+    (verification-level uint)   
+    (reason (string-ascii 100)))
+    (begin
+        ;; 1. Compile-time guard
+        (asserts! TESTNET-BYPASS-ENABLED ERR-BYPASS-NOT-ENABLED)
+        ;; 2. Auth: admin or timelock
+        (asserts! (or (is-eq tx-sender (var-get contract-admin))
+                      (is-eq contract-caller (var-get admin-contract)))
+                  ERR-NOT-AUTHORIZED)
+        ;; 3. Creator must be registered
+        (asserts! (is-registered creator) ERR-CREATOR-NOT-FOUND)
+        ;; 4. Valid verification level
+        (asserts! (or (is-eq verification-level basic-verification-level)
+                      (is-eq verification-level standard-verification-level))
+                  ERR-INVALID-VERIFICATION-LEVEL-INPUT)
+        ;; 5. Set verified
+        (let ((existing (unwrap! (map-get? creator-identities creator) ERR-CREATOR-NOT-FOUND))
+              (new-ops-id (+ (var-get emergency-ops-counter) u1)))
+            (map-set creator-identities creator
+                (merge existing {
+                    verified: true,
+                    choice-verification-level: verification-level,
+                    choice-verification-expiration: (+ block-height basic-verified-id-valid-period),
+                    registration-time: block-height
+                }))
+            ;; 6. Audit log
+            (map-set emergency-ops-log { ops-count-id: new-ops-id } {
+                emergency-ops-type: "testnet-bypass-verification",
+                recipient: creator,
+                admin: tx-sender,
+                block-height: block-height,
+                reason: reason
+            })
+            (var-set emergency-ops-counter new-ops-id)
+            (print {event: "testnet-bypass-verification",
+                    creator: creator,
+                    level: verification-level,
+                    admin: tx-sender,
+                    reason: reason})
+            (ok true)
+        )
+    )
+)
+
 ;; ========== PUBLIC: EXTENSION ==========
 
 (define-public (update-filmmaker-expiration-period (new-filmmaker principal) (new-expiration-period uint))
@@ -558,6 +619,12 @@
 
 (define-read-only (get-emergency-admin)
     (ok (var-get emergency-admin))
+)
+
+;; Frontend: read this to determine if testnet bypass is available.
+;; Returns true ONLY on testnet deployments where TESTNET-BYPASS-ENABLED is set to true.
+(define-read-only (get-testnet-bypass-enabled)
+    (ok TESTNET-BYPASS-ENABLED)
 )
 
 ;; ========== EMERGENCY MODULE TRAIT ==========

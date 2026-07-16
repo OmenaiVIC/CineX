@@ -189,4 +189,67 @@ describe("Oracle Proxy - Day 2", () => {
       expect(result.result).toEqual(Cl.ok(Cl.principal(admin)));
     });
   });
+
+  describe("DEMO_MODE Safety (Production Variant)", () => {
+    beforeEach(() => {
+      simnet.callPublicFn(
+        "oracle-proxy",
+        "initialize",
+        [Cl.principal(admin), Cl.principal(emergencyAdmin)],
+        deployer
+      );
+    });
+
+    it("get-demo-mode returns false on production contract", () => {
+      const result = simnet.callReadOnlyFn(
+        "oracle-proxy",
+        "get-demo-mode",
+        [],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.ok(Cl.bool(false)));
+    });
+
+    it("get-stx-price returns stored price, not hardcoded zero", () => {
+      simnet.callPublicFn(
+        "oracle-proxy",
+        "update-price",
+        [Cl.uint(150)],
+        admin
+      );
+      const result = simnet.callReadOnlyFn(
+        "oracle-proxy",
+        "get-stx-price",
+        [],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.ok(Cl.uint(150)));
+    });
+
+    it("get-stx-price returns zero only when no price has been set", () => {
+      const result = simnet.callReadOnlyFn(
+        "oracle-proxy",
+        "get-stx-price",
+        [],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.ok(Cl.uint(0)));
+    });
+
+    it("get-stx-price-with-fallback returns price when fresh", () => {
+      simnet.callPublicFn(
+        "oracle-proxy",
+        "update-price",
+        [Cl.uint(200)],
+        admin
+      );
+      const result = simnet.callReadOnlyFn(
+        "oracle-proxy",
+        "get-stx-price-with-fallback",
+        [],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.ok(Cl.uint(200)));
+    });
+  });
 });

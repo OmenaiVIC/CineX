@@ -1,32 +1,27 @@
-;; title: oracle-proxy
+;; title: oracle-proxy-demo
 ;; version: 1.0.0
-;; STX/USD price oracle for CineX protocol
+;; STX/USD price oracle for CineX protocol -- DEMO/TEST VARIANT
 ;;
-;; DEMO_MODE: This is the PRODUCTION variant. DEMO_MODE is false.
-;; See oracle-proxy-demo.clar for the test/demo variant (DEMO_MODE = true).
-;; The compile-time constant ensures zero-price bypass is unreachable on mainnet.
-
-;; ========== Summary ==========
-;; Stores and serves a STX price in cents (100 = $1.00).
-;; Price is pushed by the multi-sig (no external oracle in v1).
+;; IMPORTANT: This is the DEMO variant. DEMO_MODE is true.
+;; See oracle-proxy.clar for the production variant (DEMO_MODE = false).
 ;;
-;; Two admin paths:
-;;   1. Timelock path (set-price-oracle, update-price): requires
-;;      contract-caller == admin-contract (timelock.clar).
-;;      The 2880-block timelock delay has elapsed before the call.
-;;   2. Emergency path (emergency-set-price): requires either
-;;      contract-caller == emergency-admin OR the caller is a
-;;      confirmed multi-sig signer (contract-call? .cinex-multisig
-;;      is-approved). Bypasses timelock.
+;; DEMO_MODE safety model:
+;;   1. DEMO_MODE is a compile-time constant, baked into bytecode.
+;;   2. get-stx-price always returns u0, price fetch is a no-op.
+;;   3. No runtime toggle exists, no function can flip DEMO_MODE.
+;;   4. Deployment scripts pick this file for devnet/testnet only.
+;;   5. Frontend detects demo via (get-demo-mode) read-only.
 ;;
-;; Staleness: if last-updated > 144 blocks (~24h), the price is
-;; considered stale. get-stx-price-with-fallback returns an error.
-;; =============================
+;; Fee bypass chain:
+;;   oracle-proxy-demo returns price=0
+;;   project-verification-module fee calc returns u0
+;;   pay-verification-fee treats 0 as no-op
+;;   Basic Verified auto-granted
 
 (impl-trait .oracle-proxy-trait.oracle-proxy-trait)
 
-;; Compile-time demo mode guard. When false, zero-price path is unreachable.
-(define-constant DEMO_MODE false)
+;; Compile-time demo mode guard. When true, get-stx-price returns u0.
+(define-constant DEMO_MODE true)
 
 ;; Error codes
 (define-constant ERR-NOT-ADMIN (err u5100))
@@ -54,6 +49,7 @@
 (define-data-var initialized bool false)
 
 ;; Current STX price in cents (100 = $1.00)
+;; NOTE: In DEMO_MODE, get-stx-price ignores this value and returns u0.
 (define-data-var price uint u0)
 
 ;; Block height of last price update
@@ -89,6 +85,7 @@
 
 ;; Push a new price. Only callable by the admin contract (timelock).
 ;; price: new price in cents (100 = $1.00). Must be > 0.
+;; NOTE: In DEMO_MODE, get-stx-price ignores this value and returns u0.
 (define-public (update-price (new-price uint))
     (begin
         (asserts! (is-eq contract-caller (var-get admin-contract)) ERR-NOT-ADMIN)
@@ -123,20 +120,15 @@
 ;; ========== Read-Only ==========
 
 ;; Get the current STX price in cents.
-;; Always returns the stored price, even if stale.
+;; DEMO_MODE: Always returns u0, stored price is ignored.
 (define-read-only (get-stx-price)
-    (ok (var-get price))
+    (ok u0)
 )
 
 ;; Get the STX price with staleness check.
-;; Returns ERR-STALE-PRICE if last-updated > 144 blocks ago.
+;; DEMO_MODE: Always returns u0, staleness check is bypassed.
 (define-read-only (get-stx-price-with-fallback)
-    (let ((current-price (var-get price))
-          (current-last-updated (var-get last-updated)))
-        (asserts! (> current-last-updated u0) ERR-STALE-PRICE)
-        (asserts! (<= (- block-height current-last-updated) STALE-THRESHOLD) ERR-STALE-PRICE)
-        (ok current-price)
-    )
+    (ok u0)
 )
 
 ;; Get the last-updated block height
@@ -154,7 +146,7 @@
     (ok (var-get emergency-admin))
 )
 
-;; Frontend demo mode detection. Returns true only in oracle-proxy-demo.clar.
+;; Frontend demo mode detection. Returns true in this variant.
 (define-read-only (get-demo-mode)
     (ok DEMO_MODE)
 )

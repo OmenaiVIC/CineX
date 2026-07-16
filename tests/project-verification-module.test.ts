@@ -21,6 +21,8 @@ const ERR_INVALID_VERTICAL = Cl.uint(1020);
 const ERR_NOT_AUTHORIZED = Cl.uint(1001);
 const ERR_NOT_VERIFIED = Cl.uint(1009);
 const ERR_TRANSFER = Cl.uint(1008);
+const ERR_BYPASS_NOT_ENABLED = Cl.uint(1021);
+const ERR_INVALID_VERIFICATION_LEVEL_INPUT = Cl.uint(1003);
 
 describe("Project Verification Module - Day 2", () => {
   describe("Initialization", () => {
@@ -457,6 +459,104 @@ describe("Project Verification Module - Day 2", () => {
         deployer
       );
       expect(result.result).toEqual(Cl.ok(Cl.principal(admin)));
+    });
+  });
+
+  describe("TESTNET_BYPASS_VERIFICATION (Compile-Time Guard)", () => {
+    beforeEach(() => {
+      simnet.callPublicFn(
+        "project-verification-module",
+        "initialize",
+        [Cl.principal(admin), Cl.principal(emergencyAdmin)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "project-verification-module",
+        "register-creator",
+        [
+          Cl.principal(creator),
+          Cl.stringAscii("Alice Filmmaker"),
+          Cl.stringAscii("https://alice.example.com"),
+          EMPTY_HASH,
+          Cl.stringAscii("film"),
+          Cl.uint(1),
+          Cl.uint(50000),
+        ],
+        creator
+      );
+    });
+
+    it("should return ERR-BYPASS-NOT-ENABLED when constant is false", () => {
+      const result = simnet.callPublicFn(
+        "project-verification-module",
+        "testnet-bypass-verification",
+        [Cl.principal(creator), Cl.uint(1), Cl.stringAscii("team testing")],
+        admin
+      );
+      expect(result.result).toEqual(Cl.error(ERR_BYPASS_NOT_ENABLED));
+    });
+
+    it("should reject non-admin caller (guard fires before auth check)", () => {
+      const result = simnet.callPublicFn(
+        "project-verification-module",
+        "testnet-bypass-verification",
+        [Cl.principal(creator), Cl.uint(1), Cl.stringAscii("unauthorized")],
+        nonAdmin
+      );
+      expect(result.result).toEqual(Cl.error(ERR_BYPASS_NOT_ENABLED));
+    });
+
+    it("should reject unregistered creator (guard fires before creator check)", () => {
+      const result = simnet.callPublicFn(
+        "project-verification-module",
+        "testnet-bypass-verification",
+        [Cl.principal(nonAdmin), Cl.uint(1), Cl.stringAscii("not registered")],
+        admin
+      );
+      expect(result.result).toEqual(Cl.error(ERR_BYPASS_NOT_ENABLED));
+    });
+
+    it("should reject invalid verification level (guard fires before level check)", () => {
+      const result = simnet.callPublicFn(
+        "project-verification-module",
+        "testnet-bypass-verification",
+        [Cl.principal(creator), Cl.uint(3), Cl.stringAscii("invalid level")],
+        admin
+      );
+      expect(result.result).toEqual(Cl.error(ERR_BYPASS_NOT_ENABLED));
+    });
+
+    it("get-testnet-bypass-enabled returns false in production", () => {
+      const result = simnet.callReadOnlyFn(
+        "project-verification-module",
+        "get-testnet-bypass-enabled",
+        [],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.ok(Cl.bool(false)));
+    });
+
+    it("should return creator is not verified after failed bypass", () => {
+      simnet.callPublicFn(
+        "project-verification-module",
+        "testnet-bypass-verification",
+        [Cl.principal(creator), Cl.uint(1), Cl.stringAscii("will fail")],
+        admin
+      );
+      const result = simnet.callReadOnlyFn(
+        "project-verification-module",
+        "is-creator-currently-verified",
+        [Cl.principal(creator)],
+        deployer
+      );
+      expect(result.result).toEqual(Cl.error(ERR_NOT_VERIFIED));
+    });
+
+    it("should have consistent error codes with existing constants", () => {
+      expect(ERR_BYPASS_NOT_ENABLED).toEqual(Cl.uint(1021));
+      expect(ERR_NOT_AUTHORIZED).toEqual(Cl.uint(1001));
+      expect(ERR_CREATOR_NOT_FOUND).toEqual(Cl.uint(1002));
+      expect(ERR_INVALID_VERIFICATION_LEVEL_INPUT).toEqual(Cl.uint(1003));
     });
   });
 });
