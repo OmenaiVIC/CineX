@@ -163,6 +163,11 @@ plan:
             path: contracts/project-verification-module.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: sip-010-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/sip-010-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: milestone-escrow
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/milestone-escrow.clar
@@ -187,14 +192,14 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/milestone-verification.clar
             clarity-version: 2
+      epoch: "2.5"
+    - id: 2
+      transactions:
         - emulated-contract-publish:
             contract-name: milestone-verification-2
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/milestone-verification-2.clar
             clarity-version: 2
-      epoch: "2.5"
-    - id: 2
-      transactions:
         - emulated-contract-publish:
             contract-name: mock-strategy
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -204,6 +209,11 @@ plan:
             contract-name: module-base
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/module-base.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: oracle-proxy-demo
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/oracle-proxy-demo.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: project-verification-module-v2

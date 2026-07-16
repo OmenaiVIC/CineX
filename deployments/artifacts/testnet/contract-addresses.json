@@ -1,0 +1,25 @@
+{
+  "network": "testnet",
+  "deployer": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+  "contracts": {
+    "cinex-multisig": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.cinex-multisig",
+    "timelock": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.timelock",
+    "asset-registry": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.asset-registry",
+    "oracle-proxy": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.oracle-proxy",
+    "oracle-proxy-demo": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.oracle-proxy-demo",
+    "reputation": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.reputation",
+    "project-verification-module": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module",
+    "project-verification-module-v2": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module-v2",
+    "campaign-module": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.campaign-module",
+    "campaign-module-2": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.campaign-module-2",
+    "milestone-escrow": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow",
+    "yield-escrow": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.yield-escrow",
+    "bitflow-strategy": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.bitflow-strategy",
+    "mock-strategy": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mock-strategy",
+    "milestone-verification": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-verification",
+    "milestone-verification-2": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-verification-2",
+    "funding-pool": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.funding-pool",
+    "emergency-module": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.emergency-module",
+    "module-base": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.module-base"
+  }
+}

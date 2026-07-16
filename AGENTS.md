@@ -80,7 +80,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 ## Testing
 
 - **Vitest** with `@hirosystems/clarinet-sdk`.
-- **227 tests** across 11 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), plus 9 individual contract test files.
+- **322 tests** across 14 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32), plus 11 individual contract test files.
 - `integration.test.ts` has 5 flows: create+contribute → milestone-escrow wrappers → milestone-verification lifecycle → claim → edge cases.
 - `createLinkedCampaigns()` helper creates campaign in both `milestone-escrow` (user-specified id) and `campaign-module` (auto-incremented).
 - Rendezvous fuzzing: `node scripts/run-rv-for-all.js` runs property tests on all contracts; requires `.tests.clar` stubs in `contracts/`.
@@ -97,29 +97,44 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - Block-height dependent fields (`expires-at`, `last-activity-at`) — use dedicated getter fns in tests, not full-tuple match.
 - `as-contract stx-transfer?` succeeds when contract has balance even for fake campaign IDs.
 
+## BOS (Bridge Orchestration Service)
+
+- **PRD §1.1 Ground Truth**: "Settlement asset — escrow"
+- **Settlement Ground Truth**: Canonical burn → xReserve attestation → release → Yellow Card → NGN
+- **BOS schema**: 10 tables in `backend/src/migrations/006_bos_schema.sql`
+- **Core tables**: `disbursements` (UUID PK, idempotency_key UNIQUE), `disbursement_audit` (append-only), `external_refs` (mutable identifiers), `external_status_snapshots` (immutable status history)
+- **Integration tables**: `yellow_card_webhook_events`, `manual_review_queue`, `relay_wallet_activity`, `on_chain_events`, `exchange_rates`, `config_snapshots`
+- **State machine**: 13 states (disbursement_initiated → settled/failed/cancelled), 24 transitions
+- **Idempotency**: `disbursements.idempotency_key` UNIQUE constraint; every handler must be idempotent under duplicate worker execution
+- **Adapter pattern**: BOS state machine design doc §5.1–5.3; adapters: `stacks-burn`, `xreserve-attestation`, `yellow-card-ngn`
+- **Error codes**: init u8201–u8209; burn u8210–u8218; attestation u8220–u8228; payout u8230–u8238; generic u8290–u8299
+- **Monitoring**: Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
+- **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_ATTESTATION_API_URL`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH`
+
 ## Brand
 
 - App icon: `https://drive.google.com/file/d/1Y_Zu9nltx6mPxlqsBObGM3Ikw9YrbLXz/view`
 - DeFi logo: `https://drive.google.com/file/d/1BqNdw4Veddit0hWauS20bUBXbWWwot6v/view`
 - Social banner: `https://drive.google.com/file/d/1lwAbgwtyy5hMfAyxdLt1hpdJ7A5yUSe0/view`
 
-## Session Context (2026-05-31)
+## Session Context (2026-07-16)
 
 ### Done This Session
-- **Full sitemap audit** — cross-referenced all ✅ entries against actual code; fixed 11+ route paths, 8+ wrapper names; promoted 4 v1 admin functions ◻️→✅; demoted 2 fake oracle entries; reclassified `get-stx-price` as 🔶
-- **`POST /api/auth/bootstrap-admin` endpoint** added to `backend/src/routes/auth.js` — accepts `{ email, adminKey }`, validates against `ADMIN_BOOTSTRAP_KEY` env var, promotes user to admin and returns a session token
-- **AGENTS.md** updated with `ADMIN_BOOTSTRAP_KEY` env var
-- **isDemoFailing() toggle** — added `isDemoFailing()`, `setDemoFailing()` to `demo.ts`, `simulateFail()` helper in `mockContractService.ts` injected into all 23 mutation functions (∼30% fail rate)
-- 227 tests pass, `clarinet check` passes (30 contracts, 0 errors)
+- **Neon Migration §3.1, §3.2, §3.3 — COMPLETE**: `.env` with Neon connection string, `database.pg.js` with Neon serverless driver auto-detection, `dotenv` + `@neondatabase/serverless` + `ws` dependencies, `scripts/neon-migrate.js` (pg_dump/restore), `scripts/neon-smoke-test.js` (8-point validation), `scripts/neon-discrepancy-check.js` (drift detection), `docs/NEON_MIGRATION.md` (runbook + decommission checklist)
+- **Backend verified on Neon**: `✅ PostgreSQL connected (neon-serverless driver)`, 3 profiles seeded, all migrations applied
+- **BOS Schema — 10 tables created**: `006_bos_schema.sql` with disbursements, disbursement_audit, external_refs, external_status_snapshots, yellow_card_webhook_events, manual_review_queue, relay_wallet_activity, on_chain_events, exchange_rates, config_snapshots
+- **database.pg.js updated**: Added `006_bos_schema.sql` to migration list
+- **AGENTS.md updated**: Added BOS section, fixed stale test count (227→322)
 
 ### Next Steps
-1. **"Convert to Real" CTA** — add link to Navbar demo banner pointing to the production signup page
-2. **Build check** — run `npm run build` (or `npx tsc --noEmit`) to catch any type issues
-3. **Commit** — commit remaining 14+5 files as "Demo V1: complete service mocks + fail simulation"
-4. **Set `ADMIN_BOOTSTRAP_KEY` env var** in Render dashboard, then `curl POST /api/auth/bootstrap-admin` to promote your user
+1. **BOS worker implementation** — create `backend/src/services/bosService.js` with state machine logic, adapter interfaces, and worker functions
+2. **Monitoring/Alerting** — Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
+3. **Parameterize pilot campaigns** — `scripts/parameterize-pilot-campaigns.ts` ready for mainnet execution (Week 6)
+4. **BOS integration testing** — unit tests for state machine transitions, adapter mocks, idempotency checks
 
 ### Key URLs
 - Backend: `https://cinex-backend-zo1r.onrender.com`
 - Frontend: `https://cine-x-iota.vercel.app`
+- Neon Dashboard: `https://console.neon.tech`
 - Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
 - Hiro API: `https://api.testnet.hiro.so`

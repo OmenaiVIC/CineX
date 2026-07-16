@@ -37,12 +37,20 @@ function init() {
   _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
   _wallets = {};
   if (creatorKey) {
-    _wallets.creator = { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) };
-    console.log(`[contractService] Creator wallet initialized: ${_wallets.creator.address}`);
+    try {
+      _wallets.creator = { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) };
+      console.log(`[contractService] Creator wallet initialized: ${_wallets.creator.address}`);
+    } catch (err) {
+      console.warn(`[contractService] CREATOR_KEY invalid — skipping (${err.message})`);
+    }
   }
   if (backerKey) {
-    _wallets.backer = { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) };
-    console.log(`[contractService] Backer wallet initialized: ${_wallets.backer.address}`);
+    try {
+      _wallets.backer = { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) };
+      console.log(`[contractService] Backer wallet initialized: ${_wallets.backer.address}`);
+    } catch (err) {
+      console.warn(`[contractService] BACKER_KEY invalid — skipping (${err.message})`);
+    }
   }
   if (Object.keys(_wallets).length === 0) {
     console.warn('[contractService] No wallet keys set — all chain writes will fail');

@@ -1,0 +1,26 @@
+{
+  "id": 1,
+  "title": "Death of Eternity",
+  "description": "A sci-fi thriller exploring mortality across timelines",
+  "goal_ngn": 60000000,
+  "milestones": [
+    {
+      "name": "Script & Storyboard",
+      "amount_ngn": 12000000
+    },
+    {
+      "name": "Principal Photography",
+      "amount_ngn": 28000000
+    },
+    {
+      "name": "VFX & Editing",
+      "amount_ngn": 20000000
+    }
+  ],
+  "exchange_rate_ngn_per_usd": 1383.0,
+  "usdcx_principal": "SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE.usdcx",
+  "creator_address": "PLACEHOLDER_PRODUCER_ADDRESS",
+  "approval_window_blocks": 50000,
+  "fee_bps": 500,
+  "network": "mainnet"
+}

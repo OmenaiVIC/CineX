@@ -1,0 +1,26 @@
+{
+  "id": 2,
+  "title": "Rain",
+  "description": "A cinematic exploration of urban isolation",
+  "goal_ngn": 60000000,
+  "milestones": [
+    {
+      "name": "Pre-production",
+      "amount_ngn": 15000000
+    },
+    {
+      "name": "Production",
+      "amount_ngn": 15000000
+    },
+    {
+      "name": "Post-production",
+      "amount_ngn": 30000000
+    }
+  ],
+  "exchange_rate_ngn_per_usd": 1383.0,
+  "usdcx_principal": "SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE.usdcx",
+  "creator_address": "PLACEHOLDER_PRODUCER_ADDRESS",
+  "approval_window_blocks": 50000,
+  "fee_bps": 500,
+  "network": "mainnet"
+}

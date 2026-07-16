@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CineX Pilot Campaign Input",
+  "description": "Schema for pilot campaign parameterization files. NGN amounts are converted to USDCx at parameterization time using the provided exchange rate.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "description",
+    "goal_ngn",
+    "milestones",
+    "exchange_rate_ngn_per_usd",
+    "usdcx_principal",
+    "creator_address",
+    "approval_window_blocks",
+    "fee_bps",
+    "network"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Campaign ID. Must be unique across all campaigns. Used as the on-chain campaign ID."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Human-readable campaign title."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Campaign description for the live UI."
+    },
+    "goal_ngn": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Fundraising goal in NGN kobo (smallest NGN unit). ₦600,000 = 60000000."
+    },
+    "goal_usdcx": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Computed USDCx goal in smallest token units. Set by parameterize script; do not edit manually."
+    },
+    "milestones": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["name", "amount_ngn"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Milestone name (max 64 chars)."
+          },
+          "amount_ngn": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Milestone amount in NGN kobo."
+          },
+          "amount_usdcx": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Computed USDCx amount. Set by parameterize script; do not edit manually."
+          }
+        }
+      }
+    },
+    "exchange_rate_ngn_per_usd": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Manually set ₦/USD exchange rate at parameterization time. Example: 1383.0."
+    },
+    "usdcx_principal": {
+      "type": "string",
+      "pattern": "^S[PT][A-Z0-9]+\\.[a-zA-Z0-9_-]+$",
+      "description": "Full USDCx contract principal on target network."
+    },
+    "creator_address": {
+      "type": "string",
+      "pattern": "^S[PT][A-Z0-9]+$",
+      "description": "Producer's Stacks address (placeholder — filled when known)."
+    },
+    "approval_window_blocks": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Block height deadline for backer deposits. Campaign expires after this block."
+    },
+    "fee_bps": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2500,
+      "description": "Platform fee in basis points (500 = 5%)."
+    },
+    "network": {
+      "type": "string",
+      "enum": ["mainnet", "testnet"],
+      "description": "Target network for on-chain creation."
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Populated by parameterize script after on-chain creation.",
+      "properties": {
+        "escrow_tx_id": { "type": ["string", "null"] },
+        "escrow_contract_id": { "type": ["string", "null"] },
+        "cm_tx_id": { "type": ["string", "null"] },
+        "cm_contract_id": { "type": ["string", "null"] },
+        "verification_fee_stx": { "type": ["integer", "null"] },
+        "created_at": { "type": ["string", "null"] },
+        "goal_usdcx_final": { "type": ["integer", "null"] },
+        "milestones_final": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "amount_ngn": { "type": "integer" },
+              "amount_usdcx": { "type": "integer" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
