@@ -1,8 +1,15 @@
 # CineX Frontend & AI Implementation Plan — 12-Day Sprint
 
-> **Changelog (v3):** Added Phase 0 (Frontend Infrastructure Pre-Work) inserted before Day 1 — LoadingSkeleton, ContractErrorMap, transactionRetry, NetworkDowntimeBanner, BonusEligibilityBadge, enhanced ErrorBoundary, updated contractAddresses/network.ts/provider. Build verified, committed to `feature/pivot-infrastructure`. v2 changelog preserved below.
+> **⚠️ HISTORICAL PLAN — Infrastructure Updated**
+> This plan references Render, Supabase, and Railway as backend/database providers. All three have been replaced:
+> - **Database**: Neon PostgreSQL (serverless) — `docs/NEON_MIGRATION.md`
+> - **Backend**: Vercel experimentalServices — `vercel.json`
+> - **Deploy**: GitHub Actions → Vercel (not Render)
+> See `AGENTS.md` for current infrastructure state.
+
+> **Changelog (v3):** Added Phase 0 (Frontend Infrastructure Pre-Work) inserted before Day 1 — LoadingSkeleton, ContractErrorMap, transactionRetry, NetworkDowntimeBanner, BonusEligibilityBadge, enhanced ErrorBoundary, updated contractAddresses/network.ts/provider. Build verified, committed to `feature/pivot-infrastructure`. v2 changelog preserved below.
 > 
-> **Changelog (v2):** Extended from 10 to 12 days. Added Day 2.5 (Onboarding & Role Selection), Day 3.5 (Role-Based Dashboards), Day 9 (Demo Mode, Transaction Feedback & Network Detection). Original Day 9 → Day 10, Day 10 → Day 11. Added Day 12 (Production Deployment with demo flag). All original content preserved.
+> **Changelog (v2):** Extended from 10 to 12 days. Added Day 2.5 (Onboarding & Role Selection), Day 3.5 (Role-Based Dashboards), Day 9 (Demo Mode, Transaction Feedback & Network Detection). Original Day 9 → Day 10, Day 10 → Day 11. Added Day 12 (Production Deployment with demo flag). All original content preserved.
 
 > **Scope:** User Profile page, Rating UI, Tribe (Pool) Homepage, Activity Feed, AI Credibility Summary, Onboarding, Role-Based Dashboards, Demo Mode
 > **Framework:** React (Vite) + Tailwind CSS v4 + Stacks Web3 SDK

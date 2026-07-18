@@ -92,7 +92,7 @@ All changes live in the React SPA (`app/`). No backend, no smart contracts, no r
 | Resource | URL |
 |---|---|
 | Live site | https://cine-x-iota.vercel.app |
-| Backend | https://cinex-backend-zo1r.onrender.com |
+| Backend | Render (SUSPENDED) — migrating to Vercel experimentalServices |
 | Hiro Wallet | https://www.hiro.so/wallet |
 | Testnet Faucet | https://explorer.hiro.so/sandbox/faucet?chain=testnet |
 | YouTube walkthrough | https://www.youtube.com/watch?v=CeOaRRDBIDw |

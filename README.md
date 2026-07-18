@@ -65,7 +65,7 @@ clarinet test
 |-------|-----------|--------------|
 | **Blockchain** | Stacks (Bitcoin L2) | Secures every financial transaction on Bitcoin |
 | **Smart Contracts** | Clarity language | 9+ contracts handling funding, escrow, verification, yield |
-| **Backend** | Node.js + SQLite | Wallet abstraction, rate service, user management |
+| **Backend** | Node.js + Neon PostgreSQL | Wallet abstraction, rate service, user management |
 | **Frontend** | React + TypeScript + Vite | User interface — never exposes blockchain complexity |
 | **Wallet** | NGN / USD | Users see familiar currencies, not crypto |
 
@@ -84,7 +84,7 @@ clarinet test
 - Frontend deployed to Vercel (testnet)
 
 **In Progress:**
-- Backend deployment to Render (node.js + SQLite)
+- Backend deployment to Vercel (Neon PostgreSQL serverless)
 - Production mainnet launch
 
 ## Core Smart Contracts (Overview)
@@ -107,14 +107,15 @@ clarinet test
 - **[Backend Guide](./BACKEND_README.md)** — API and database
 - **[Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md)** — How dual-currency works
 - **[Deployment Workplan](./DEPLOYMENT_1DAY_WORKPLAN_SMARTCONTRACT_AND_FRONTEND.md)** — Path to testnet
-- **[Deployment Config](./render.yaml)** — Render blueprint for backend
+- **[Neon Migration](./docs/NEON_MIGRATION.md)** — Database migration (COMPLETE)
 
 ## Deployment
 
 | Component | URL | Status |
 |-----------|-----|--------|
-| Frontend | https://cine-x-iota.vercel.app | ✅ Live (placeholder) |
-| Backend | Render (set up via `render.yaml`) | 🔧 Configured, deploy via Render dashboard |
+| Frontend | https://cine-x-iota.vercel.app | ✅ Live (testnet) |
+| Backend | Vercel (`experimentalServices.backend`) | 🔧 Migrating from Render |
+| Database | Neon PostgreSQL (serverless) | ✅ Primary production DB |
 | Contracts | ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM | ✅ 29/29 deployed on testnet |
 
 ## Contributing

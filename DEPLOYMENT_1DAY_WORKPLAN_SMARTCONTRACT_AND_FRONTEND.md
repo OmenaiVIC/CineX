@@ -367,7 +367,7 @@ VITE_NETWORK=testnet
 | Target | URL | Method |
 |--------|-----|--------|
 | Frontend (staging) | `staging.cinex.ng` | Vercel / Netlify: connect GitHub repo, set env vars, auto-deploy from `main` |
-| Backend (staging) | `api.cinex.ng` | Railway / Render: Node.js app, SQLite storage |
+| Backend (staging) | `api.cinex.ng` | Vercel experimentalServices: Node.js app, Neon PostgreSQL serverless |
 | Smart contracts | testnet | `clarinet deploy --testnet` |
 
 **Exit criteria**: Build succeeds, preview server works, deployment targets configured.
@@ -387,7 +387,7 @@ VITE_NETWORK=testnet
 - Prerequisites (Node 20+, Clarinet 2.8+)
 - Smart contract deployment order (per implementation plan Section 5, updated for renamed contracts)
 - Frontend build + deploy to Vercel
-- Backend deploy to Railway
+- Backend deploy to Vercel experimentalServices
 - Environment variables per environment
 
 ### 6.3 Verify Documentation

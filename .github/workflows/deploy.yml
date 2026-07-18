@@ -20,5 +20,8 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render Deploy
-        run: curl -s -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: Deploy to Vercel (backend)
+        run: |
+          npm install --global vercel@latest
+          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: .

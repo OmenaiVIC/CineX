@@ -73,8 +73,8 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 
 ## Deployment
 
-- **Vercel**: Root `vercel.json` sets `rootDirectory: "app"`. SPA rewrites in `app/vercel.json`.
-- **Render**: Connected to GitHub repo; auto-deploys on push to `main`.
+- **Vercel**: Root `vercel.json` sets `rootDirectory: "app"`. SPA rewrites in `app/vercel.json`. Backend via `experimentalServices.backend`.
+- **Neon PostgreSQL**: Primary production database. `DATABASE_URL` → `ep-late-band-zarvw2jh-pooler.neon.tech`. Serverless driver (`NEON_DRIVER=serverless`).
 - **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_BOOTSTRAP_KEY`.
 
 ## Testing
@@ -117,23 +117,81 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - DeFi logo: `https://drive.google.com/file/d/1BqNdw4Veddit0hWauS20bUBXbWWwot6v/view`
 - Social banner: `https://drive.google.com/file/d/1lwAbgwtyy5hMfAyxdLt1hpdJ7A5yUSe0/view`
 
-## Session Context (2026-07-16)
+## Session Context (2026-07-16 → 2026-07-17)
 
 ### Done This Session
 - **Neon Migration §3.1, §3.2, §3.3 — COMPLETE**: `.env` with Neon connection string, `database.pg.js` with Neon serverless driver auto-detection, `dotenv` + `@neondatabase/serverless` + `ws` dependencies, `scripts/neon-migrate.js` (pg_dump/restore), `scripts/neon-smoke-test.js` (8-point validation), `scripts/neon-discrepancy-check.js` (drift detection), `docs/NEON_MIGRATION.md` (runbook + decommission checklist)
 - **Backend verified on Neon**: `✅ PostgreSQL connected (neon-serverless driver)`, 3 profiles seeded, all migrations applied
 - **BOS Schema — 10 tables created**: `006_bos_schema.sql` with disbursements, disbursement_audit, external_refs, external_status_snapshots, yellow_card_webhook_events, manual_review_queue, relay_wallet_activity, on_chain_events, exchange_rates, config_snapshots
 - **database.pg.js updated**: Added `006_bos_schema.sql` to migration list
-- **AGENTS.md updated**: Added BOS section, fixed stale test count (227→322)
+- **AGENTS.md updated**: Added BOS section, fixed stale test count (222→322)
+- **Pillar Passkey Spike — COMPLETE**:
+  - Spike document: `docs/spikes/pillar-passkey-spike.md` (Go/No-Go, architecture decisions, scaffold structure)
+  - Path A scaffold: `spike-pillar/` — 27/27 tests pass
+  - Real P-256 crypto via `@noble/curves/nist.js` (no SDK needed — `@clarity-webauthn/sdk` doesn't exist)
+  - Clarity contracts: `clarity-webauthn.clar` (204 lines, P-256 verifier) + `cinex-smart-vault.clar` (~100 lines, minimal vault)
+  - `clarinet check` passes (0 errors, 2 warnings)
+  - **TESTNET DEPLOYED (2026-07-17)**:
+    - `clarity-webauthn` → `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX.clarity-webauthn` ✅
+    - `cinex-smart-vault` → `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX.cinex-smart-vault` (orphaned, wrong owner) ⚠️
+    - `cinex-smart-vault-v2` → `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX.cinex-smart-vault-v2` (correct owner) ✅
+    - Account: `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX` (~498 STX remaining)
+    - Onboard completed: block 4044712 ✅
+    - **E2E P-256 signed transfer CONFIRMED**: block 4044722 ✅
+      - P-256 keypair → WebAuthn data construction → P-256 signature → on-chain verify-assertion `(ok true)` → vault.stx-transfer 1 STX → confirmed
+      - Script: `scripts/e2e-transfer.mjs`
+    - Deploy scripts: `deploy-testnet.mjs`, `deploy-vault.mjs`, `onboard-user.mjs`, `e2e-transfer.mjs`
+    - Key findings: auth flag was always correct (0x04 Standard); prior "0x80 bug" was misreading version byte
+    - Key finding: `@stacks/transactions` v6.17.0 works, v7.5.0 is broken for deployment
+    - Key finding: Hiro API returns txid as raw string, not `{txid}` object
+    - Key finding: `principalStandard()` doesn't exist — use `principalCV()`
+    - Key finding: `decodeAddress()` doesn't exist — use `createAddress()` or `cvToHex`
+    - Key finding: `stx-transfer?` returns `(err u2)` when sender == recipient
+  - Deploy script: `pillar-deploy.ts` (contract deploy + onboard via Hiro API)
+  - Address derivation: `pillar-address.ts` (pure computation)
+  - Clarinet 3.21.1 installed (was 3.8.1)
+  - Key finding: hybrid approach (P-256 + secp256k1) is impossible — different curves
+  - Key finding: P-256 keys are auth factors only, NOT used for address derivation
+  - Key finding: user address = Vault contract address (`ST{deployer}.cinex-smart-vault-{user-id}`)
+  - Path B scaffold: `spike-stacks-connect/` (stub-only, requires browser extensions)
+  - Updated: `WALLET_ABSTRACTION_PLAN.md` with spike doc reference
+
+### Done This Session (2026-07-18)
+- **Vault v3 security fix COMPLETE:** `owner-pubkey` data-var added, stored in `onboard`, validated in `stx-transfer`; deployed at block 4045558
+- **CineX relay backend COMPLETE:** `passkeyService.js` (6 functions), `passkey.js` routes, mounted in `index.js`
+- **E2E script updated for v3:** `e2e-transfer.mjs` rewritten for separate P-256 owner + secp256k1 relay keypairs
+- **VAULT v3 E2E PROVEN ON TESTNET:**
+  - Onboard: block 4045569 ✅
+  - stx-transfer: block 4045570 ✅
+  - Owner pubkey stored + validated: ✅
+  - P-256 signed transfer with separate keypairs: ✅
+
+### Done This Session (2026-07-18 cont.)
+- **Neon Migration — VERIFIED COMPLETE:**
+  - Backend starts, connects to Neon (neon-serverless driver), applies 7 migrations, seeds 3 profiles ✅
+  - `docs/NEON_MIGRATION.md` rewritten as "Migration Complete" record (Render decommissioned, Supabase never operational)
+- **Render/Supabase Dependency Cleanup — 11 FILES UPDATED:**
+  - `README.md`: Removed dead `render.yaml` link, updated deployment table (Backend → Vercel, Database → Neon)
+  - `AGENTS.md`: Updated deployment section (Render → Vercel experimentalServices, added Neon PostgreSQL)
+  - `CINEX_DEMO_V1_ROADMAP.md`: Marked Render URL as SUSPENDED
+  - `DEPLOYMENT_1DAY_WORKPLAN`: Updated backend deploy target (Railway/Render → Vercel)
+  - `.github/workflows/deploy.yml`: Replaced Render deploy hook with Vercel backend deploy
+  - `app/public/litepaper.html`: Updated Layer 4 description (SQLite → Neon, Render → Vercel)
+  - `frontend/litepaper.html`: Same update
+  - `frontend/index.html`: Updated roadmap description
+  - `FRONTEND_AI_IMPLEMENTATION_PLAN_2WEEKS.md`: Marked as HISTORICAL with infrastructure note
+- **BOS monitor bug found:** `column "updated_at" does not exist` — schema mismatch in BOS monitoring query (separate fix needed)
 
 ### Next Steps
-1. **BOS worker implementation** — create `backend/src/services/bosService.js` with state machine logic, adapter interfaces, and worker functions
-2. **Monitoring/Alerting** — Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
-3. **Parameterize pilot campaigns** — `scripts/parameterize-pilot-campaigns.ts` ready for mainnet execution (Week 6)
-4. **BOS integration testing** — unit tests for state machine transitions, adapter mocks, idempotency checks
+1. **Deploy backend to Vercel** — Set `DATABASE_URL` + `NEON_DRIVER=serverless` in Vercel env, deploy via `experimentalServices.backend`
+2. **Update frontend API URL** — Change `api.ts` from `cinex-backend-zo1r.onrender.com/api` to Vercel backend URL
+3. **Phase 3: Frontend passkey integration** — standalone HTML test page (RP ID = localhost), then `AuthContext.tsx`
+4. **Phase 4: Full E2E with backend relay** — `POST /api/passkey/transfer` → `passkeyService.js` → on-chain
+5. **BOS worker implementation** — `backend/src/services/bosService.js` (state machine, adapters, workers)
+6. **Fix BOS monitor bug** — `updated_at` column missing in BOS tables
 
 ### Key URLs
-- Backend: `https://cinex-backend-zo1r.onrender.com`
+- Backend: Render (SUSPENDED) → migrating to Vercel experimentalServices
 - Frontend: `https://cine-x-iota.vercel.app`
 - Neon Dashboard: `https://console.neon.tech`
 - Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
