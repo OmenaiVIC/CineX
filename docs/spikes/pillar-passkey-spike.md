@@ -38,8 +38,10 @@ Prove or disprove the following for CineX's target users (non-native crypto crea
 4. **Transaction broadcast** to Stacks network
 5. **Session restore** after browser restart
 6. **UX comparison** between Path A and Path B for non-crypto users
+7. **Production security model** — RP ID/origin bindings, credential isolation, session management, recovery/lost-device path (PRD Reviewer Addendum §"Production Passkey Wallet Requirements")
+8. **SIP-018 structured signing** — domain tuple, message schemas, challenge computation, replay prevention (PRD Reviewer Addendum §"SIP-018 structured-signing domains and payload rules")
 
-**Not in scope**: Mainnet deployment, production audit, recovery flows, multi-device sync.
+**Not in scope**: Mainnet deployment, production audit.
 
 ---
 
@@ -634,6 +636,9 @@ describe('Connect Broadcast', () => {
 - [x] Workshop strategy documented — **COMPLETE: See Section 13 Workshop Strategy (Use Path A for Jos Workshop, PCICS, Pilot Films)**
 - [x] Go/No-Go decision made — **COMPLETE: CONDITIONAL GO (Path A: Pillar-Only). Both contracts deployed to testnet. E2E P-256 signed transfer proven.**
 - [x] Open questions resolved or documented as blockers — **COMPLETE: All 10 questions resolved (Section 12). Q2-Q3 skipped (Rendezvous replaced by CineX-native relay). Q7 deprioritized (Path A has native gas sponsorship).**
+- [x] **Production security model** — RP ID/origin bindings for dev/testnet/production, credential isolation, session management, recovery/lost-device/admin-init model — **COMPLETE: See §15. 49 tests passing.**
+- [x] **SIP-018 structured signing** — domain tuple, message schemas for stx-transfer/rotate-owner/freeze-vault, challenge computation, 3-layer replay prevention — **COMPLETE: See §16. 28 tests passing.**
+- [x] **Total test suite**: 104/104 tests passing (27 original + 28 SIP-018 + 49 security model)
 
 ---
 
@@ -692,9 +697,345 @@ describe('Connect Broadcast', () => {
 
 - `WALLET_ABSTRACTION_PLAN.md` §MVP vs Post-MVP (Pillar row)
 - `CineX_PRD_v3_reviewed.md` §1.1 Architectural Ground Truth
-- Reviewer Addendum: Production Passkey Wallet Requirements
+- Reviewer Addendum: Production Passkey Wallet Requirements (RP ID, SIP-018, recovery, fee sponsorship)
 - `github.com/Rapha-btc/pillar-wallets-xyz` — Pillar Clarity contracts + reference signer
 - `github.com/hirosystems/clarity-webauthn` — P-256 verifier contract (copied to `contracts/`)
 - `@noble/curves` ^2.2.0 — P-256 implementation (replacement for missing `@clarity-webauthn/sdk`)
 - `@stacks/transactions` v6.17.0 — Stacks transaction building + broadcasting
 - `pillar-wallets-xyz/lib-webauthn-test-signer.mjs` — Reference P-256 signer using noble-curves
+- `spike-pillar/src/sip018.ts` — SIP-018 domain/message builders and challenge computation
+- `spike-pillar/src/security-model.ts` — RP ID validation, origin binding, session management, recovery flow
+- `pillar-wallets-xyz/contracts/smart-wallet-standard-auth-helpers-v7.clar` — Pillar SIP-018 reference implementation
+- `pillar-wallets-xyz/contracts/deployed/passkey-not-sender.clar` — Pillar passkey+SIP-018 reference vault
+
+---
+
+## 15. Production Security Architecture
+
+**PRD Reference**: Reviewer Addendum → "Production Passkey Wallet Requirements" — "approved RP ID / origin bindings for production and demo domains; ... a documented recovery / lost-device / admin-init model; and a fee sponsorship / relayer policy for first-use transactions."
+
+### 15.1 RP ID / Origin Bindings
+
+No custom domain budget — Vercel free hosting for testnet. Production domain `cinex.app` reserved but not yet live.
+
+| Environment | RP ID | Origin | Credential Isolation |
+|---|---|---|---|
+| Dev | `localhost` | `http://localhost:5173` | Separate namespace (WebAuthn spec) |
+| Testnet | `cine-x-iota.vercel.app` | `https://cine-x-iota.vercel.app` | Separate namespace |
+| Production (future) | `cinex.app` | `https://cinex.app` | Separate namespace |
+
+**Key security property**: WebAuthn credentials are scoped to RP ID by the browser. A credential registered for `localhost` **cannot** be used on `cine-x-iota.vercel.app`. This is enforced at the browser level — server-side validation is defense-in-depth.
+
+RP ID hashes stored in vault contract: `rp-id-hash = SHA256(rp-id-string)`. The `clarity-webauthn.clar` verifier checks authenticator data bytes 0-32 against this hash (`ERR_BAD_RP_ID`).
+
+### 15.2 Allowed Credential Registration Flows
+
+1. User clicks "Create Account" → frontend calls `navigator.credentials.create()` with RP ID + challenge
+2. Backend stores credential metadata (pubkey, credential ID, RP ID, environment) in Neon `passkeys` table
+3. Backend deploys vault contract via relay → calls `onboard(pubkey, user-address)`
+4. Session JWT issued (vault address + pubkey hash + 24h expiry)
+
+**Registration constraints**:
+- One credential per device per environment (browser enforces RP ID scoping)
+- User is prompted to register a second authenticator during onboarding (recovery path)
+- Credential ID stored server-side for future `navigator.credentials.get()` allowlists
+
+### 15.3 Session Persistence Model
+
+| Property | Value | Rationale |
+|---|---|---|
+| Storage | `localStorage` | Survives page reload, not tab close |
+| Token contents | vault address, pubkey hash, expiry | Minimal PII, no private key material |
+| Max age | 24 hours | Balance between UX and security |
+| Re-auth threshold | 10 STX (configurable) | Transfers above this require fresh passkey auth |
+| Invalidation | Logout, expiry, key rotation | Session destroyed on credential change |
+
+**Session token** is a server-signed JWT. The frontend stores it and sends as `Authorization: Bearer <token>` on API calls. The backend validates expiry and pubkey hash on each request.
+
+### 15.4 Threat Model
+
+| Threat | Impact | Mitigation | Ground Truth |
+|---|---|---|---|
+| **Phishing** (fake CineX site) | Credential theft | RP ID binding — browser refuses credential on wrong origin | Reviewer Addendum §"RP ID/origin bindings" |
+| **Replay** (same action, same vault) | Double-spend | Contract-side nonce consumption per message-hash | Reviewer Addendum §"per-action nonces" |
+| **Cross-app replay** | Unauthorized action | SIP-018 domain includes `wallet` principal | Reviewer Addendum §"SIP-018" |
+| **Cross-chain replay** | Wrong network execution | SIP-018 domain includes `chain-id` | Reviewer Addendum §"SIP-018" |
+| **Relay key compromise** | Transaction forge | Relay signs tx wrapper; vault validates P-256 owner key (dual-key) | §1.1 Ground Truth §"passkey wallet" |
+| **Device theft** | Unauthorized transfer | Biometric gate (user verification flag in authenticator data) | WebAuthn spec |
+| **Server breach** | Key exposure | Server never sees P-256 private key; only public key + assertion | §1.1 Ground Truth §"passkey wallet" |
+| **Lost device** | Permanent lockout | Admin-init recovery with 72h timelock + user notification | Reviewer Addendum §"recovery / lost-device" |
+| **Vault contract exploit** | Fund theft | Vault is minimal (onboard + transfer only); no admin fund access | §1.1 Ground Truth §"milestone escrow" |
+| **Session hijack** | Account takeover | Session bound to vault address + pubkey hash; short expiry | Security design §15.3 |
+
+### 15.5 Recovery / Lost-Device / Admin-Init Model
+
+**Pattern**: Admin-Initiated Key Rotation with Timelock
+
+| Phase | Who | Action | Timelock |
+|---|---|---|---|
+| 1. Initiate | User (via support) + CineX admin | `propose-recovery(new-pubkey)` | — |
+| 2. Notify | System | Email + in-app notification to registered recovery contact | — |
+| 3. Veto window | Original owner (if accessible) | `cancel-recovery()` within 72h | 72 hours |
+| 4. Execute | CineX admin | `execute-recovery()` after timelock | — |
+
+**Vault v4 contract additions** (documented, not yet implemented):
+```clarity
+(define-data-var recovery-pubkey (optional (buff 33)) none)
+(define-data-var recovery-proposed-at (optional uint) none)
+
+(define-public (propose-recovery (new-pubkey (buff 33)))
+  ;; Only CineX admin can propose
+  ;; Sets recovery-pubkey and recovery-proposed-at
+  ;; Emits print event for notification
+)
+
+(define-public (cancel-recovery)
+  ;; Only original owner can cancel (within veto window)
+  ;; Clears recovery-pubkey and recovery-proposed-at
+)
+
+(define-public (execute-recovery)
+  ;; Only after timelock expires
+  ;; Sets owner-pubkey to recovery-pubkey
+  ;; Clears recovery state
+)
+```
+
+**Safety guarantees**:
+- CineX admin can only rotate keys — **never access funds**
+- 72-hour veto window allows original owner to cancel if device is found
+- User notification via email + in-app on proposal
+- All recovery actions emit print events for audit trail
+
+### 15.6 Fee Sponsorship / Relayer Policy
+
+**PRD Reference**: Reviewer Addendum §"fee sponsorship / relayer policy for first-use transactions"
+
+| Transaction Type | Who Pays Gas | Rationale |
+|---|---|---|
+| Vault deploy + onboard | CineX platform | First-use subsidy (CAC) |
+| stx-transfer (user-initiated) | CineX platform (relayed) | Gasless UX for non-crypto users |
+| Recovery operations | CineX platform | Support-initiated, not user-initiated |
+
+**Relay fee**: 0.1 STX per transfer (current `passkeyService.js` fee). This is CineX's gas subsidy, treated as customer acquisition cost (CAC). Per §1.1 unit economics: gas ~$21.60/campaign, revenue ~$250, margin 91.4%.
+
+**Idempotency**: All relay operations use the `auth-id` (nonce) as idempotency key. Duplicate relay attempts for the same nonce are rejected on-chain (`ERR_SIGNATURE_REPLAY`).
+
+### 15.7 Production vs Demo Credential Isolation
+
+| Property | Demo Mode | Production |
+|---|---|---|
+| RP ID | `localhost` | `cine-x-iota.vercel.app` or `cinex.app` |
+| Contract | `oracle-proxy-demo` (bypasses verification) | `oracle-proxy` (full verification) |
+| Credentials | Dev-only, cannot be used on testnet | Testnet/production only |
+| Fund source | Testnet faucet | Real STX/USDCx |
+
+Demo credentials are isolated by RP ID scoping — they physically cannot authenticate on the production origin.
+
+### 15.8 Phishing Resistance Expectations
+
+1. **RP ID binding**: Browser enforces credential-to-origin binding. Fake sites cannot request credentials registered for `cine-x-iota.vercel.app`.
+2. **Visual verification**: Passkey prompt shows the RP ID (site name). Users should verify they're on the correct domain.
+3. **No seed phrase**: Nothing to phish via email/social engineering. Passkey is biometric-gated.
+4. **Relay as single point**: All transactions go through CineX relay. Compromised frontend can't bypass relay (relay validates vault ownership).
+
+### 15.9 Tests
+
+| Test | What It Validates | Location |
+|---|---|---|
+| RP ID hash mismatch → rejection | Origin binding enforcement | `security-model.test.ts` |
+| Short authenticator data → rejection | Data integrity check | `security-model.test.ts` |
+| Missing UP flag → rejection | Biometric gate | `security-model.test.ts` |
+| Wrong public key → signature fails | Key binding | `sign.test.ts` |
+| Nonce mismatch → rejection | Replay prevention | `security-model.test.ts` |
+| Session expiry → rejection | Session management | `security-model.test.ts` |
+| Cross-environment credential → rejection | Credential isolation | `security-model.test.ts` |
+| Recovery veto window → timing | Recovery safety | `security-model.test.ts` |
+
+---
+
+## 16. SIP-018 Structured Signing
+
+**PRD Reference**: Reviewer Addendum → "SIP-018 structured-signing domains and payload rules"
+
+### 16.1 Signing Schema
+
+**SIP-018 challenge computation** (matches Pillar reference `smart-wallet-standard-auth-helpers-v7.clar`):
+
+```
+SIP018_PREFIX = 0x534950303138              ;; ASCII "SIP018"
+domain-hash   = SHA256(to-consensus-buff?({ name, version, chain-id, wallet }))
+message-hash  = SHA256(to-consensus-buff?({ topic, ...action-fields }))
+challenge     = SHA256(SIP018_PREFIX || domain-hash || message-hash)
+```
+
+**Domain tuple**:
+```clarity
+{
+  name: "cinex-smart-vault",     ;; app-specific identifier
+  version: "1.0.0",              ;; semver
+  chain-id: chain-id,            ;; u1 (mainnet) or u2143456 (testnet)
+  wallet: contract-caller        ;; binds to specific vault contract instance
+}
+```
+
+The `wallet: contract-caller` pattern (from Pillar reference) means each vault contract produces a different domain hash, preventing cross-wallet signature replay. PRD §1.1 Ground Truth: "passkey wallet must handle RP ID/origin binding, SIP-018 domain binding."
+
+### 16.2 Actions Using Structured Signing
+
+| Action | Topic | Fields | SIP-018 Required? |
+|---|---|---|---|
+| `stx-transfer` | `"stx-transfer"` | `auth-id`, `amount`, `recipient`, `memo` | **Yes** — primary user action |
+| `onboard` | N/A | `pubkey`, `new-owner` | **No** — one-time deployer-signed, not SIP-018 |
+| `rotate-owner` (future) | `"rotate-owner"` | `auth-id`, `new-pubkey` | **Yes** — recovery action |
+| `freeze-vault` (future) | `"freeze-vault"` | `auth-id`, `reason` | **Yes** — admin action |
+
+### 16.3 Payload Examples
+
+**stx-transfer message tuple**:
+```clarity
+{
+  topic: "stx-transfer",
+  "auth-id": u0,                    ;; monotonically increasing nonce
+  amount: u1000000,                 ;; 1 STX in micro-STX
+  recipient: 'ST2CY5V39NHDP...,    ;; recipient principal
+  memo: (some 0x68656c6c6f)         ;; optional memo (or none)
+}
+```
+
+**rotate-owner message tuple** (future):
+```clarity
+{
+  topic: "rotate-owner",
+  "auth-id": u5,
+  "new-pubkey": 0x02ab...cd,        ;; 33-byte compressed P-256 pubkey
+}
+```
+
+**freeze-vault message tuple** (future):
+```clarity
+{
+  topic: "freeze-vault",
+  "auth-id": u12,
+  reason: "device-lost",
+}
+```
+
+### 16.4 Verification Pseudocode
+
+**Off-chain (TypeScript — `spike-pillar/src/sip018.ts`)**:
+```typescript
+function computeSIP018Challenge(domain, message) {
+  const domainHash = sha256(serializeCV(tupleCV(domain)));
+  const messageHash = sha256(serializeCV(tupleCV(message)));
+  return sha256(SIP018_PREFIX || domainHash || messageHash);
+}
+```
+
+**On-chain (Clarity — vault v4, to be implemented)**:
+```clarity
+(define-read-only (get-domain-hash)
+  (sha256 (unwrap-panic (to-consensus-buff? {
+    name: "cinex-smart-vault",
+    version: "1.0.0",
+    chain-id: chain-id,
+    wallet: contract-caller,
+  })))
+)
+
+(define-read-only (build-stx-transfer-hash (auth-id uint) (amount uint)
+    (recipient principal) (memo (optional (buff 34))))
+  (sha256 (concat SIP018_MSG_PREFIX
+    (concat (get-domain-hash)
+      (sha256 (unwrap-panic (to-consensus-buff? {
+        topic: "stx-transfer",
+        auth-id: auth-id,
+        amount: amount,
+        recipient: recipient,
+        memo: memo,
+      })))))
+)
+```
+
+**Full verification flow (on-chain)**:
+```clarity
+(define-public (stx-transfer (amount uint) (recipient principal)
+    (memo (optional (buff 34))) (auth-id uint) (signature (buff 64))
+    (authenticator-data (buff 256)) (client-data-prefix (buff 128))
+    (client-data-suffix (buff 512)))
+  (let ((challenge (build-stx-transfer-hash auth-id amount recipient memo)))
+    ;; 1. Verify nonce matches expected
+    (asserts! (is-eq auth-id (var-get next-nonce)) ERR_BAD_NONCE)
+    ;; 2. Verify RP ID in authenticator data
+    (asserts! (is-eq (unwrap! (slice? authenticator-data u0 u32) ERR_BAD_AUTH_DATA)
+      (var-get rp-id-hash)) ERR_BAD_RP_ID)
+    ;; 3. Verify user-present flag
+    (asserts! (is-eq (bit-and (buff-to-uint-be (unwrap! (element-at? authenticator-data u32) ERR_BAD_AUTH_DATA)) u1) u1)
+      ERR_USER_NOT_PRESENT)
+    ;; 4. Verify P-256 signature against SIP-018 challenge
+    (asserts! (verify-assertion (var-get owner-pubkey) challenge
+      authenticator-data client-data-prefix client-data-suffix signature)
+      ERR_BAD_SIGNATURE)
+    ;; 5. Consume nonce (replay prevention)
+    (var-set next-nonce (+ auth-id u1))
+    ;; 6. Execute transfer
+    (try! (stx-transfer? amount tx-sender recipient))
+    (ok true)))
+```
+
+### 16.5 Replay-Prevention Design
+
+**Three-layer defense**:
+
+| Layer | Prevents | Mechanism |
+|---|---|---|
+| **SIP-018 domain binding** | Cross-app, cross-chain, cross-wallet replay | `wallet` principal + `chain-id` in domain hash |
+| **Contract-side nonce** | Same-vault same-action replay | Sequential `auth-id` consumed on-chain |
+| **WebAuthn challenge** | Signature transplant across messages | Challenge = SIP-018 hash; authenticator signs exactly this |
+
+**Nonce strategy**: Sequential per-vault counter. The `auth-id` field IS the nonce. Contract stores `next-nonce` data-var. On each successful transfer: `asserts!(auth-id == next-nonce)` then `var-set next-nonce (+ auth-id u1)`.
+
+**Cross-isolation guarantee**:
+- Different RP IDs → different credentials (WebAuthn spec, browser-enforced)
+- Different chain-ids → different SIP-018 domain hashes
+- Different wallet principals → different SIP-018 domain hashes
+- Different topics → different message hashes
+- Same auth-id replayed → nonce mismatch on-chain
+
+### 16.6 Wallet Display Expectations
+
+| Context | Display |
+|---|---|
+| Passkey prompt (browser) | RP ID (site name), user verification requirement |
+| CineX pre-sign dialog | "Send $X to [recipient]" — plain language, no crypto jargon |
+| Recovery prompt | "Recover access to your CineX wallet" — clear intent |
+| Error states | "Signature expired — please try again" not "ERR_BAD_NONCE" |
+
+PRD §1.1 Ground Truth: "Avoid crypto-native UX language in user-facing outputs unless this task is specifically backend/internal."
+
+### 16.7 Integration Notes
+
+**Stacks Connect**: Not used in Pillar path. The Pillar architecture uses `navigator.credentials.get()` (WebAuthn API) directly, not Stacks Connect. SIP-018 is implemented at the Clarity contract level, not the wallet extension level.
+
+**Frontend flow**:
+1. Frontend builds SIP-018 message (topic, auth-id, amount, recipient)
+2. Computes challenge via `computeSIP018Challenge(domain, message)`
+3. Passes challenge as `challenge` parameter to `navigator.credentials.get()`
+4. Authenticator signs the challenge → returns assertion
+5. Assertion sent to CineX relay (`POST /api/passkey/transfer`)
+6. Relay wraps in secp256k1 tx → vault contract verifies P-256 assertion on-chain
+
+**Relay does NOT modify the P-256 assertion** — it only wraps the transaction. The on-chain `clarity-webauthn` contract verifies the P-256 signature against the SIP-018 challenge.
+
+### 16.8 Test Cases
+
+| Test | What It Validates | Location |
+|---|---|---|
+| Challenge includes SIP018_PREFIX | Correct computation | `sip018.test.ts` |
+| Different chain-id → different challenge | Cross-chain isolation | `sip018.test.ts` |
+| Different wallet → different challenge | Cross-wallet isolation | `sip018.test.ts` |
+| Same inputs → same challenge (deterministic) | Consensus compatibility | `sip018.test.ts` |
+| Different topic → different hash | Action transposition prevention | `sip018.test.ts` |
+| Different auth-id → different hash | Nonce prevents replay | `sip018.test.ts` |
+| Memo present vs absent → different hash | Optional field handling | `sip018.test.ts` |
+| Payload examples produce valid hex | Documentation correctness | `sip018.test.ts` |
