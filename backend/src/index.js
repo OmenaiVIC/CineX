@@ -20,11 +20,13 @@ import contactRouter from './routes/contact.js';
 import yieldRouter from './routes/yield.js';
 import escrowRouter from './routes/escrow.js';
 import adminRouter from './routes/admin.js';
+import passkeyRouter from './routes/passkey.js';
 import bosMonitoringRouter from './routes/bosMonitoring.js';
 import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
 import contractService from './services/contractService.js';
+import * as passkeyService from './services/passkeyService.js';
 import { initEmail } from './services/emailService.js';
 import monitorJob from './services/bos/monitoring/monitorJob.js';
 import * as stuckReaper from './services/bos/stuckStateReaper.js';
@@ -104,6 +106,7 @@ app.use('/api/contact', contactRouter);
 app.use('/api/yield', yieldRouter);
 app.use('/api/escrow', escrowRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/passkey', passkeyRouter);
 app.use('/api/bos/monitoring', bosMonitoringRouter);
 
 app.use((err, req, res, next) => {
@@ -118,6 +121,7 @@ async function start() {
   await initDb();
   await seedIfEmpty();
   contractService.init();
+  passkeyService.init();
   initEmail();
   if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
     console.log('✅ Contract service initialized');
