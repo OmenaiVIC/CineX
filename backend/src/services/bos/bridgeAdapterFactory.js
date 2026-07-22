@@ -8,6 +8,7 @@
  */
 
 import * as xreserveAdapter from './xreserveAdapter.js';
+import * as yellowcardAdapter from './yellowcardAdapter.js';
 
 const ADAPTER_ENV = process.env.BRIDGE_ADAPTER_ENV || 'xreserve';
 
@@ -42,18 +43,11 @@ export function getStacksAdapter(contractService) {
 
 /**
  * Get the Yellow Card adapter.
- * Returns stub until 7.3 implementation.
- * @returns {Object} adapter implementing { initiatePayout, getPayoutStatus }
+ * Returns real REST client for NGN payout via Yellow Card API.
+ * @returns {Object} adapter implementing { initiatePayout, getPayoutStatus, healthCheck }
  */
 export function getYellowCardAdapter() {
-  return {
-    async initiatePayout(_params) {
-      throw new Error('Yellow Card adapter not yet implemented (7.3)');
-    },
-    async getPayoutStatus(_payoutId) {
-      throw new Error('Yellow Card adapter not yet implemented (7.3)');
-    },
-  };
+  return yellowcardAdapter;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

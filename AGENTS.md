@@ -306,6 +306,13 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - Pipeline worker handles the full 10-step lifecycle: `disbursement_initiated → burn_submitted → burn_confirmed → attestation_requested → attestation_confirmed → destination_release_submitted → destination_release_confirmed → yellowcard_payout_submitted → yellowcard_payout_confirmed → settled`
   - All BOS modules load; `bosWorkers.test.js` — 35 tests pass
 
+### Done This Session (2026-07-227.3 Destination-Side Release)
+- **7.3 Destination-Side Release — COMPLETE:**
+  - Fixed `backend/src/services/bos/monitoring/monitorJob.js` line 172: `'attestation_received'` → `'attestation_confirmed'` (correct state name from types.js — monitoring check was silently never firing)
+  - Added 9 destination-release transition tests to `tests/bosWorkers.test.js`: `isDestinationReleased` (happy/pending/error), `attestationConfirmedForRelease` guard, `destinationReleasedForPayout` guard, `executeTransition` for `attestation_confirmed → destination_release_submitted` and `destination_release_submitted → destination_release_confirmed`, `destination_release_submitted → failed` (retry budget)
+  - All 44 tests pass (35 original + 9 new)
+  - Commit `519c407` pushed to main
+
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`

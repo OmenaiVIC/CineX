@@ -269,7 +269,7 @@ export async function checkWebhookTimeouts() {
       `SELECT d.id, d.status, d.updated_at,
               EXTRACT(EPOCH FROM (NOW() - d.updated_at)) * 1000 AS ms_in_state
        FROM disbursements d
-       WHERE d.status = 'payout_submitted'
+       WHERE d.status = 'yellowcard_payout_submitted'
          AND EXTRACT(EPOCH FROM (NOW() - d.updated_at)) * 1000 > $1`,
       [thresholdConfig.THRESHOLDS_MS.webhook_timeout]
     );

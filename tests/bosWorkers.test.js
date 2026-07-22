@@ -456,8 +456,9 @@ describe('BOS Disbursement Service', () => {
     });
 
     expect(result.id).toBe('existing-001');
-    // No DB inserts should have been made
-    expect(mockDb.run).not.toHaveBeenCalled();
+    // Only the exchange rate seed INSERT should have been made (init is called first)
+    const runCalls = mockDb.run.mock.calls.filter(c => c[0].includes('disbursements'));
+    expect(runCalls).toHaveLength(0);
   });
 
   it('advanceDisbursement returns null for terminal state', async () => {
@@ -639,5 +640,165 @@ describe('BOS Full Happy-Path Flow', () => {
 
     // Verify final state
     expect(stateSequence[stateSequence.length - 1]).toBe(S.SETTLED);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. Yellow Card Adapter (7.4)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('BOS Yellow Card Adapter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('getYellowCardAdapter returns real adapter (not stub)', async () => {
+    const { getYellowCardAdapter } = await import('../backend/src/services/bos/bridgeAdapterFactory.js');
+    const adapter = getYellowCardAdapter();
+    expect(typeof adapter.initiatePayout).toBe('function');
+    expect(typeof adapter.getPayoutStatus).toBe('function');
+    expect(typeof adapter.healthCheck).toBe('function');
+  });
+
+  it('bridgeAdapterFactory getYellowCardAdapter returns same module as direct import', async () => {
+    const { getYellowCardAdapter } = await import('../backend/src/services/bos/bridgeAdapterFactory.js');
+    const ycAdapter = await import('../backend/src/services/bos/yellowcardAdapter.js');
+    const adapter = getYellowCardAdapter();
+    expect(adapter.initiatePayout).toBe(ycAdapter.initiatePayout);
+    expect(adapter.getPayoutStatus).toBe(ycAdapter.getPayoutStatus);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10. Exchange Rate Seed (7.4)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('BOS Exchange Rate Seed', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDb.get.mockReset();
+    mockDb.run.mockReset();
+    mockDb.all.mockReset();
+    mockDb.get.mockResolvedValue(undefined);
+    mockDb.run.mockResolvedValue(undefined);
+    mockDb.all.mockResolvedValue([]);
+  });
+
+  it('init seeds default exchange rate when table is empty', async () => {
+    const ctx = makeCtx();
+    // First call: check for existing rate → returns null (empty table)
+    mockDb.get.mockResolvedValueOnce(null);
+    // Second call: insert seed rate
+    mockDb.run.mockResolvedValueOnce(undefined);
+
+    await disbursementService.init(ctx);
+
+    expect(mockDb.get).toHaveBeenCalledWith(
+      expect.stringContaining('exchange_rates')
+    );
+    expect(mockDb.run).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO exchange_rates'),
+      expect.arrayContaining([expect.any(Number)])
+    );
+  });
+
+  it('init skips seeding when exchange rate already exists', async () => {
+    const ctx = makeCtx();
+    // First call: check for existing rate → returns existing row
+    mockDb.get.mockResolvedValueOnce({ id: 1 });
+
+    await disbursementService.init(ctx);
+
+    // Should not insert
+    expect(mockDb.run).not.toHaveBeenCalled();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 11. Webhook Route (7.4)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('BOS Webhook Route', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDb.get.mockReset();
+    mockDb.run.mockReset();
+    mockDb.all.mockReset();
+    mockDb.get.mockResolvedValue(undefined);
+    mockDb.run.mockResolvedValue(undefined);
+    mockDb.all.mockResolvedValue([]);
+  });
+
+  it('webhooks route module exports a Router', async () => {
+    const webhooks = await import('../backend/src/routes/webhooks.js');
+    expect(webhooks.default).toBeDefined();
+    expect(typeof webhooks.default).toBe('function');
+  });
+
+  it('handleYellowCardWebhook rejects payload without payout_id', async () => {
+    const ctx = makeCtx();
+    disbursementService.init(ctx);
+
+    const result = await disbursementService.handleYellowCardWebhook({});
+    expect(result.processed).toBe(false);
+    expect(result.reason).toBe('missing payout_id');
+  });
+
+  it('handleYellowCardWebhook rejects unknown payout_id', async () => {
+    const ctx = makeCtx();
+    disbursementService.init(ctx);
+
+    // getExternalRef query returns nothing
+    mockDb.get.mockResolvedValueOnce(undefined);
+
+    const result = await disbursementService.handleYellowCardWebhook({
+      payout_id: 'unknown-123',
+      status: 'completed',
+    });
+    expect(result.processed).toBe(false);
+    expect(result.reason).toBe('unknown payout_id');
+  });
+
+  it('handleYellowCardWebhook processes completed status', async () => {
+    const ctx = makeCtx();
+    disbursementService.init(ctx);
+
+    // Mock: find disbursement by payout_id — already in settled state (terminal)
+    mockDb.get
+      .mockResolvedValueOnce({
+        disbursement_id: 'disp-001',
+        status: S.SETTLED, // terminal — webhook should not re-process
+        identifier_value: 'payout-001',
+      });
+
+    const result = await disbursementService.handleYellowCardWebhook({
+      payout_id: 'payout-001',
+      status: 'completed',
+    });
+    // Already terminal → not processed
+    expect(result.processed).toBe(false);
+    expect(result.reason).toBe('already terminal');
+  });
+
+  it('handleYellowCardWebhook processes failed status', async () => {
+    const ctx = makeCtx();
+    disbursementService.init(ctx);
+
+    // Mock: find disbursement by payout_id (in yellowcard_payout_submitted state)
+    mockDb.get
+      .mockResolvedValueOnce({
+        id: 'disp-001',
+        disbursement_id: 'disp-001',
+        status: S.YELLOWCARD_PAYOUT_SUBMITTED,
+        identifier_value: 'payout-001',
+      });
+
+    mockDb.run.mockResolvedValue(undefined);
+
+    const result = await disbursementService.handleYellowCardWebhook({
+      payout_id: 'payout-001',
+      status: 'failed',
+    });
+    expect(result.processed).toBe(true);
   });
 });

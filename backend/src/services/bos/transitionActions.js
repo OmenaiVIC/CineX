@@ -159,11 +159,11 @@ export async function submitYellowCardPayout(disbursement, ctx) {
 
   // Fetch current exchange rate for NGN calculation
   const rateRow = await db.get(
-    `SELECT usd_to_ngn FROM exchange_rates ORDER BY updated_at DESC LIMIT 1`
+    `SELECT rate FROM exchange_rates WHERE pair = 'USDCx/NGN' ORDER BY updated_at DESC LIMIT 1`
   );
   if (!rateRow) throw new Error('No exchange rate available');
 
-  const amount_ngn = Math.round(disbursement.amount_usd * rateRow.usd_to_ngn * 100);
+  const amount_ngn = Math.round(disbursement.amount_usd * rateRow.rate * 100);
 
   log.info({ id: disbursement.id, amount_usd: disbursement.amount_usd, amount_ngn }, 'Submitting Yellow Card payout');
 
@@ -179,7 +179,7 @@ export async function submitYellowCardPayout(disbursement, ctx) {
   await upsertExternalRef(db, disbursement.id, 'yellowcard', 'payout_id', payout.payout_id, {
     submitted_at: new Date().toISOString(),
     amount_ngn,
-    exchange_rate: rateRow.usd_to_ngn,
+    exchange_rate: rateRow.rate,
     payout_data: payout,
   });
 

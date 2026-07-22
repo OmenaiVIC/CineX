@@ -193,7 +193,8 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
   pair              TEXT NOT NULL DEFAULT 'USDCx/NGN',
   rate              NUMERIC(12,6) NOT NULL,
   valid_until       TIMESTAMP,
-  created_at        TIMESTAMP DEFAULT NOW()
+  created_at        TIMESTAMP DEFAULT NOW(),
+  updated_at        TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_rate_source ON exchange_rates(source);

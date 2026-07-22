@@ -22,6 +22,7 @@ import escrowRouter from './routes/escrow.js';
 import adminRouter from './routes/admin.js';
 import passkeyRouter from './routes/passkey.js';
 import bosMonitoringRouter from './routes/bosMonitoring.js';
+import webhooksRouter from './routes/webhooks.js';
 import { requireAuth } from './middleware/auth.js';
 import { initDb } from './database.js';
 import { seedIfEmpty } from './seed.js';
@@ -196,6 +197,7 @@ app.use('/api/escrow', escrowRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/passkey', passkeyRouter);
 app.use('/api/bos/monitoring', bosMonitoringRouter);
+app.use('/api/bos/webhooks', webhooksRouter);
 
 app.use((err, req, res, next) => {
   const msg = (err && err.message) ? err.message : String(err);

@@ -17,9 +17,29 @@ let _ctx = null;
 /**
  * Initialize the service with runtime context
  * Must be called once at server startup
+ * Seeds a default exchange rate if none exists (MVP: static rate)
  */
-export function init(ctx) {
+export async function init(ctx) {
   _ctx = ctx;
+
+  // Seed default exchange rate if table is empty
+  try {
+    const db = ctx.getDb();
+    const existing = await db.get(
+      `SELECT id FROM exchange_rates WHERE pair = 'USDCx/NGN' LIMIT 1`
+    );
+    if (!existing) {
+      const defaultRate = parseFloat(process.env.DEFAULT_USDCX_NGN_RATE || '1650');
+      await db.run(
+        `INSERT INTO exchange_rates (source, pair, rate, created_at, updated_at)
+         VALUES ('seed', 'USDCx/NGN', $1, NOW(), NOW())`,
+        [defaultRate]
+      );
+      ctx.getLogger('disbursement')?.info({ rate: defaultRate }, 'Seeded default USDCx/NGN exchange rate');
+    }
+  } catch (err) {
+    ctx.getLogger('disbursement')?.warn({ error: err.message }, 'Failed to seed exchange rate (non-fatal)');
+  }
 }
 
 function ctx() {
