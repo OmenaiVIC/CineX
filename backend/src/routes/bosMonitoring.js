@@ -2,6 +2,9 @@ import { Router } from 'express';
 import monitorJob from '../services/bos/monitoring/monitorJob.js';
 import dashboardQueries from '../services/bos/monitoring/dashboardQueries.js';
 import { acknowledgeAlert, getUnacknowledgedAlerts, getAlertStats } from '../services/bos/monitoring/alertDeduplicator.js';
+import * as pipelineWorker from '../services/bos/pipelineWorker.js';
+import * as stuckReaper from '../services/bos/stuckStateReaper.js';
+import * as reconciliationWorker from '../services/bos/reconciliationWorker.js';
 
 const router = Router();
 
@@ -133,6 +136,32 @@ router.post('/run', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[bos:monitoring] Manual run failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/bos/monitoring/workers
+ * Pipeline, stuck-reaper, and reconciliation worker stats
+ */
+router.get('/workers', (req, res) => {
+  res.json({
+    pipeline: pipelineWorker.getStats(),
+    stuckReaper: stuckReaper.getStats ? stuckReaper.getStats() : { status: 'no stats' },
+    reconciliation: reconciliationWorker.getStats ? reconciliationWorker.getStats() : { status: 'no stats' },
+  });
+});
+
+/**
+ * POST /api/bos/monitoring/workers/pipeline/run
+ * Manually trigger a single pipeline tick
+ */
+router.post('/workers/pipeline/run', async (req, res) => {
+  try {
+    await pipelineWorker.runOnce();
+    res.json({ ok: true, stats: pipelineWorker.getStats() });
+  } catch (err) {
+    console.error('[bos:monitoring] Pipeline run failed:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

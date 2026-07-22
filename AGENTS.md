@@ -298,6 +298,14 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - **Key fix**: `transitionGuards.js` calls `ctx.adapters.stacks.getTransactionStatus()` but `contractService` exported `getTxStatus` — added `getTransactionStatus` alias
   - **Key fix**: `transitionActions.js` uses `external_system`/`identifier_type`/`identifier_value`/`metadata` columns on `external_refs` but schema had `ref_type`/`ref_value`/`is_primary` — aligned schema to code
 
+### Done This Session (2026-07-227.2 Pipeline Worker)
+- **7.2 BOS Step 1–2 — Pipeline Worker — COMPLETE:**
+  - `backend/src/services/bos/pipelineWorker.js` — Core BOS heartbeat: scans all non-terminal, non-manual-review disbursements on 30s interval; advances each by ONE step per tick via `advanceDisbursement()`; idempotent; individual failures don't block batch; emits audit events; configurable `BOS_PIPELINE_INTERVAL_MS` and `BOS_PIPELINE_BATCH_SIZE` env vars
+  - `backend/src/index.js` — Pipeline worker wired: `import('./services/bos/pipelineWorker.js')` → `init(bosCtx)` → `start()` alongside existing stuckReaper + reconciliationWorker
+  - `backend/src/routes/bosMonitoring.js` — Added `GET /api/bos/monitoring/workers` (pipeline + stuckReaper + reconciliation stats), `POST /api/bos/monitoring/workers/pipeline/run` (manual trigger)
+  - Pipeline worker handles the full 10-step lifecycle: `disbursement_initiated → burn_submitted → burn_confirmed → attestation_requested → attestation_confirmed → destination_release_submitted → destination_release_confirmed → yellowcard_payout_submitted → yellowcard_payout_confirmed → settled`
+  - All BOS modules load; `bosWorkers.test.js` — 35 tests pass
+
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`

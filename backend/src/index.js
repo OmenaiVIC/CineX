@@ -140,6 +140,12 @@ async function ensureInit() {
   stuckReaper.start();       // 60s interval — flags stuck disbursements
   reconciliationWorker.start(); // 5min interval — reconciles unrecorded burns/payouts
 
+  // Start pipeline worker — the core BOS heartbeat that advances disbursements
+  const { default: pipelineWorker } = await import('./services/bos/pipelineWorker.js');
+  pipelineWorker.init(bosCtx);
+  pipelineWorker.start();    // 30s interval — scans and advances all actionable disbursements
+  console.log('✅ Pipeline worker started');
+
   // Start relay wallet balance monitor (5min interval)
   if (process.env.RELAY_ADDRESS) {
     const { startMonitoring } = await import('./services/relayMonitor.js');
