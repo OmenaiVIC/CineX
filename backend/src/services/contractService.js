@@ -213,18 +213,52 @@ async function getTxStatus(txHash) {
     return {
       status: 'confirmed',
       tx_hash: txHash,
+      tx_status: 'success',
       block_height: data.block_height,
       explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
     };
   }
   if (data.tx_status === 'pending' || data.tx_status === 'queued') {
-    return { status: 'pending', tx_hash: txHash };
+    return { status: 'pending', tx_status: data.tx_status, tx_hash: txHash };
   }
   return {
     status: 'failed',
     tx_hash: txHash,
+    tx_status: data.tx_status,
     error: data.tx_result?.repr || data.tx_status,
   };
+}
+
+/** Alias used by BOS transition guards/actions */
+async function getTransactionStatus(txHash) {
+  const result = await getTxStatus(txHash);
+  return {
+    tx_status: result.tx_status || result.status,
+    block_height: result.block_height,
+  };
+}
+
+/**
+ * Burn USDCx on Stacks (SIP-010 burn)
+ * @param {Object} params
+ * @param {number} params.amount - amount in USDCx base units (6 decimals)
+ * @param {string} [params.memo] - optional memo
+ * @param {string} [params.idempotencyKey] - for idempotent burn submission
+ * @returns {Promise<string>} txHash
+ */
+async function burnUsdcx({ amount, memo, idempotencyKey }) {
+  if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
+  const pk = _wallets.creator.privateKey;
+  const usdcxContract = process.env.USDCX_CONTRACT || 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx';
+  const [addr, name] = usdcxContract.split('.');
+  const args = [
+    uintCV(amount),
+  ];
+  if (memo) {
+    args.push(bufferCV(Buffer.from(memo.slice(0, 34), 'utf-8')));
+  }
+  const txHash = await callContract(pk, name, 'burn', args, addr);
+  return txHash;
 }
 
 // Diagnostic: test the broadcast path without a real contract call
@@ -885,6 +919,8 @@ export default {
   approve,
   release,
   getTxStatus,
+  getTransactionStatus,
+  burnUsdcx,
   getEscrowCampaign,
   getCampaignModuleCampaign,
   getEscrowBalance,

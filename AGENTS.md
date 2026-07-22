@@ -287,6 +287,17 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - **Funding pool is STX-only** — no USDCx support
   - Vite build passes (0 errors); 523/523 previously passing tests still pass
 
+### Done This Session (2026-07-227.1 XReserveBridgeAdapter)
+- **7.1 XReserveBridgeAdapter — COMPLETE:**
+  - `backend/src/services/bos/xreserveAdapter.js` — REST client for xReserve attestation API: `requestAttestation()`, `getAttestationStatus()`, `releaseDestination()`, `getReleaseStatus()`, `healthCheck()`; endpoints are placeholders per xreserve-integration-surface-lock §6.2 (Q1 external assumption)
+  - `backend/src/services/bos/bridgeAdapterFactory.js` — Factory: `getXReserveAdapter()`, `getStacksAdapter(contractService)`, `getYellowCardAdapter()` (stub for 7.3); `BRIDGE_ADAPTER_ENV=xreserve|mock`
+  - `backend/src/services/contractService.js` — Added `getTransactionStatus()` alias (maps to `getTxStatus`), `burnUsdcx({ amount, memo, idempotencyKey })` for SIP-010 USDCx burn; exports updated (88 total)
+  - `backend/src/migrations/006_bos_schema.sql` — Fixed `external_refs` schema: columns now `external_system`, `identifier_type`, `identifier_value`, `metadata` (JSONB) with unique index on `(disbursement_id, external_system, identifier_type)`; added missing columns to `disbursements`: `external_tx_id`, `amount_usd`, `creator_btc_address`, `ngn_recipient`, `metadata`, `last_error`, `max_retries`, `settled_at`, `failed_at`, `cancelled_at`, `manual_review_at`
+  - `backend/src/index.js` — Wired real adapters via `bridgeAdapterFactory`: `stacks` → `getStacksAdapter(contractService)`, `xreserve` → `getXReserveAdapter()`, `yellowcard` → `getYellowCardAdapter()`; replaced empty stubs
+  - All 6 BOS modules load successfully; `bosWorkers.test.js` — 35 tests pass
+  - **Key fix**: `transitionGuards.js` calls `ctx.adapters.stacks.getTransactionStatus()` but `contractService` exported `getTxStatus` — added `getTransactionStatus` alias
+  - **Key fix**: `transitionActions.js` uses `external_system`/`identifier_type`/`identifier_value`/`metadata` columns on `external_refs` but schema had `ref_type`/`ref_value`/`is_primary` — aligned schema to code
+
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`

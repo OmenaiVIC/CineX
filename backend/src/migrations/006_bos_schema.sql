@@ -19,10 +19,21 @@ CREATE TABLE IF NOT EXISTS disbursements (
   amount_ngn_expected       BIGINT NOT NULL,
   exchange_rate             NUMERIC(12,6) NOT NULL,
   status                    TEXT NOT NULL DEFAULT 'disbursement_initiated',
+  external_tx_id            TEXT,                     -- Stacks burn tx hash
   error_message             TEXT,
+  last_error                TEXT,
   retry_count               INTEGER DEFAULT 0,
+  max_retries               INTEGER DEFAULT 3,
+  amount_usd                NUMERIC(12,6),
+  creator_btc_address       TEXT,
+  ngn_recipient             JSONB,
+  metadata                  JSONB DEFAULT '{}',
+  settled_at                TIMESTAMP,
+  failed_at                 TIMESTAMP,
+  cancelled_at              TIMESTAMP,
+  manual_review_at          TIMESTAMP,
   idempotency_key           TEXT UNIQUE NOT NULL,
-  initiated_by              TEXT NOT NULL,
+  initiated_by              TEXT NOT NULL DEFAULT 'system',
   created_at                TIMESTAMP DEFAULT NOW(),
   updated_at                TIMESTAMP DEFAULT NOW(),
   last_heartbeat_at         TIMESTAMP DEFAULT NOW(),
@@ -63,15 +74,18 @@ CREATE INDEX IF NOT EXISTS idx_audit_created ON disbursement_audit(created_at DE
 CREATE TABLE IF NOT EXISTS external_refs (
   id                SERIAL PRIMARY KEY,
   disbursement_id   UUID NOT NULL REFERENCES disbursements(id),
-  ref_type          TEXT NOT NULL,
-  ref_value         TEXT NOT NULL,
-  is_primary        BOOLEAN DEFAULT TRUE,
-  created_at        TIMESTAMP DEFAULT NOW()
+  external_system   TEXT NOT NULL,          -- 'stacks' | 'xreserve' | 'yellowcard'
+  identifier_type   TEXT NOT NULL,          -- 'tx_id' | 'attestation_id' | 'release_id' | 'payout_id'
+  identifier_value  TEXT NOT NULL,
+  metadata          JSONB DEFAULT '{}',
+  created_at        TIMESTAMP DEFAULT NOW(),
+  updated_at        TIMESTAMP DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_extrefs_unique ON external_refs(disbursement_id, external_system, identifier_type);
 CREATE INDEX IF NOT EXISTS idx_extrefs_disbursement ON external_refs(disbursement_id);
-CREATE INDEX IF NOT EXISTS idx_extrefs_type ON external_refs(ref_type);
-CREATE INDEX IF NOT EXISTS idx_extrefs_value ON external_refs(ref_value);
+CREATE INDEX IF NOT EXISTS idx_extrefs_system ON external_refs(external_system);
+CREATE INDEX IF NOT EXISTS idx_extrefs_value ON external_refs(identifier_value);
 
 -- ─────────────────────────────────────────────────────────────
 -- 4. external_status_snapshots — Immutable point-in-time status

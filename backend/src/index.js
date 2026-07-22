@@ -101,12 +101,14 @@ async function ensureInit() {
 
   // Initialize and start BOS workers
   const { getDb } = await import('./database.js');
+  const { getXReserveAdapter, getStacksAdapter, getYellowCardAdapter } = await import('./services/bos/bridgeAdapterFactory.js');
+
   const bosCtx = {
     getDb: () => getDb(),
     adapters: {
-      stacks: contractService,
-      xreserve: { /* adapter stub — wired in BOS adapter integration */ },
-      yellowcard: { /* adapter stub — wired in BOS adapter integration */ },
+      stacks: getStacksAdapter(contractService),
+      xreserve: getXReserveAdapter(),
+      yellowcard: getYellowCardAdapter(),
     },
     emitEvent: async (event) => {
       try {
