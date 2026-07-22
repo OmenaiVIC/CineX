@@ -200,7 +200,7 @@ sBTC is the settlement layer — both NGN and USD balances are IOUs fully backed
 | Feature | MVP | Post-MVP |
 |---------|-----|----------|
 | Rate source | Astrum API (free) + admin fallback | AbokiFX paid API + Chainlink oracle |
-| Wallet type | Pillar smart wallet (MCP-managed) | Custom embedded wallet SDK |
+| Wallet type | Pillar smart wallet (MCP-managed) — see [Pillar Passkey Spike](docs/spikes/pillar-passkey-spike.md) | Custom embedded wallet SDK |
 | USD on-ramp | Manual bank wire → backend credits | Stripe card payment → sBTC |
 | NGN on-ramp | Manual bank transfer → backend credits | Paystack auto-reconciliation |
 | Spread | 0.75% flat | Tiered (volume-based) |

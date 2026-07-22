@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineX Pillar — Passkey Test</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        cine: {
+          bg: '#0f0f23',
+          card: '#1a1a2e',
+          border: '#2d2d4e',
+          purple: '#7c3aed',
+          violet: '#a78bfa',
+          accent: '#c084fc',
+          text: '#e2e8f0',
+          muted: '#94a3b8',
+          success: '#22c55e',
+          error: '#ef4444',
+          warn: '#f59e0b',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { background: #0f0f23; font-family: 'Inter', system-ui, sans-serif; }
+  .log-area {
+    background: #0a0a1a;
+    border: 1px solid #2d2d4e;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    max-height: 360px;
+    overflow-y: auto;
+    color: #94a3b8;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .log-area .step { color: #c084fc; font-weight: 600; }
+  .log-area .ok { color: #22c55e; }
+  .log-area .err { color: #ef4444; }
+  .log-area .info { color: #a78bfa; }
+  .log-area .dim { color: #64748b; }
+  .glow-card {
+    background: #1a1a2e;
+    border: 1px solid #2d2d4e;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.08);
+  }
+  .glow-card:hover { box-shadow: 0 0 30px rgba(124, 58, 237, 0.14); }
+  input[type="text"], input[type="number"] {
+    background: #0a0a1a;
+    border: 1px solid #2d2d4e;
+    color: #e2e8f0;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus { border-color: #7c3aed; }
+  .btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: white;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.9rem;
+  }
+  .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #8b5cf6, #7c3aed); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: #a78bfa;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #2d2d4e;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: #7c3aed; color: #c084fc; }
+  .step-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .step-pending { background: #1a1a2e; color: #64748b; border-color: #2d2d4e; }
+  .step-active { background: rgba(124,58,237,0.15); color: #a78bfa; border-color: #7c3aed; }
+  .step-done { background: rgba(34,197,94,0.1); color: #22c55e; border-color: rgba(34,197,94,0.3); }
+  .step-error { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.3); }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2d2d4e; border-radius: 3px; }
+</style>
+</head>
+<body class="min-h-screen text-cine-text">
+
+<!-- Header -->
+<header class="border-b border-cine-border py-4 px-6">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold">
+        <span class="text-cine-violet">CineX</span> Pillar — Passkey Test
+      </h1>
+      <p class="text-xs text-cine-muted mt-0.5">P-256 wallet + SIP-018 signed transfers</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="networkBadge" class="text-xs px-2 py-1 rounded-full bg-cine-purple/20 text-cine-violet border border-cine-purple/30">testnet</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-8 space-y-6">
+
+  <!-- Key Management Card -->
+  <div class="glow-card rounded-xl p-6">
+    <h2 class="text-sm font-semibold text-cine-violet uppercase tracking-wider mb-4">Key Management</h2>
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+      <div>
+        <label class="block text-xs text-cine-muted mb-1">P-256 Public Key (compressed, 33 bytes)</label>
+        <input type="text" id="pubkeyDisplay" readonly class="font-mono text-xs text-cine-muted" placeholder="Generate or load from localStorage...">
+      </div>
+      <div class="flex gap-2">
+        <button id="btnGenerate" class="btn-secondary" onclick="generateKeypair()">Generate New</button>
+        <button id="btnReset" class="btn-secondary" onclick="resetKeypair()" style="border-color: #ef444433; color: #ef4444;">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Form Card -->
+  <div class="glow-card rounded-xl p-6">
+    <h2 class="text-sm font-semibold text-cine-violet uppercase tracking-wider mb-4">Transfer</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-cine-muted mb-1">Vault Principal</label>
+        <input type="text" id="vaultPrincipal" value="ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4.cinex-demo-vault">
+      </div>
+      <div>
+        <label class="block text-xs text-cine-muted mb-1">Recipient</label>
+        <input type="text" id="recipient" value="ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4">
+      </div>
+      <div>
+        <label class="block text-xs text-cine-muted mb-1">Amount (STX)</label>
+        <input type="number" id="amountStx" value="0.5" step="0.01" min="0.001">
+      </div>
+      <div>
+        <label class="block text-xs text-cine-muted mb-1">Auth ID (auto-fetched from chain)</label>
+        <input type="text" id="authIdDisplay" readonly class="text-cine-muted" placeholder="Click transfer to fetch...">
+      </div>
+    </div>
+    <div class="mt-4 flex items-center gap-3">
+      <button id="btnTransfer" class="btn-primary" onclick="executeTransfer()">Sign &amp; Send</button>
+      <span id="transferStatus" class="text-xs text-cine-muted"></span>
+    </div>
+  </div>
+
+  <!-- Step Progress -->
+  <div class="glow-card rounded-xl p-6">
+    <h2 class="text-sm font-semibold text-cine-violet uppercase tracking-wider mb-4">Progress</h2>
+    <div id="stepsBar" class="flex flex-wrap gap-2">
+      <span class="step-indicator step-pending" data-step="0">1. Load Keys</span>
+      <span class="step-indicator step-pending" data-step="1">2. Fetch Auth ID</span>
+      <span class="step-indicator step-pending" data-step="2">3. SIP-018 Challenge</span>
+      <span class="step-indicator step-pending" data-step="3">4. P-256 Sign</span>
+      <span class="step-indicator step-pending" data-step="4">5. Send to Relay</span>
+      <span class="step-indicator step-pending" data-step="5">6. Confirmed</span>
+    </div>
+  </div>
+
+  <!-- Log Output -->
+  <div class="glow-card rounded-xl p-6">
+    <h2 class="text-sm font-semibold text-cine-violet uppercase tracking-wider mb-4">Log</h2>
+    <div id="logArea" class="log-area"><span class="dim">Waiting for action...</span></div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-cine-border py-4 px-6 text-center">
+  <p class="text-xs text-cine-muted">This is a development test page for the Pillar passkey wallet architecture</p>
+</footer>
+
+<script type="module">
+
+// ─── CDN Imports ───────────────────────────────────────────────
+import * as Tx from 'https://esm.sh/@stacks/transactions@6.17.0';
+import { p256 } from 'https://esm.sh/@noble/curves@2.2.0/nist.js';
+
+// Expose to window for onclick handlers
+window.Tx = Tx;
+window.p256 = p256;
+
+const HIRO_API = 'https://api.testnet.hiro.so';
+const BACKEND_API = 'https://cine-x-api.vercel.app';
+const RELAY_API_KEY = '***REMOVED***';
+
+// ─── Logging ───────────────────────────────────────────────────
+const logEl = document.getElementById('logArea');
+function log(text, cls = '') {
+  const span = cls ? `<span class="${cls}">${text}</span>` : text;
+  logEl.innerHTML += span + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog() {
+  logEl.innerHTML = '';
+}
+function logStep(text) { log(text, 'step'); }
+function logOk(text) { log(text, 'ok'); }
+function logErr(text) { log(text, 'err'); }
+function logInfo(text) { log(text, 'info'); }
+function logDim(text) { log(text, 'dim'); }
+
+// ─── Step Progress ─────────────────────────────────────────────
+function setStep(n, state = 'active') {
+  const el = document.querySelector(`[data-step="${n}"]`);
+  if (!el) return;
+  el.className = `step-indicator step-${state}`;
+  if (state === 'done') el.textContent = el.textContent.replace(/^\d\./, '\u2713');
+  if (state === 'error') el.textContent = el.textContent.replace(/^\d\./, '\u2717');
+}
+function resetSteps() {
+  for (let i = 0; i <= 5; i++) {
+    const el = document.querySelector(`[data-step="${i}"]`);
+    if (el) el.className = 'step-indicator step-pending';
+  }
+}
+
+// ─── Key Management ────────────────────────────────────────────
+// Demo P-256 keypair (matches cinex-demo-vault onboarded key)
+const DEMO_PRIVKEY_HEX = 'bc2596b550289896cda49e32396cb3aff11ac8b39350aa23c9fa73e2598e1e87';
+const DEMO_PUBKEY_HEX = '03896759903e48d81fd938107ff3092958e7e94abddc7abecf8fac0f44383b2b16';
+
+let privKeyBytes = null;
+let pubKeyBytes = null;
+
+function loadOrGenerateKeypair() {
+  const storedPriv = localStorage.getItem('cinex_passkey_privkey');
+  const storedPub = localStorage.getItem('cinex_passkey_pubkey');
+  if (storedPriv && storedPub) {
+    privKeyBytes = hexToBytes(storedPriv);
+    pubKeyBytes = hexToBytes(storedPub);
+    document.getElementById('pubkeyDisplay').value = storedPub;
+    logDim('Loaded keypair from localStorage');
+    setStep(0, 'done');
+    return;
+  }
+  // Default to demo keypair (matches pre-deployed cinex-demo-vault)
+  privKeyBytes = hexToBytes(DEMO_PRIVKEY_HEX);
+  pubKeyBytes = hexToBytes(DEMO_PUBKEY_HEX);
+  localStorage.setItem('cinex_passkey_pubkey', DEMO_PUBKEY_HEX);
+  localStorage.setItem('cinex_passkey_privkey', DEMO_PRIVKEY_HEX);
+  document.getElementById('pubkeyDisplay').value = DEMO_PUBKEY_HEX;
+  logStep('Key Management');
+  logOk('Loaded demo P-256 keypair (cinex-demo-vault)');
+  logDim(`  Pubkey: ${DEMO_PUBKEY_HEX}`);
+  logDim(`  Vault: ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4.cinex-demo-vault`);
+  setStep(0, 'done');
+  for (let i = 1; i <= 5; i++) setStep(i, 'pending');
+}
+
+function generateKeypair() {
+  privKeyBytes = p256.utils.randomSecretKey();
+  pubKeyBytes = p256.getPublicKey(privKeyBytes, true);
+  const pubHex = bytesToHex(pubKeyBytes);
+  const privHex = bytesToHex(privKeyBytes);
+  localStorage.setItem('cinex_passkey_pubkey', pubHex);
+  localStorage.setItem('cinex_passkey_privkey', privHex);
+  document.getElementById('pubkeyDisplay').value = pubHex;
+  clearLog();
+  logStep('Key Management');
+  logOk('Generated new P-256 keypair');
+  log(`  Public key: ${pubHex}`);
+  setStep(0, 'done');
+  for (let i = 1; i <= 5; i++) setStep(i, 'pending');
+}
+
+window.resetKeypair = function() {
+  localStorage.removeItem('cinex_passkey_pubkey');
+  localStorage.removeItem('cinex_passkey_privkey');
+  generateKeypair();
+  logInfo('Keypair reset — new key generated');
+};
+window.generateKeypair = generateKeypair;
+
+// ─── Helpers ───────────────────────────────────────────────────
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+function toBase64Url(bytes) {
+  const bin = String.fromCharCode(...bytes);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+// Async SHA-256 using SubtleCrypto
+async function sha256(data) {
+  const buf = data instanceof Uint8Array ? data : new TextEncoder().encode(data);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return new Uint8Array(hash);
+}
+
+// ─── SIP-018 Challenge Computation ────────────────────────────
+const SIP018_PREFIX = new Uint8Array([0x53, 0x49, 0x50, 0x30, 0x31, 0x38]); // "SIP018"
+
+function computeDomainHash(domain) {
+  const domainCV = Tx.tupleCV({
+    name: Tx.stringAsciiCV(domain.name),
+    version: Tx.stringAsciiCV(domain.version),
+    'chain-id': Tx.uintCV(domain.chainId),
+    wallet: Tx.principalCV(domain.wallet),
+  });
+  const serialized = Tx.serializeCV(domainCV);
+  return hexToBytes(serialized);
+}
+
+function computeMessageHash(message) {
+  const fields = {};
+  fields.topic = Tx.stringAsciiCV(message.topic);
+  fields['auth-id'] = Tx.uintCV(message['auth-id']);
+  fields.amount = Tx.uintCV(message.amount);
+  fields.recipient = Tx.principalCV(message.recipient);
+  fields.memo = message.memo ? Tx.someCV(Tx.bufferCV(message.memo)) : Tx.noneCV();
+  const messageCV = Tx.tupleCV(fields);
+  const serialized = Tx.serializeCV(messageCV);
+  return hexToBytes(serialized);
+}
+
+async function computeSIP018Challenge(domain, message) {
+  const domainHash = await sha256(computeDomainHash(domain));
+  const messageHash = await sha256(computeMessageHash(message));
+  const preimage = new Uint8Array(SIP018_PREFIX.length + domainHash.length + messageHash.length);
+  preimage.set(SIP018_PREFIX, 0);
+  preimage.set(domainHash, SIP018_PREFIX.length);
+  preimage.set(messageHash, SIP018_PREFIX.length + domainHash.length);
+  return sha256(preimage);
+}
+
+// ─── Transfer Execution ────────────────────────────────────────
+async function executeTransfer() {
+  if (!privKeyBytes || !pubKeyBytes) {
+    logErr('No keypair loaded. Generate or load keys first.');
+    return;
+  }
+
+  resetSteps();
+  clearLog();
+  document.getElementById('transferStatus').textContent = '';
+  document.getElementById('btnTransfer').disabled = true;
+
+  try {
+    const vaultPrincipal = document.getElementById('vaultPrincipal').value.trim();
+    const recipient = document.getElementById('recipient').value.trim();
+    const amountStx = parseFloat(document.getElementById('amountStx').value);
+    const amountMicroStx = Math.round(amountStx * 1_000_000);
+
+    if (!vaultPrincipal || !recipient || isNaN(amountMicroStx) || amountMicroStx <= 0) {
+      throw new Error('Fill in all fields with valid values');
+    }
+
+    const pubHex = bytesToHex(pubKeyBytes);
+    logStep('Transfer initiated');
+    logDim(`  Vault: ${vaultPrincipal}`);
+    logDim(`  Recipient: ${recipient}`);
+    logDim(`  Amount: ${amountStx} STX (${amountMicroStx} uSTX)`);
+
+    // ── Step 1: Load Keys ──
+    setStep(0, 'done');
+    logOk(`P-256 public key: ${pubHex}`);
+
+    // ── Step 2: Fetch Auth ID from chain ──
+    setStep(1, 'active');
+    logStep('Fetching auth-id from chain...');
+
+    let authId = 1; // fallback
+    try {
+      const [addr, contract] = vaultPrincipal.split('.');
+      const authResp = await fetch(`${HIRO_API}/v2/contracts/call-read/${addr}/${contract}/get-auth-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: addr, arguments: [] }),
+      });
+      const authData = await authResp.json();
+      logDim(`  Raw result: ${authData.result}`);
+
+      // Parse the optional tuple response: (ok (some (auth-id uint)))
+      // The hex result encodes (ok (some uint)) — extract the uint
+      // format: 0x070505{hex of optional} — parse properly
+      if (authData.result) {
+        const hex = authData.result;
+        // Result is Clarity value: (ok (some uint))
+        // Try to extract from the response
+        // (ok (some X)) = 0x07 05 05 ... where the last bytes encode the uint
+        // Simple approach: look for the known pattern
+        // For (ok (some uint1)): result = "0x0705050100000000000000000000000000000000000000000000000000000000000001"
+        // For (ok (some uint2)): result = "0x0705050100000000000000000000000000000000000000000000000000000000000002"
+        // The last 16 hex chars = 8 bytes = uint64 big-endian
+        if (hex.startsWith('0x070505')) {
+          // (ok (some uint))
+          const payloadHex = hex.slice(8); // strip 0x070505
+          // payload starts with 0x01 (some) then 8 bytes of uint
+          if (payloadHex.startsWith('01')) {
+            const uintHex = payloadHex.slice(2, 18); // 8 bytes = 16 hex chars
+            authId = parseInt(uintHex, 16);
+            logOk(`  Auth ID (on-chain): ${authId}`);
+          }
+        }
+        // Also handle (ok uint) direct pattern: 0x0705{8-byte hex}
+        if (hex.startsWith('0x0705') && !hex.startsWith('0x070505')) {
+          const payloadHex = hex.slice(6);
+          if (payloadHex.length >= 16) {
+            const uintHex = payloadHex.slice(0, 16);
+            authId = parseInt(uintHex, 16);
+            logOk(`  Auth ID (on-chain): ${authId}`);
+          }
+        }
+      }
+    } catch (e) {
+      logDim(`  Auth ID fetch failed, using fallback: ${authId}`);
+      logDim(`  Error: ${e.message}`);
+    }
+
+    document.getElementById('authIdDisplay').value = authId;
+    logOk(`  Auth ID: ${authId}`);
+    setStep(1, 'done');
+
+    // ── Step 3: Compute SIP-018 Challenge ──
+    setStep(2, 'active');
+    logStep('Computing SIP-018 challenge...');
+
+    const domain = {
+      name: 'cinex-smart-vault',
+      version: '1.0.0',
+      chainId: 2143456,
+      wallet: vaultPrincipal,
+    };
+
+    const challenge = await computeSIP018Challenge(domain, {
+      topic: 'stx-transfer',
+      'auth-id': authId,
+      amount: amountMicroStx,
+      recipient,
+      memo: null,
+    });
+
+    const challengeHex = bytesToHex(challenge);
+    logOk(`  Challenge: ${challengeHex}`);
+    setStep(2, 'done');
+
+    // ── Step 4: P-256 Sign (WebAuthn-compatible) ──
+    setStep(3, 'active');
+    logStep('Building WebAuthn assertion & signing...');
+
+    const CINEX_RP_ID_HASH = hexToBytes('b1c4e8f3a2d56709c8e4f1a3b6d9e2c5f8a1b4d7e0c3f6a9b2d5e8c1f4a7d0e3');
+
+    // Authenticator data = RP_ID_HASH || flags(0x01) || signCount(0x00000000)
+    const authenticatorData = new Uint8Array(32 + 1 + 4);
+    authenticatorData.set(CINEX_RP_ID_HASH, 0);
+    authenticatorData[32] = 0x01;
+    // signCount = 0 (4 bytes, already zero)
+    logDim(`  Authenticator data: ${bytesToHex(authenticatorData)}`);
+
+    // Client data JSON
+    const challengeB64 = toBase64Url(challenge);
+    const clientDataJSON = JSON.stringify({
+      type: 'webauthn.get',
+      challenge: challengeB64,
+      origin: window.location.origin,
+      crossOrigin: false,
+    });
+    logDim(`  clientDataJSON: ${clientDataJSON}`);
+
+    // Split around challenge value for the relay
+    // prefix = everything BEFORE the challenge value
+    // suffix = everything AFTER the challenge value
+    const challengeField = '"challenge":"';
+    const challengeStart = clientDataJSON.indexOf(challengeField) + challengeField.length;
+    const clientDataPrefix = clientDataJSON.substring(0, challengeStart);
+    const clientDataSuffix = clientDataJSON.substring(challengeStart + challengeB64.length);
+
+    // Verify reconstruction
+    const reconstructed = clientDataPrefix + challengeB64 + clientDataSuffix;
+    if (reconstructed !== clientDataJSON) {
+      throw new Error('clientDataJSON reconstruction mismatch');
+    }
+    logOk('  clientDataJSON split verified');
+
+    // signedDigest = SHA256(authenticatorData || SHA256(clientDataJSON))
+    const clientDataHash = await sha256(new TextEncoder().encode(clientDataJSON));
+    const signedDigestInput = new Uint8Array(authenticatorData.length + clientDataHash.length);
+    signedDigestInput.set(authenticatorData, 0);
+    signedDigestInput.set(clientDataHash, authenticatorData.length);
+    const signedDigest = await sha256(signedDigestInput);
+    logDim(`  Signed digest: ${bytesToHex(signedDigest)}`);
+
+    // P-256 sign
+    const sig = p256.sign(signedDigest, privKeyBytes, { prehash: true, format: 'compact', lowS: true });
+    const sigBytes = sig instanceof Uint8Array ? sig : sig.toCompactRawBytes();
+    const sigHex = bytesToHex(sigBytes);
+    logDim(`  Signature (${sigBytes.length} bytes): ${sigHex}`);
+
+    // Local verify
+    const localValid = p256.verify(sig, signedDigest, p256.getPublicKey(privKeyBytes, false));
+    if (!localValid) throw new Error('Local P-256 verification failed');
+    logOk('  Local P-256 verification: passed');
+    setStep(3, 'done');
+
+    // ── Step 5: Send to Relay Backend ──
+    setStep(4, 'active');
+    logStep('Sending to CineX relay backend...');
+
+    const body = {
+      recipient,
+      amount: amountMicroStx,
+      authId,
+      pubkey: pubHex,
+      signature: sigHex,
+      authenticatorData: bytesToHex(authenticatorData),
+      clientDataPrefix: new TextEncoder().encode(clientDataPrefix).reduce((h, b) => h + b.toString(16).padStart(2, '0'), ''),
+      clientDataSuffix: new TextEncoder().encode(clientDataSuffix).reduce((h, b) => h + b.toString(16).padStart(2, '0'), ''),
+      domainName: domain.name,
+      domainVersion: domain.version,
+      domainChainId: domain.chainId,
+      domainWallet: domain.wallet,
+      vaultAddress: vaultPrincipal.split('.')[0],
+      vaultName: vaultPrincipal.split('.')[1],
+    };
+
+    logDim(`  POST ${BACKEND_API}/api/passkey/transfer`);
+    logDim(`  Body keys: ${Object.keys(body).join(', ')}`);
+
+    const resp = await fetch(`${BACKEND_API}/api/passkey/transfer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Relay-Api-Key': RELAY_API_KEY,
+        'X-Relay-User-Address': vaultPrincipal,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const respText = await resp.text();
+    let respData;
+    try { respData = JSON.parse(respText); } catch { respData = { raw: respText }; }
+
+    if (!resp.ok) {
+      logErr(`  Relay error (${resp.status}):`);
+      logErr(`  ${JSON.stringify(respData, null, 2)}`);
+      throw new Error(`Relay returned ${resp.status}: ${respData.error || respData.message || respText.substring(0, 200)}`);
+    }
+
+    logOk(`  Relay response: ${JSON.stringify(respData)}`);
+
+    const txid = respData.txid;
+    if (!txid) throw new Error('No txid in relay response');
+
+    setStep(4, 'done');
+    logOk(`  TX broadcast: ${txid}`);
+
+    // ── Step 6: Poll for Confirmation ──
+    setStep(5, 'active');
+    logStep('Waiting for confirmation...');
+    const explorerUrl = `https://explorer.hiro.so/txid/${txid}?chain=testnet`;
+
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        const txResp = await fetch(`${HIRO_API}/extended/v1/tx/${txid}`);
+        const txData = await txResp.json();
+
+        if (txData.tx_status === 'success') {
+          setStep(5, 'done');
+          logOk(`\nTransfer confirmed at block ${txData.block_height}`);
+          logOk(`  Explorer: ${explorerUrl}`);
+          logOk(`  Gas + transfer cost: ${txData.tx_fee ? (parseInt(txData.tx_fee) / 1e6).toFixed(4) : '?'} STX`);
+
+          document.getElementById('transferStatus').innerHTML =
+            `<a href="${explorerUrl}" target="_blank" class="text-cine-violet underline hover:text-cine-accent">View on Explorer \u2197</a>`;
+          break;
+        }
+
+        if (txData.tx_status === 'abort_by_response' || txData.tx_status === 'problem_processing') {
+          throw new Error(`TX failed: ${txData.tx_status}${txData.vm_error ? ' — ' + txData.vm_error : ''}`);
+        }
+
+        if (i % 5 === 0) logDim(`  Pending... ${i * 3}s`);
+      } catch (e) {
+        if (i < 3) logDim(`  Poll error (retrying): ${e.message}`);
+      }
+    }
+
+  } catch (e) {
+    logErr(`\nError: ${e.message}`);
+    console.error(e);
+    // Mark current step as error
+    for (let i = 0; i <= 5; i++) {
+      const el = document.querySelector(`[data-step="${i}"]`);
+      if (el && el.classList.contains('step-active')) {
+        setStep(i, 'error');
+        break;
+      }
+    }
+  } finally {
+    document.getElementById('btnTransfer').disabled = false;
+  }
+}
+window.executeTransfer = executeTransfer;
+
+// ─── Init ──────────────────────────────────────────────────────
+logStep('Initializing CineX Pillar Passkey Test...');
+logDim('  Loading @stacks/transactions and @noble/curves from esm.sh...');
+
+// Wait a tick for CDN modules to load, then init
+setTimeout(() => {
+  if (window.Tx && window.p256) {
+    logOk('  Libraries loaded successfully');
+    loadOrGenerateKeypair();
+    logOk('\nReady — fill in the transfer form and click Sign & Send');
+  } else {
+    logErr('  Failed to load CDN libraries. Check network connection.');
+    logDim('  Expected: @stacks/transactions and @noble/curves');
+  }
+}, 500);
+
+</script>
+</body>
+</html>

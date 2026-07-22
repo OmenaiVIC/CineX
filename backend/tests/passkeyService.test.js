@@ -12,6 +12,7 @@ vi.mock('@stacks/transactions', () => ({
   tupleCV: vi.fn((v) => ({ type: 'tuple', value: v })),
   someCV: vi.fn((v) => ({ type: 'some', value: v })),
   noneCV: vi.fn(() => ({ type: 'none' })),
+  stringAsciiCV: vi.fn((v) => ({ type: 'string-ascii', value: v })),
   getAddressFromPrivateKey: vi.fn(() => 'ST1RELAYADDRESS1234567890ABCDEF'),
   TransactionVersion: { Testnet: 0x80 },
 }));
@@ -20,6 +21,12 @@ vi.mock('@stacks/network', () => ({
   StacksTestnet: class {
     constructor() { this.url = 'https://api.testnet.hiro.so'; }
   },
+}));
+
+vi.mock('../src/services/sponsorService.js', () => ({
+  recordTransfer: vi.fn().mockResolvedValue({}),
+  confirmTransfer: vi.fn().mockResolvedValue({}),
+  failTransfer: vi.fn().mockResolvedValue({}),
 }));
 
 describe('passkeyService', () => {
@@ -54,6 +61,10 @@ describe('passkeyService', () => {
 
   describe('passkeyTransfer', () => {
     const validParams = {
+      domainName: 'cinex-smart-vault',
+      domainVersion: '1.0.0',
+      domainChainId: 2143456,
+      domainWallet: 'ST1WALLET...',
       recipient: 'ST2RECIPIENT1234567890ABCDEF',
       amount: 1000000,
       authId: 42,
@@ -156,12 +167,25 @@ describe('passkeyService', () => {
       expect(makeContractCall).toHaveBeenCalledWith(
         expect.objectContaining({
           contractAddress: 'ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX',
-          contractName: 'cinex-smart-vault-v3',
+          contractName: 'cinex-smart-vault-v4',
           functionName: 'stx-transfer',
           fee: 100000,
           nonce: 3,
         })
       );
+    });
+
+    it('should return transferId when provided', async () => {
+      passkeyService.init();
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ nonce: 0 }) })
+        .mockResolvedValueOnce({ ok: true, text: async () => '0xtxid' });
+
+      const result = await passkeyService.passkeyTransfer({
+        ...validParams,
+        transferId: 'my-transfer-id',
+      });
+      expect(result.transferId).toBe('my-transfer-id');
     });
   });
 });

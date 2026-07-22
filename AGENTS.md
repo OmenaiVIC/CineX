@@ -73,9 +73,10 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 
 ## Deployment
 
-- **Vercel**: Root `vercel.json` sets `rootDirectory: "app"`. SPA rewrites in `app/vercel.json`. Backend via `experimentalServices.backend`.
-- **Neon PostgreSQL**: Primary production database. `DATABASE_URL` → `ep-late-band-zarvw2jh-pooler.neon.tech`. Serverless driver (`NEON_DRIVER=serverless`).
-- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_BOOTSTRAP_KEY`.
+- **Vercel (Frontend)**: `cine-x` project. Root `vercel.json` sets `rootDirectory: "app"`. Deployed at `https://cine-x-iota.vercel.app`.
+- **Vercel (Backend)**: `cine-x-api` project (separate for team isolation). Express app with `builds` config in `backend/vercel.json`. Deployed at `https://cine-x-api.vercel.app`. Uses `@vercel/node` runtime, lazy init pattern with `initPromise` middleware.
+- **Neon PostgreSQL**: Primary production database. `DATABASE_URL` → `ep-late-band-zarvw2jh-pooler.neon.tech`. Serverless driver (`NEON_DRIVER=serverless`). Auto-detected via `VERCEL=1` env var.
+- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_BOOTSTRAP_KEY`, `RELAY_ADDRESS`, `RELAY_API_KEY`.
 
 ## Testing
 
@@ -110,6 +111,20 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Error codes**: init u8201–u8209; burn u8210–u8218; attestation u8220–u8228; payout u8230–u8238; generic u8290–u8299
 - **Monitoring**: Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
 - **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_ATTESTATION_API_URL`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH`
+
+## Fee Sponsorship / Relay Architecture
+
+- **PRD Reviewer Addendum**: "fee sponsorship / relayer policy for first-use transactions" — release requirement
+- **3-layer relay architecture**: relayAuth (auth + rate limit) → sponsorService (policy engine) → passkeyService (executor)
+- **Sponsorship policy**: stx-transfer ✅, onboard ✅, recovery ✅ — CineX pays all gas (CAC)
+- **Anti-abuse controls**: 10 req/hr per user (in-memory), 20 transfers/day per user (DB), 10 STX max per transfer, relay min balance 50 STX, circuit breaker toggle
+- **DB schema**: 3 tables in `008_relay_sponsorship.sql` — `relay_transfers` (audit log), `relay_quotas` (daily counters), `relay_config` (key-value config)
+- **Environment vars**: `RELAY_ADDRESS`, `RELAY_API_KEY` (optional server-to-server auth)
+- **Monitoring**: `relayMonitor.js` runs every 5min, checks balance/volume/failure rate, alerts to `bos_alerts`
+- **Idempotency**: `X-Idempotency-Key` header (UUID) → cached result on duplicate
+- **Auth options**: Session-based (req.user.address) or API key (X-Relay-API-Key + X-Relay-User-Address)
+- **Key files**: `backend/src/services/sponsorService.js`, `backend/src/middleware/relayAuth.js`, `backend/src/services/relayMonitor.js`
+- **Tests**: 63 passing across 5 test files (relayAuth, sponsorService, relayMonitor, passkeyService, passkeyRoutes)
 
 ## Brand
 
@@ -167,6 +182,21 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - P-256 signed transfer with separate keypairs: ✅
 
 ### Done This Session (2026-07-18 cont.)
+- **Vault v4 E2E PROVEN ON TESTNET:**
+  - Deploy: block 4046942 ✅
+  - Onboard: block 4046944 ✅
+  - SIP-018 signed transfer: block 4046945 ✅
+  - All scripts updated for v4 (e2e-transfer.mjs, deploy-vault.mjs, onboard-user.mjs, passkeyService.js)
+- **Fee Sponsorship / Relay — COMPLETE:**
+  - DB migration `008_relay_sponsorship.sql`: relay_transfers, relay_quotas, relay_config (3 tables)
+  - `sponsorService.js`: Policy engine with daily quotas, balance checks, circuit breaker, idempotency
+  - `relayAuth.js`: Auth middleware (session or API key) + per-user hourly rate limiting
+  - `relayMonitor.js`: Balance monitoring, volume tracking, failure rate alerts → bos_alerts
+  - `passkeyService.js` updated: Integrates sponsorship tracking, logs to relay_transfers
+  - `passkey.js` routes updated: 3-layer middleware chain (auth → sponsorship → relay)
+  - `index.js` updated: Relay monitor startup on RELAY_ADDRESS set
+  - `.env.example` updated: RELAY_ADDRESS, RELAY_API_KEY
+  - 63 backend tests passing across 5 test files
 - **Neon Migration — VERIFIED COMPLETE:**
   - Backend starts, connects to Neon (neon-serverless driver), applies 7 migrations, seeds 3 profiles ✅
   - `docs/NEON_MIGRATION.md` rewritten as "Migration Complete" record (Render decommissioned, Supabase never operational)
@@ -181,18 +211,67 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - `frontend/index.html`: Updated roadmap description
   - `FRONTEND_AI_IMPLEMENTATION_PLAN_2WEEKS.md`: Marked as HISTORICAL with infrastructure note
 - **BOS monitor bug found:** `column "updated_at" does not exist` — schema mismatch in BOS monitoring query (separate fix needed)
+- **Backend deployed to Vercel — COMPLETE:**
+  - Separate project `cine-x-api` deployed at `https://cine-x-api.vercel.app`
+  - `builds` config in `backend/vercel.json` with `@vercel/node` runtime
+  - `index.js` restructured: `export default app`, eager init with `initPromise` middleware
+  - Multer uses `/tmp` on Vercel (read-only filesystem elsewhere)
+  - Neon auto-detected via `VERCEL=1` env var
+  - DB seeded: 3 profiles returned from `/api/profiles` ✅
+  - `VITE_API_BACKEND` env var set on frontend project → `https://cine-x-api.vercel.app/api`
+  - Frontend `api.ts` fallback URL updated from Render to Vercel
+
+### Done This Session (2026-07-21)
+- **Vercel env vars set with real testnet keys:**
+  - Generated testnet keypair for relay: CREATOR=`ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4`, BACKER=`ST3MW8XN0A69B5TGRMNDSEVC75ABFRGGGY0D5KXXF`
+  - Funded both addresses via Hiro faucet (`/extended/v1/faucets/stx` — note: plural "faucets")
+  - Set CREATOR_KEY, BACKER_KEY, RELAY_ADDRESS, RELAY_API_KEY on Vercel `cine-x-api` project
+- **Migration 008 verified on Neon** — relay_transfers, relay_quotas, relay_config tables already exist
+- **Backend redeployed to Vercel** — `vercel --prod` from `backend/` directory
+- **All endpoints verified:**
+  - `GET /health` → `{"status":"ok"}` ✅
+  - `GET /api/passkey/health` → `{"status":"healthy","balanceStx":500,"address":"ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4"}` ✅
+  - `GET /api/profiles` → 3 profiles from Neon ✅
+- **Phase 3: Frontend passkey integration — COMPLETE:**
+  - `app/public/passkey-test.html` — standalone test page (632 lines): P-256 keypair management, SIP-018 challenge computation via `@stacks/transactions` CDN, WebAuthn-compatible signing, relay transfer with 6-step progress UI
+  - `app/src/services/passkeyService.ts` — browser-side passkey operations: keypair mgmt, SIP-018 computation (Web Crypto SHA-256), P-256 signing, relay backend communication
+  - `app/src/contexts/PasskeyContext.tsx` — React context for passkey state (initPasskey, resetPasskey, transfer, checkHealth, checkQuota)
+  - `app/src/app/App.tsx` — PasskeyProvider wired into provider hierarchy
+  - `app/package.json` — `@noble/curves` v2.2.0 added as dependency
+  - Vite build passes (0 errors from new files)
+- **Vercel Root Directory** — `cine-x-api` project has Root Directory = `.` (repo root), needs manual fix to `backend` in dashboard. Backend works via explicit `builds` config in `backend/vercel.json`.
+
+### Done This Session (2026-07-22)
+- **E2E RELAY TEST PROVEN ON TESTNET:**
+  - Deploy clarity-webauthn + vault (fresh per-run, unique name `cv-{pubkey}`) ✅
+  - Onboard vault with P-256 key ✅
+  - SIP-018 challenge + P-256 sign + local verify ✅
+  - Relay backend broadcast via `POST /api/passkey/transfer` ✅
+  - **On-chain confirmation in block 4048423** ✅
+  - TX: `0xeb08e57a719ff38703a1a4520afd1845c9f6ef87f9a5d4a57e417f0a24313d33`
+  - Script: `app/scripts/e2e-relay-test.mjs` (self-contained: deploy → onboard → sign → relay → confirm)
+- **Key findings from E2E debugging:**
+  - `ST000000000000000000000040000000` has invalid c32 checksum in `@stacks/transactions` v6 — cannot use `standardPrincipalCV` for native token contract
+  - Vault's `stx-transfer` uses `tx-sender` as source, NOT vault balance — no funding step needed
+  - `principalCV` fails on contract principals — use `contractPrincipalCV(addr, name)` instead
+  - Clarity boolean `true` = `0x04` (not `0x03` which is `err`)
+  - Hiro API call-read URL format: `/v2/contracts/call-read/{addr}/{name}/{fn}` (slash-separated, not dot)
+  - Fresh vault per test run avoids `ERR_UNAUTHORISED` from re-onboarding already-initialized vaults
 
 ### Next Steps
-1. **Deploy backend to Vercel** — Set `DATABASE_URL` + `NEON_DRIVER=serverless` in Vercel env, deploy via `experimentalServices.backend`
-2. **Update frontend API URL** — Change `api.ts` from `cinex-backend-zo1r.onrender.com/api` to Vercel backend URL
-3. **Phase 3: Frontend passkey integration** — standalone HTML test page (RP ID = localhost), then `AuthContext.tsx`
-4. **Phase 4: Full E2E with backend relay** — `POST /api/passkey/transfer` → `passkeyService.js` → on-chain
-5. **BOS worker implementation** — `backend/src/services/bosService.js` (state machine, adapters, workers)
-6. **Fix BOS monitor bug** — `updated_at` column missing in BOS tables
+1. **BOS worker implementation** — `backend/src/services/bosService.js` (state machine, adapters, workers)
+2. **Fix BOS monitor bug** — `updated_at` column missing in BOS tables
+3. **Set remaining Vercel env vars** — `SMTP_*`, `ADMIN_BOOTSTRAP_KEY` (manual dashboard entry for secrets)
+4. **Clean up debug scripts** — `app/scripts/debug-tx.mjs` (remove after E2E passes)
+5. **Restore frontend `.vercel/project.json`** to cine-x (currently set to cine-x-api for backend testing)
 
 ### Key URLs
-- Backend: Render (SUSPENDED) → migrating to Vercel experimentalServices
+- Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`
+- Passkey Test Page: `https://cine-x-iota.vercel.app/passkey-test.html`
 - Neon Dashboard: `https://console.neon.tech`
 - Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
 - Hiro API: `https://api.testnet.hiro.so`
+- Relay Wallet: `ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4` (CREATOR, funded ~500 STX)
+- Relay API Key: `***REMOVED***`
+- Testnet Deployer: `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX` (~498 STX, vault contracts)

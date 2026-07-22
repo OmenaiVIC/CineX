@@ -1,0 +1,31 @@
+[project]
+name = "cinex-smart-vault-spike"
+description = "CineX passkey vault spike - minimal P-256 smart vault"
+authors = ["CineX Team"]
+telemetry = false
+cache_dir = ".clarinet/cache"
+requirements = []
+
+[contracts.clarity-webauthn]
+path = "contracts/clarity-webauthn.clar"
+clarity_version = 4
+epoch = "3.3"
+
+[contracts.cinex-smart-vault]
+path = "contracts/cinex-smart-vault.clar"
+clarity_version = 4
+epoch = "3.3"
+
+[repl]
+costs_version = 5
+parser_version = 2
+
+[repl.simnet]
+boot_contracts = [
+  "costs-v02",
+  "costs-v3",
+  "costs-v4",
+  "costs-v5",
+  "pox-4",
+  "stacks-node",
+]

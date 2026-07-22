@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@noble/curves": "^2.2.0",
     "@stacks/auth": "^7.4.0",
     "@stacks/connect": "^8.2.6",
     "@stacks/network": "^7.3.1",

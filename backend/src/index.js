@@ -39,8 +39,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const uploadDir = process.env.VERCEL ? '/tmp' : path.join(__dirname, '..', 'uploads');
 const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
+  destination: uploadDir,
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, `avatar_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
@@ -76,7 +77,86 @@ app.get('/warmup', (req, res) => {
   res.json({ status: 'ok', message: 'Backend warm' });
 });
 
-app.use('/api/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/api/uploads', express.static(uploadDir));
+
+// Lazy init — runs once per cold start (Vercel serverless) or once at boot (local)
+let _initialized = false;
+let stopRelayMonitor = null;
+async function ensureInit() {
+  if (_initialized) return;
+  _initialized = true;
+
+  // Critical: init passkey relay FIRST (no DB dependency, must not be blocked by other failures)
+  passkeyService.init();
+
+  await initDb();
+  await seedIfEmpty();
+  contractService.init();
+  initEmail();
+  if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
+    console.log('✅ Contract service initialized');
+  } else {
+    console.warn('⚠️  CREATOR_KEY or BACKER_KEY not set — demo write routes will fail');
+  }
+
+  // Initialize and start BOS workers
+  const { getDb } = await import('./database.js');
+  const bosCtx = {
+    getDb: () => getDb(),
+    adapters: {
+      stacks: contractService,
+      xreserve: { /* adapter stub — wired in BOS adapter integration */ },
+      yellowcard: { /* adapter stub — wired in BOS adapter integration */ },
+    },
+    emitEvent: async (event) => {
+      try {
+        const db = getDb();
+        await db.run(
+          `INSERT INTO disbursement_audit (disbursement_id, old_status, new_status, action, details, triggered_by, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+          [event.disbursement_id, event.old_status, event.new_status, event.action,
+           JSON.stringify(event.details || {}), event.triggered_by]
+        );
+      } catch (err) {
+        console.error('[bos] Failed to emit audit event:', err.message);
+      }
+    },
+    getLogger: (component) => ({
+      info:  (obj, msg) => console.log(`[${component}]`, msg || '', obj || ''),
+      warn:  (obj, msg) => console.warn(`[${component}]`, msg || '', obj || ''),
+      error: (obj, msg) => console.error(`[${component}]`, msg || '', obj || ''),
+      debug: (obj, msg) => {}, // silence debug in production
+    }),
+  };
+
+  disbursementService.init(bosCtx);
+  stuckReaper.init(bosCtx);
+  reconciliationWorker.init(bosCtx);
+
+  // Start BOS monitor job
+  monitorJob.start();
+  stuckReaper.start();       // 60s interval — flags stuck disbursements
+  reconciliationWorker.start(); // 5min interval — reconciles unrecorded burns/payouts
+
+  // Start relay wallet balance monitor (5min interval)
+  if (process.env.RELAY_ADDRESS) {
+    const { startMonitoring } = await import('./services/relayMonitor.js');
+    stopRelayMonitor = startMonitoring(300000);
+    console.log('✅ Relay wallet monitor started');
+  } else {
+    console.warn('⚠️  RELAY_ADDRESS not set — relay balance monitoring disabled');
+  }
+}
+
+// Vercel: wait for init BEFORE any routes to avoid cold-start race conditions
+const initPromise = ensureInit().catch(err => {
+  console.error('[init] Failed:', err.message);
+});
+if (process.env.VERCEL) {
+  app.use((_req, _res, next) => {
+    initPromise.then(() => next()).catch(next);
+  });
+}
 
 app.post('/api/upload', requireAuth, (req, res) => {
   upload.single('file')(req, res, (err) => {
@@ -117,70 +197,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: msg });
 });
 
-async function start() {
-  await initDb();
-  await seedIfEmpty();
-  contractService.init();
-  passkeyService.init();
-  initEmail();
-  if (process.env.CREATOR_KEY && process.env.BACKER_KEY) {
-    console.log('✅ Contract service initialized');
-  } else {
-    console.warn('⚠️  CREATOR_KEY or BACKER_KEY not set — demo write routes will fail');
-  }
-  app.listen(PORT, () => {
-    console.log(`CineX backend running on http://localhost:${PORT}`);
-  });
-
-  // Initialize and start BOS workers
-  const { getDb } = await import('./database.js');
-  const bosCtx = {
-    getDb: () => getDb(),
-    adapters: {
-      stacks: contractService,
-      xreserve: { /* adapter stub — wired in BOS adapter integration */ },
-      yellowcard: { /* adapter stub — wired in BOS adapter integration */ },
-    },
-    emitEvent: async (event) => {
-      try {
-        const db = getDb();
-        await db.run(
-          `INSERT INTO disbursement_audit (disbursement_id, old_status, new_status, action, details, triggered_by, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-          [event.disbursement_id, event.old_status, event.new_status, event.action,
-           JSON.stringify(event.details || {}), event.triggered_by]
-        );
-      } catch (err) {
-        console.error('[bos] Failed to emit audit event:', err.message);
-      }
-    },
-    getLogger: (component) => ({
-      info:  (obj, msg) => console.log(`[${component}]`, msg || '', obj || ''),
-      warn:  (obj, msg) => console.warn(`[${component}]`, msg || '', obj || ''),
-      error: (obj, msg) => console.error(`[${component}]`, msg || '', obj || ''),
-      debug: (obj, msg) => {}, // silence debug in production
-    }),
-  };
-
-  disbursementService.init(bosCtx);
-  stuckReaper.init(bosCtx);
-  reconciliationWorker.init(bosCtx);
-
-  // Start BOS monitor job
-  monitorJob.start();
-  stuckReaper.start();       // 60s interval — flags stuck disbursements
-  reconciliationWorker.start(); // 5min interval — reconciles unrecorded burns/payouts
-}
-
 // Graceful shutdown
 function shutdown() {
   console.log('[shutdown] Stopping BOS workers...');
   monitorJob.stop();
   stuckReaper.stop();
   reconciliationWorker.stop();
+  if (stopRelayMonitor) stopRelayMonitor();
   process.exit(0);
 }
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-start();
+// Local dev: init + listen
+if (!process.env.VERCEL) {
+  ensureInit().then(() => {
+    app.listen(PORT, () => {
+      console.log(`CineX backend running on http://localhost:${PORT}`);
+    });
+  });
+}
+
+export default app;

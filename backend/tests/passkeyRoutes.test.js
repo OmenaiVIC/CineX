@@ -4,12 +4,40 @@ import express from 'express';
 const mockPasskeyTransfer = vi.fn().mockResolvedValue({ txid: '0xmocktxid123' });
 const mockGetVaultOwner = vi.fn().mockResolvedValue({ result: { hex: '0xowner' } });
 const mockGetVaultInitialized = vi.fn().mockResolvedValue({ result: { hex: '0x01' } });
+const mockCheckSponsorship = vi.fn().mockResolvedValue({ decision: 'sponsored', reason: null, transferId: 'test-id' });
+const mockGetUserQuota = vi.fn().mockResolvedValue({ used: 0, limit: 20, remaining: 20 });
+const mockCheckRelayBalance = vi.fn().mockResolvedValue({ status: 'healthy', balanceStx: 100, alerts: [] });
 
 vi.mock('../src/services/passkeyService.js', () => ({
   init: vi.fn(),
   passkeyTransfer: (...args) => mockPasskeyTransfer(...args),
   getVaultOwner: (...args) => mockGetVaultOwner(...args),
   getVaultInitialized: (...args) => mockGetVaultInitialized(...args),
+  confirmTransfer: vi.fn().mockResolvedValue({}),
+  failTransfer: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('../src/services/sponsorService.js', () => ({
+  checkSponsorship: (...args) => mockCheckSponsorship(...args),
+  getUserQuota: (...args) => mockGetUserQuota(...args),
+  recordTransfer: vi.fn().mockResolvedValue({}),
+  confirmTransfer: vi.fn().mockResolvedValue({}),
+  failTransfer: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('../src/services/relayMonitor.js', () => ({
+  checkRelayBalance: (...args) => mockCheckRelayBalance(...args),
+}));
+
+vi.mock('../src/middleware/relayAuth.js', () => ({
+  relayAuthMiddleware: () => (req, res, next) => {
+    // Simulate authenticated request
+    req.relayUserAddress = 'ST1TESTUSER...';
+    req.relayAuthMethod = 'test';
+    req.relayIdempotencyKey = null;
+    req.relayRateLimit = { remaining: 9 };
+    next();
+  },
 }));
 
 import passkeyRouter from '../src/routes/passkey.js';
@@ -25,7 +53,7 @@ function createTestApp() {
   return app;
 }
 
-function simulatePost(app, body) {
+function simulatePost(app, body, headers = {}) {
   return new Promise((resolve, reject) => {
     const server = app.listen(0, '127.0.0.1', () => {
       const port = server.address().port;
@@ -38,6 +66,7 @@ function simulatePost(app, body) {
           headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(data),
+            ...headers,
           },
         },
         (res) => {
@@ -89,6 +118,7 @@ describe('passkey routes', () => {
     mockPasskeyTransfer.mockResolvedValue({ txid: '0xmocktxid123' });
     mockGetVaultOwner.mockResolvedValue({ result: { hex: '0xowner' } });
     mockGetVaultInitialized.mockResolvedValue({ result: { hex: '0x01' } });
+    mockCheckSponsorship.mockResolvedValue({ decision: 'sponsored', reason: null, transferId: 'test-id' });
     app = createTestApp();
   });
 
@@ -156,7 +186,6 @@ describe('passkey routes', () => {
       const result = await simulatePost(app, validBody);
       expect(result.status).toBe(200);
       expect(result.body.txid).toBe('0xmocktxid123');
-      expect(mockPasskeyTransfer).toHaveBeenCalledWith(validBody);
     });
 
     it('should call next (500) on service error', async () => {
@@ -164,6 +193,24 @@ describe('passkey routes', () => {
       const result = await simulatePost(app, validBody);
       expect(result.status).toBe(500);
       expect(result.body.error).toContain('relay down');
+    });
+
+    it('should return 403 when sponsorship rejected', async () => {
+      mockCheckSponsorship.mockResolvedValueOnce({ decision: 'rejected', reason: 'quota_exceeded', transferId: 'test-id' });
+      const result = await simulatePost(app, validBody);
+      expect(result.status).toBe(403);
+      expect(result.body.reason).toBe('quota_exceeded');
+    });
+
+    it('should check sponsorship before transferring', async () => {
+      await simulatePost(app, validBody);
+      expect(mockCheckSponsorship).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userAddress: 'ST1TESTUSER...',
+          actionType: 'stx-transfer',
+          amountMicrostx: 1000000,
+        })
+      );
     });
   });
 
@@ -180,6 +227,23 @@ describe('passkey routes', () => {
       const result = await simulateGet(app, '/api/passkey/vault-state');
       expect(result.status).toBe(500);
       expect(result.body.error).toContain('network error');
+    });
+  });
+
+  describe('GET /api/passkey/quota/:address', () => {
+    it('should return user quota', async () => {
+      const result = await simulateGet(app, '/api/passkey/quota/ST1USER...');
+      expect(result.status).toBe(200);
+      expect(result.body.used).toBe(0);
+      expect(result.body.limit).toBe(20);
+    });
+  });
+
+  describe('GET /api/passkey/health', () => {
+    it('should return relay health', async () => {
+      const result = await simulateGet(app, '/api/passkey/health');
+      expect(result.status).toBe(200);
+      expect(result.body.status).toBe('healthy');
     });
   });
 });

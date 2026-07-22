@@ -3,7 +3,7 @@ import type { ServiceResponse } from '../types';
 export const API_BASE = import.meta.env.VITE_API_BACKEND
   || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3001/api'
-    : 'https://cinex-backend-zo1r.onrender.com/api');
+    : 'https://cine-x-api.vercel.app/api');
 
 function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());

@@ -7,6 +7,8 @@
  *
  * This is the "relay" in the passkey wallet architecture:
  *   Frontend (P-256 passkey) → Backend (secp256k1 relay) → Stacks blockchain
+ *
+ * v4: Integrates with sponsorService for sponsorship tracking and audit logging.
  */
 
 import {
@@ -14,19 +16,22 @@ import {
   AnchorMode,
   PostConditionMode,
   standardPrincipalCV,
+  principalCV,
   uintCV,
   bufferCV,
   tupleCV,
   someCV,
   noneCV,
+  stringAsciiCV,
   getAddressFromPrivateKey,
   TransactionVersion,
 } from '@stacks/transactions';
 import { StacksTestnet } from '@stacks/network';
+import { recordTransfer, confirmTransfer, failTransfer } from './sponsorService.js';
 
 const API_URL = 'https://api.testnet.hiro.so';
-const VAULT_CONTRACT_ADDRESS = 'ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX';
-const VAULT_CONTRACT_NAME = 'cinex-smart-vault-v3';
+const DEFAULT_VAULT_CONTRACT_ADDRESS = 'ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX';
+const DEFAULT_VAULT_CONTRACT_NAME = 'cinex-smart-vault-v4';
 
 let _initialized = false;
 let _network = null;
@@ -78,40 +83,52 @@ async function ensureNonce() {
 async function broadcast(signedTxHex) {
   const resp = await fetch(`${API_URL}/v2/transactions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: signedTxHex,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tx: signedTxHex }),
   });
   const text = await resp.text();
   if (!resp.ok) {
     throw new Error(`Hiro API ${resp.status}: ${text.substring(0, 200)}`);
   }
-  // Hiro returns raw txid string on success, or {txid: "..."} sometimes
+  // Hiro API returns either {"txid":"0x..."} or bare "0x..."
   let txid;
   try {
     const parsed = JSON.parse(text);
-    txid = parsed.txid || text.trim();
+    txid = (typeof parsed === 'object' && parsed?.txid) ? parsed.txid : String(parsed);
   } catch {
     txid = text.trim();
   }
-  return txid.startsWith('0x') ? txid : `0x${txid}`;
+  // Extract hex txid — strip all quotes and whitespace
+  txid = txid.replace(/["']/g, '').trim();
+  if (!txid.startsWith('0x')) txid = `0x${txid}`;
+  return txid;
 }
 
 /**
- * Execute a passkey-signed STX transfer via the vault contract.
+ * Execute a passkey-signed STX transfer via the vault contract (v4 SIP-018).
  *
  * @param {Object} params
+ * @param {string} params.domainName - SIP-018 domain name (must match Clarity constant)
+ * @param {string} params.domainVersion - SIP-018 domain version
+ * @param {number} params.domainChainId - SIP-018 chain ID (1 or 2143456)
+ * @param {string} params.domainWallet - Vault contract principal (binds signature to this vault)
  * @param {string} params.recipient - Stacks principal to receive STX
  * @param {number} params.amount - Amount in micro-STX
- * @param {number} params.authId - Monotonic auth ID (anti-replay)
+ * @param {number} params.authId - Monotonic auth ID (anti-replay, in message params)
  * @param {string} params.pubkey - 33-byte hex P-256 public key
  * @param {string} params.signature - 64-byte hex P-256 signature
  * @param {string} params.authenticatorData - Hex-encoded authenticator data
  * @param {string} params.clientDataPrefix - Hex-encoded client data prefix
  * @param {string} params.clientDataSuffix - Hex-encoded client data suffix
  * @param {string} [params.memo] - Optional 34-byte memo hex
- * @returns {Promise<{txid: string}>}
+ * @param {string} [params.transferId] - Relay transfer ID from sponsorService (for audit tracking)
+ * @returns {Promise<{txid: string, transferId: string|null}>}
  */
 async function passkeyTransfer({
+  domainName,
+  domainVersion,
+  domainChainId,
+  domainWallet,
   recipient,
   amount,
   authId,
@@ -121,14 +138,23 @@ async function passkeyTransfer({
   clientDataPrefix,
   clientDataSuffix,
   memo,
+  transferId,
+  vaultAddress,
+  vaultName,
 }) {
   if (!_initialized || !_relayKey) {
-    throw new Error('Passkey relay not initialized — CREATOR_KEY required');
+    // Lazy re-init: try once more (handles Vercel cold-start race)
+    init();
+    if (!_initialized || !_relayKey) {
+      throw new Error('Passkey relay not initialized — CREATOR_KEY required');
+    }
   }
 
-  // Build the sig-auth tuple matching the Clarity contract's struct definition
+  const contractAddr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const contractName = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
+
+  // v4: auth-id is in message params, NOT in sig-auth tuple
   const sigAuth = tupleCV({
-    'auth-id': uintCV(authId),
     pubkey: bufferCV(Buffer.from(pubkey, 'hex')),
     signature: bufferCV(Buffer.from(signature, 'hex')),
     'authenticator-data': bufferCV(Buffer.from(authenticatorData, 'hex')),
@@ -136,19 +162,25 @@ async function passkeyTransfer({
     'client-data-suffix': bufferCV(Buffer.from(clientDataSuffix, 'hex')),
   });
 
+  // v4: domain + message + sig-auth
   const functionArgs = [
-    uintCV(amount),
-    standardPrincipalCV(recipient),
-    memo ? someCV(bufferCV(Buffer.from(memo, 'hex'))) : noneCV(),
-    sigAuth,
+    stringAsciiCV(domainName),                // domain-name
+    stringAsciiCV(domainVersion),             // domain-version
+    uintCV(domainChainId),                    // domain-chain-id
+    principalCV(domainWallet),                // domain-wallet
+    uintCV(authId),                           // msg-auth-id
+    uintCV(amount),                           // msg-amount
+    standardPrincipalCV(recipient),           // msg-recipient
+    memo ? someCV(bufferCV(Buffer.from(memo, 'hex'))) : noneCV(), // msg-memo
+    sigAuth,                                  // sig-auth
   ];
 
   // Import @stacks/transactions (already cached from contractService.js import)
   const nonce = await ensureNonce();
 
   const tx = await makeContractCall({
-    contractAddress: VAULT_CONTRACT_ADDRESS,
-    contractName: VAULT_CONTRACT_NAME,
+    contractAddress: contractAddr,
+    contractName: contractName,
     functionName: 'stx-transfer',
     functionArgs,
     senderKey: _relayKey,
@@ -157,16 +189,37 @@ async function passkeyTransfer({
     postConditionMode: PostConditionMode.Allow,
     fee: 100000, // 0.1 STX
     nonce,
+    clarityVersion: 4,
   });
 
-  const serializedTx = tx.serialize().toString('hex');
+  const ser = tx.serialize();
+  let serializedTx;
+  if (typeof ser === 'string') {
+    serializedTx = ser;
+  } else {
+    serializedTx = Buffer.from(ser).toString('hex');
+  }
   const txid = await broadcast(serializedTx);
 
   // Advance nonce locally
   _nonce = nonce + 1;
 
+  // Record successful broadcast in relay audit log
+  const gasCostStx = 0.1; // matches fee: 100000
+  try {
+    await recordTransfer({
+      userAddress: domainWallet,
+      amountMicrostx: amount,
+      gasCostStx,
+      txHash: txid,
+      transferId,
+    });
+  } catch (err) {
+    console.warn('[passkeyService] Failed to record transfer:', err.message);
+  }
+
   console.log(`[passkeyService] Transfer broadcast: ${txid}`);
-  return { txid };
+  return { txid, transferId };
 }
 
 /**
@@ -207,9 +260,16 @@ async function getVaultInitialized() {
   return resp.json();
 }
 
+function isInitialized() {
+  return _initialized;
+}
+
 export {
   init,
   passkeyTransfer,
   getVaultOwner,
   getVaultInitialized,
+  isInitialized,
+  confirmTransfer,
+  failTransfer,
 };
