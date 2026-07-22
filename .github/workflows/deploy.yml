@@ -33,4 +33,3 @@ jobs:
           VERCEL_ORG_ID: team_PH6pa81fDqeN5bXrKdiJRLzU
           VERCEL_PROJECT_ID: prj_epPtEBx4ErPk6mfDkgnKSkSn5YmM
         run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: backend
