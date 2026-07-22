@@ -7,6 +7,7 @@ import { convertCurrency, getConversionRates } from '../../services/walletServic
 
 const CURRENCIES = [
   { value: 'stx', label: 'STX' },
+  { value: 'usdcx', label: 'Digital $ (USDCx)' },
   { value: 'usd', label: 'USD' },
   { value: 'ngn', label: 'NGN' },
 ];

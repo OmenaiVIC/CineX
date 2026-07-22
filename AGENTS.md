@@ -265,6 +265,28 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 4. **Clean up debug scripts** — `app/scripts/debug-tx.mjs` (remove after E2E passes)
 5. **Restore frontend `.vercel/project.json`** to cine-x (currently set to cine-x-api for backend testing)
 
+### Done This Session (2026-07-22 cont.)
+- **6.6 Deposit/Withdraw/Sign Flows — COMPLETE (frontend hooks + UI):**
+  - `app/src/services/tokenService.ts` — SIP-010 balance, STX balance, tx status polling via Hiro API
+  - `app/src/hooks/useTransaction.ts` — 6-state lifecycle (idle → building → signing → broadcasting → confirming → confirmed|failed|cancelled), localStorage persistence, Hiro tx polling (3s interval, 90s timeout)
+  - `app/src/hooks/useBalance.ts` — Unified on-chain STX + USDCx + backend NGN/USD balance
+  - `app/src/hooks/useIdempotencyKey.ts` — UUID-based duplicate submission prevention (10min expiry)
+  - `app/src/hooks/useDeposit.ts` — Deposit flow via backend escrow endpoint
+  - `app/src/hooks/useWithdraw.ts` — Withdraw flow via backend escrow endpoint
+  - `app/src/components/wallet/TxStatusTimeline.tsx` — Visual status timeline for money-movement flows (5 steps with check/spinner/error/skip states)
+  - `app/src/components/common/TransactionModal.tsx` — Upgraded with `lifecycleState` prop and TxStatusTimeline integration; backward-compatible with legacy 4-state mode
+  - `app/src/components/wallet/WalletBalance.tsx` — Now shows on-chain STX + USDCx balances alongside backend NGN/USD book balance
+  - `app/src/components/wallet/FundWalletModal.tsx` — Added "Digital $" tab (USDCx) with passkey-signed on-chain deposit
+  - `app/src/components/wallet/SendMoneyForm.tsx` — Added "Digital $" tab (USDCx) with passkey-signed on-chain send
+  - `app/src/components/wallet/CurrencyConverter.tsx` — Added USDCx to currency list
+  - `app/src/config/contractAddresses.ts` — Added `usdcx` and `asset_registry` contract keys
+  - `app/src/utils/network.ts` — Added `usdcx` and `asset_registry` env var mappings
+  - `app/src/types/index.ts` — Added `TxLifecycleState`, `PendingTx`, `DepositParams`, `WithdrawParams`
+  - **USDCx contract addresses**: Testnet `ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx`, Mainnet `SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE.usdcx`
+  - **Escrow USDCx support confirmed**: `milestone-escrow.clar` has `deposit-token` (SIP-010) + `release-milestone-funds-token`; `deposit-to-campaign` is STX-only (backward-compat alias)
+  - **Funding pool is STX-only** — no USDCx support
+  - Vite build passes (0 errors); 523/523 previously passing tests still pass
+
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`

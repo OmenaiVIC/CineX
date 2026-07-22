@@ -8,6 +8,40 @@ export interface ServiceResponse<T> {
 export type TransactionStatus = 'pending' | 'success' | 'failed' | 'cancelled';
 export type NetworkType = 'testnet' | 'mainnet';
 
+export type TxLifecycleState =
+  | 'idle'
+  | 'building'
+  | 'signing'
+  | 'broadcasting'
+  | 'confirming'
+  | 'confirmed'
+  | 'failed'
+  | 'cancelled';
+
+export interface PendingTx {
+  id: string;
+  type: 'deposit' | 'withdraw' | 'send' | 'approve';
+  txid?: string;
+  status: TxLifecycleState;
+  amount: number;
+  token: 'STX' | 'USDCx';
+  createdAt: number;
+  confirmedAt?: number;
+  error?: string;
+  explorerUrl?: string;
+}
+
+export interface DepositParams {
+  campaignId: number;
+  amountMicro: number;
+}
+
+export interface WithdrawParams {
+  campaignId: number;
+  amountMicro: number;
+  recipient: string;
+}
+
 export interface BaseTransaction {
   txId: string;
   status: TransactionStatus;
