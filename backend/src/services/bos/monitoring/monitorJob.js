@@ -169,7 +169,7 @@ export async function checkDestinationReleaseFailures() {
       `SELECT d.id, d.status, d.updated_at,
               EXTRACT(EPOCH FROM (NOW() - d.updated_at)) * 1000 AS ms_in_state
        FROM disbursements d
-       WHERE d.status = 'attestation_received'
+       WHERE d.status = 'attestation_confirmed'
          AND EXTRACT(EPOCH FROM (NOW() - d.updated_at)) * 1000 > $1`,
       [thresholdConfig.THRESHOLDS_MS.destination_release_failure]
     );

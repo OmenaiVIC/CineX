@@ -247,6 +247,138 @@ describe('BOS Transition Guards', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// 3b. Destination Release Transitions (7.3)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('BOS Destination Release Transitions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset mock queues to prevent leaking between tests
+    mockDb.get.mockReset();
+    mockDb.run.mockReset();
+    mockDb.all.mockReset();
+    // Re-apply default implementations after reset
+    mockDb.get.mockResolvedValue(undefined);
+    mockDb.run.mockResolvedValue(undefined);
+    mockDb.all.mockResolvedValue([]);
+  });
+
+  it('isDestinationReleased returns ok when xReserve confirms', async () => {
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    const ctx = makeCtx();
+    const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_SUBMITTED });
+    const result = await isDestinationReleased(disp, ctx);
+    expect(result.ok).toBe(true);
+    expect(result.details.release_id).toBe('rel-001');
+  });
+
+  it('isDestinationReleased returns error when no release ref exists', async () => {
+    mockDb.get.mockResolvedValueOnce(undefined);
+    const ctx = makeCtx();
+    const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_SUBMITTED });
+    const result = await isDestinationReleased(disp, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.error_code).toBe('u8224');
+  });
+
+  it('isDestinationReleased returns error when release still pending', async () => {
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    const ctx = makeCtx({
+      adapters: {
+        ...makeCtx().adapters,
+        xreserve: {
+          ...makeCtx().adapters.xreserve,
+          getReleaseStatus: vi.fn().mockResolvedValue({ status: 'pending', release_id: 'rel-001' }),
+        },
+      },
+    });
+    const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_SUBMITTED });
+    const result = await isDestinationReleased(disp, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.error_code).toBe('u8225');
+  });
+
+  it('isDestinationReleased returns error when xReserve API fails', async () => {
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    const ctx = makeCtx({
+      adapters: {
+        ...makeCtx().adapters,
+        xreserve: {
+          ...makeCtx().adapters.xreserve,
+          getReleaseStatus: vi.fn().mockRejectedValue(new Error('xReserve timeout')),
+        },
+      },
+    });
+    const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_SUBMITTED });
+    const result = await isDestinationReleased(disp, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.error_code).toBe('u8226');
+  });
+
+  it('attestationConfirmedForRelease guard re-validates attestation', async () => {
+    const { attestationConfirmedForRelease } = await import('../backend/src/services/bos/transitionGuards.js');
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'att-001' });
+    const ctx = makeCtx();
+    const disp = makeDisbursement({ id: 'disp-001', status: S.ATTESTATION_CONFIRMED });
+    const result = await attestationConfirmedForRelease(disp, ctx);
+    expect(result.ok).toBe(true);
+    expect(ctx.adapters.xreserve.getAttestationStatus).toHaveBeenCalledWith('att-001');
+  });
+
+  it('destinationReleasedForPayout guard re-validates release', async () => {
+    const { destinationReleasedForPayout } = await import('../backend/src/services/bos/transitionGuards.js');
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    const ctx = makeCtx();
+    const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_CONFIRMED });
+    const result = await destinationReleasedForPayout(disp, ctx);
+    expect(result.ok).toBe(true);
+    expect(ctx.adapters.xreserve.getReleaseStatus).toHaveBeenCalledWith('rel-001');
+  });
+
+  it('destination_release_submitted → failed (within retry budget)', async () => {
+    const ctx = makeCtx();
+    const disp = makeDisbursement({ status: S.DESTINATION_RELEASE_SUBMITTED, retry_count: 0, max_retries: 3 });
+    const result = await executeTransition(disp, S.FAILED, ctx);
+    expect(result.success).toBe(true);
+    expect(result.new_state).toBe(S.FAILED);
+  });
+
+  it('attestation_confirmed → destination_release_submitted (happy path via executeTransition)', async () => {
+    const ctx = makeCtx();
+    // Guard: attestationConfirmedForRelease → isAttestationConfirmed → getExternalRef
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'att-001' });
+    // Action: submitDestinationRelease → _getAttestationId → getExternalRef
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'att-001' });
+    // Action: upsertExternalRef → db.run
+    mockDb.run.mockResolvedValueOnce(undefined);
+
+    const disp = makeDisbursement({ status: S.ATTESTATION_CONFIRMED, id: 'disp-001' });
+    const result = await executeTransition(disp, S.DESTINATION_RELEASE_SUBMITTED, ctx);
+    expect(result.success).toBe(true);
+    expect(result.new_state).toBe(S.DESTINATION_RELEASE_SUBMITTED);
+    expect(ctx.adapters.xreserve.releaseDestination).toHaveBeenCalledWith(
+      expect.objectContaining({ attestation_id: 'att-001' })
+    );
+  });
+
+  it('destination_release_submitted → destination_release_confirmed (happy path via executeTransition)', async () => {
+    const ctx = makeCtx();
+    // Guard: isDestinationReleased → getExternalRef
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    // Action: confirmDestinationRelease → getExternalRef
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    // Action: upsertExternalRef → db.run
+    mockDb.run.mockResolvedValueOnce(undefined);
+
+    const disp = makeDisbursement({ status: S.DESTINATION_RELEASE_SUBMITTED, id: 'disp-001' });
+    const result = await executeTransition(disp, S.DESTINATION_RELEASE_CONFIRMED, ctx);
+    expect(result.success).toBe(true);
+    expect(result.new_state).toBe(S.DESTINATION_RELEASE_CONFIRMED);
+    expect(ctx.adapters.xreserve.getReleaseStatus).toHaveBeenCalledWith('rel-001');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // 4. Transition Actions (DB helpers)
 // ═══════════════════════════════════════════════════════════════════════════════
 
