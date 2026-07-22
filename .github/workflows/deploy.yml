@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Deploy to Vercel
@@ -20,8 +23,15 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Vercel (backend)
-        run: |
-          npm install --global vercel@latest
-          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: .
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Deploy backend to Vercel
+        env:
+          VERCEL_ORG_ID: team_PH6pa81fDqeN5bXrKdiJRLzU
+          VERCEL_PROJECT_ID: prj_epPtEBx4ErPk6mfDkgnKSkSn5YmM
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: backend
