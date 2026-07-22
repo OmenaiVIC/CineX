@@ -18,7 +18,6 @@ jobs:
           VERCEL_ORG_ID: team_PH6pa81fDqeN5bXrKdiJRLzU
           VERCEL_PROJECT_ID: prj_oDyqNeKh2fOyna3nRLvAGNTAZxWP
         run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: app
 
   deploy-backend:
     runs-on: ubuntu-latest
