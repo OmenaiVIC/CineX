@@ -13,6 +13,26 @@
 
 const YELLOW_CARD_API_URL = process.env.YELLOW_CARD_API_URL || 'https://api.yellowcard.io/v1';
 const YELLOW_CARD_API_KEY = process.env.YELLOW_CARD_API_KEY || '';
+const YELLOW_CARD_ENV = process.env.YELLOW_CARD_ENV || 'production'; // 'sandbox' | 'production'
+const YELLOW_CARD_WEBHOOK_SECRET = process.env.YELLOW_CARD_WEBHOOK_SECRET || '';
+
+/**
+ * Error taxonomy for Yellow Card API errors.
+ * transient: network timeout, 5xx, rate limit — safe to retry
+ * permanent: 4xx (except 429), invalid request — do NOT retry
+ * unknown: unexpected error shape
+ */
+export function classifyError(error) {
+  if (error && error.name === 'AbortError') return 'transient';
+  if (error && error.name === 'TypeError' && error.message?.includes('fetch')) return 'transient';
+  const status = error?.status || error?.statusCode;
+  if (status) {
+    if (status === 429) return 'transient';
+    if (status >= 500) return 'transient';
+    if (status >= 400 && status < 500) return 'permanent';
+  }
+  return 'unknown';
+}
 
 /**
  * Build common fetch options for Yellow Card API calls
@@ -21,8 +41,60 @@ function _headers(extra = {}) {
   return {
     'Content-Type': 'application/json',
     ...(YELLOW_CARD_API_KEY ? { 'Authorization': `Bearer ${YELLOW_CARD_API_KEY}` } : {}),
+    ...(YELLOW_CARD_ENV === 'sandbox' ? { 'X-Environment': 'sandbox' } : {}),
     ...extra,
   };
+}
+
+/**
+ * Execute a fetch with timeout and error classification
+ */
+async function _fetch(url, options = {}, { timeoutMs = 10000 } = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return resp;
+  } catch (err) {
+    clearTimeout(timer);
+    const classified = classifyError(err);
+    err._classification = classified;
+    throw err;
+  }
+}
+
+/**
+ * Compute HMAC-SHA256 signature for webhook payload verification
+ *
+ * @param {string|Buffer} payload — raw request body
+ * @param {string} secret — webhook signing secret
+ * @returns {string} hex-encoded HMAC signature
+ */
+export function signWebhook(payload, secret = YELLOW_CARD_WEBHOOK_SECRET) {
+  if (!secret) return '';
+  const crypto = require('crypto');
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(typeof payload === 'string' ? payload : JSON.stringify(payload));
+  return hmac.digest('hex');
+}
+
+/**
+ * Verify a webhook signature against the expected HMAC
+ *
+ * @param {string|Buffer} payload — raw request body
+ * @param {string} signature — signature from webhook header (may include 'sha256=' prefix)
+ * @param {string} secret — webhook signing secret
+ * @returns {boolean} true if signature is valid
+ */
+export function verifyWebhookSignature(payload, signature, secret = YELLOW_CARD_WEBHOOK_SECRET) {
+  if (!secret || !signature) return false;
+  const expected = signWebhook(payload, secret);
+  const cleanSig = signature.replace('sha256=', '');
+  if (typeof crypto !== 'undefined' && crypto.timingSafeEqual) {
+    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(cleanSig, 'hex'));
+  }
+  return expected === cleanSig;
 }
 
 /**
@@ -39,7 +111,7 @@ function _headers(extra = {}) {
  */
 export async function initiatePayout({ idempotency_key, amount, recipient_type, recipient, currency, callback_url }) {
   const url = `${YELLOW_CARD_API_URL}/payments`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'POST',
     headers: _headers({ 'X-Idempotency-Key': idempotency_key || '' }),
     body: JSON.stringify({
@@ -53,7 +125,10 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`Yellow Card payout failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`Yellow Card payout failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -72,14 +147,17 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
  */
 export async function getPayoutStatus(payoutId) {
   const url = `${YELLOW_CARD_API_URL}/payments/${payoutId}`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'GET',
     headers: _headers(),
   });
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`Yellow Card status query failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`Yellow Card status query failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -100,11 +178,10 @@ export async function getPayoutStatus(payoutId) {
 export async function healthCheck() {
   const start = Date.now();
   try {
-    const resp = await fetch(`${YELLOW_CARD_API_URL}/health`, {
+    const resp = await _fetch(`${YELLOW_CARD_API_URL}/health`, {
       method: 'GET',
       headers: _headers(),
-      signal: AbortSignal.timeout(5000),
-    });
+    }, { timeoutMs: 5000 });
     return { healthy: resp.ok, latencyMs: Date.now() - start };
   } catch (err) {
     return { healthy: false, latencyMs: Date.now() - start, error: err.message };
@@ -115,4 +192,7 @@ export default {
   initiatePayout,
   getPayoutStatus,
   healthCheck,
+  signWebhook,
+  verifyWebhookSignature,
+  classifyError,
 };

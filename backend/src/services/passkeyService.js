@@ -26,10 +26,10 @@ import {
   getAddressFromPrivateKey,
   TransactionVersion,
 } from '@stacks/transactions';
-import { StacksTestnet } from '@stacks/network';
+import { HIRO_API_URL, networkInstance, txVersion } from '../config/chain.js';
 import { recordTransfer, confirmTransfer, failTransfer } from './sponsorService.js';
 
-const API_URL = 'https://api.testnet.hiro.so';
+const API_URL = HIRO_API_URL;
 const DEFAULT_VAULT_CONTRACT_ADDRESS = 'ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX';
 const DEFAULT_VAULT_CONTRACT_NAME = 'cinex-smart-vault-v4';
 
@@ -54,8 +54,8 @@ function init() {
 
   try {
     _relayKey = creatorKey;
-    _relayAddress = getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet);
-    _network = new StacksTestnet({ url: API_URL });
+    _relayAddress = getAddressFromPrivateKey(creatorKey, txVersion);
+    _network = networkInstance;
     _initialized = true;
     console.log(`[passkeyService] Initialized. Relay address: ${_relayAddress}`);
   } catch (err) {

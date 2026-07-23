@@ -10,6 +10,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import TransactionModal, { useTxModal } from '../components/common/TransactionModal';
 import { getVerificationStatus, applyForVerification } from '../services/verificationService';
+import { CATEGORIES } from '../constants/categories';
 import * as api from '../services/api';
 
 const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
@@ -18,14 +19,6 @@ function hashIdentity(email: string): Uint8Array {
   const encoder = new TextEncoder();
   return encoder.encode(email).slice(0, 32);
 }
-
-const VERTICALS = [
-  { value: 'film', label: 'Film' },
-  { value: 'music', label: 'Music' },
-  { value: 'gaming', label: 'Gaming' },
-  { value: 'immersive-media', label: 'Immersive Media' },
-  { value: 'other', label: 'Other' },
-];
 
 export default function VerificationPage() {
   const { currentUser } = useDemoMode();
@@ -314,7 +307,7 @@ export default function VerificationPage() {
                     onChange={e => setProjectVertical(e.target.value)}
                     className="w-full px-4 py-3 text-sm text-white bg-transparent border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
                   >
-                    {VERTICALS.map(v => <option key={v.value} value={v.value}>{v.label}</option>)}
+                    {CATEGORIES.map(v => <option key={v.value} value={v.value}>{v.label}</option>)}
                   </select>
                 </div>
               )}

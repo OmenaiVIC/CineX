@@ -5,6 +5,46 @@
  */
 
 import { DisbursementState } from './types.js';
+import { USDCX_CONTRACT } from '../../config/chain.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Action: runPreflightCheck
+// disbursement_initiated → preflight_check
+// Runs all financial safety gates before the burn phase
+// ─────────────────────────────────────────────────────────────────────────────
+export async function runPreflightCheck(disbursement, ctx) {
+  const log = ctx.getLogger('transition:runPreflightCheck');
+  const db = ctx.getDb();
+
+  log.info({ id: disbursement.id }, 'Running preflight check');
+
+  const { runPreflight } = await import('./preflight.js');
+  const result = await runPreflight(disbursement, ctx);
+
+  // ── Record each gate result in payout_gates table ────────────────────
+  if (result.gate_results) {
+    for (const gate of result.gate_results) {
+      await db.run(
+        `INSERT INTO payout_gates (disbursement_id, gate_name, passed, error_code, reason, warning, details, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [disbursement.id, gate.gate, gate.ok, gate.error_code, gate.reason, gate.warning, JSON.stringify(gate.details || {})]
+      );
+    }
+  }
+
+  if (!result.ok) {
+    log.warn({ id: disbursement.id, action: result.action, gates: result.gate_results?.map(g => g.gate) },
+      'Preflight failed — moving to manual review');
+  } else {
+    log.info({ id: disbursement.id, gates: result.gate_results?.length }, 'Preflight passed');
+  }
+
+  return {
+    preflight_result: result.ok ? 'passed' : 'failed',
+    action: result.action || null,
+    gate_results: result.gate_results || [],
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Action: submitBurn
@@ -64,7 +104,7 @@ export async function requestAttestation(disbursement, ctx) {
 
   const attestation = await ctx.adapters.xreserve.requestAttestation({
     tx_id: disbursement.external_tx_id,
-    token_contract: process.env.USDCX_CONTRACT || 'SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE.usdcx',
+    token_contract: USDCX_CONTRACT,
     amount_sats: disbursement.amount_usdcx,
   });
 
@@ -173,7 +213,7 @@ export async function submitYellowCardPayout(disbursement, ctx) {
     recipient_type: 'mobile_money',
     recipient: disbursement.ngn_recipient || {},
     currency: 'NGN',
-    callback_url: `${process.env.BASE_URL || 'http://localhost:3001'}/api/bos/webhooks/yellowcard`,
+    callback_url: `${process.env.BASE_URL || 'https://cine-x-api.vercel.app'}/api/bos/webhooks/yellowcard`,
   });
 
   await upsertExternalRef(db, disbursement.id, 'yellowcard', 'payout_id', payout.payout_id, {

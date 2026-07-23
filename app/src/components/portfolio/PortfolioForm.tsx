@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import MediaLinkCard from './MediaLinkCard';
 import { API_BASE } from '../../services/api';
+import { CATEGORY_VALUES } from '../../constants/categories';
 import type { PortfolioItem } from '../../types';
 
 interface PortfolioFormProps {
@@ -13,12 +14,12 @@ interface PortfolioFormProps {
   onCancel: () => void;
 }
 
-const CATEGORIES = ['short-film', 'feature', 'documentary', 'music-video', 'web-series'] as const;
+const CATEGORIES = CATEGORY_VALUES;
 
 export default function PortfolioForm({ address, item, onSubmit, onCancel }: PortfolioFormProps) {
   const [title, setTitle] = useState(item?.title || '');
   const [description, setDescription] = useState(item?.description || '');
-  const [category, setCategory] = useState(item?.category || 'short-film');
+  const [category, setCategory] = useState(item?.category || 'film');
   const [role, setRole] = useState(item?.role || '');
   const [year, setYear] = useState(String(item?.year || new Date().getFullYear()));
   const [mediaUrlInput, setMediaUrlInput] = useState('');
@@ -143,13 +144,13 @@ export default function PortfolioForm({ address, item, onSubmit, onCancel }: Por
                 className="w-full px-4 py-3 text-sm text-white bg-[#0a0a0f] border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
               >
                 {CATEGORIES.map(c => (
-                  <option key={c} value={c}>{c.replace('-', ' ')}</option>
+                  <option key={c} value={c}>{c.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Role</label>
-              <Input value={role} onChange={e => setRole(e.target.value)} placeholder="e.g. Director, DP" />
+              <Input value={role} onChange={e => setRole(e.target.value)} placeholder="Your role" />
             </div>
           </div>
 

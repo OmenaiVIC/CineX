@@ -15,8 +15,9 @@
  */
 
 import { getDb } from '../database.js';
+import { HIRO_API_URL } from '../config/chain.js';
 
-const HIRO_API = 'https://api.testnet.hiro.so';
+const HIRO_API = HIRO_API_URL;
 
 // ---------------------------------------------------------------------------
 // Balance check

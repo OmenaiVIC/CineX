@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import contractService from '../services/contractService.js';
+import { STACKS_NETWORK, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, EXPLORER_URL, HIRO_API_URL } from '../config/chain.js';
 
 const router = Router();
 
@@ -11,11 +12,11 @@ router.use(requireAuth, requireAdmin);
 router.get('/system-status', async (req, res, next) => {
   try {
     res.json({
-      network: 'testnet',
-      deployer: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-      v2Deployer: 'STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12',
-      explorerBase: 'https://explorer.hiro.so/txid',
-      apiBase: 'https://api.testnet.hiro.so',
+      network: STACKS_NETWORK,
+      deployer: DEPLOYER_ADDRESS,
+      v2Deployer: V2_DEPLOYER_ADDRESS,
+      explorerBase: EXPLORER_URL,
+      apiBase: HIRO_API_URL,
     });
   } catch (err) { next(err); }
 });

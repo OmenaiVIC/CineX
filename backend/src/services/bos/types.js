@@ -17,6 +17,7 @@
  */
 export const DisbursementState = {
   DISBURSEMENT_INITIATED:       'disbursement_initiated',
+  PREFLIGHT_CHECK:              'preflight_check',
   BURN_SUBMITTED:               'burn_submitted',
   BURN_CONFIRMED:               'burn_confirmed',
   ATTESTATION_REQUESTED:        'attestation_requested',

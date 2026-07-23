@@ -11,7 +11,7 @@ function toItem(m: Record<string, unknown>): PortfolioItem {
     address: String(m.address || ''),
     title: String(m.title || ''),
     description: String(m.description || ''),
-    category: (m.category as PortfolioItem['category']) || 'short-film',
+    category: (m.category as PortfolioItem['category']) || 'film',
     role: String(m.role || ''),
     year: Number(m.year || new Date().getFullYear()),
     mediaUrls: Array.isArray(rawMedia) ? rawMedia : [],

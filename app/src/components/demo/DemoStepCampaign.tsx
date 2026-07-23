@@ -16,9 +16,9 @@ interface Milestone {
 
 function initMilestones(): Milestone[] {
   return [
-    { name: 'Pre-Production', amount: '20' },
-    { name: 'Principal Photography', amount: '50' },
-    { name: 'Post-Production', amount: '30' },
+    { name: 'Planning', amount: '20' },
+    { name: 'Development', amount: '50' },
+    { name: 'Delivery', amount: '30' },
   ];
 }
 

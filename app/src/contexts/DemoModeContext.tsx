@@ -10,7 +10,7 @@ interface CurrentUser {
   role: UserRole;
 }
 
-interface DemoModeContextValue {
+export interface DemoModeContextType {
   currentUser: CurrentUser | null;
   isOnboarded: boolean;
   isDemoMode: boolean;
@@ -23,7 +23,7 @@ interface DemoModeContextValue {
   grantAdmin: (address: string) => void;
 }
 
-const DemoModeContext = createContext<DemoModeContextValue | null>(null);
+export const DemoModeContext = createContext<DemoModeContextType | null>(null);
 
 const STORAGE_KEY = 'cinex_demo_identity';
 
@@ -163,7 +163,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useDemoMode(): DemoModeContextValue {
+export function useDemoMode(): DemoModeContextType {
   const ctx = useContext(DemoModeContext);
   if (!ctx) {
     throw new Error('useDemoMode must be used within DemoModeProvider');

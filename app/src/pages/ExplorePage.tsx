@@ -5,15 +5,12 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import { useCampaigns } from '../hooks/useCampaigns';
+import { CATEGORIES } from '../constants/categories';
 import type { Campaign } from '../types';
 
-const CATEGORIES = [
+const CATEGORY_FILTER = [
   { value: '', label: 'All Categories' },
-  { value: 'short-film', label: 'Short Film' },
-  { value: 'feature', label: 'Feature' },
-  { value: 'documentary', label: 'Documentary' },
-  { value: 'music-video', label: 'Music Video' },
-  { value: 'web-series', label: 'Web Series' },
+  ...CATEGORIES,
 ];
 
 const STATUSES = [
@@ -50,7 +47,7 @@ export default function ExplorePage() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <Select
-          options={CATEGORIES}
+          options={CATEGORY_FILTER}
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
           placeholder="All Categories"

@@ -18,12 +18,11 @@ import {
   someCV,
   noneCV,
 } from '@stacks/transactions';
-import { StacksTestnet } from '@stacks/network';
+import { HIRO_API_URL, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, EXPLORER_URL, USDCX_CONTRACT as CHAIN_USDCX, networkInstance, txVersion } from '../config/chain.js';
 
-const API_URL = 'https://api.testnet.hiro.so';
-const EXPLORER_URL = 'https://explorer.hiro.so/txid';
-const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-const V2_DEPLOYER = 'STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12';
+const API_URL = HIRO_API_URL;
+const DEPLOYER = DEPLOYER_ADDRESS;
+const V2_DEPLOYER = V2_DEPLOYER_ADDRESS;
 
 let _initialized = false;
 let _wallets = null;
@@ -34,11 +33,11 @@ function init() {
   if (_initialized) return;
   const creatorKey = process.env.CREATOR_KEY;
   const backerKey = process.env.BACKER_KEY;
-  _network = new StacksTestnet({ url: 'https://api.testnet.hiro.so' });
+  _network = networkInstance;
   _wallets = {};
   if (creatorKey) {
     try {
-      _wallets.creator = { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, TransactionVersion.Testnet) };
+      _wallets.creator = { privateKey: creatorKey, address: getAddressFromPrivateKey(creatorKey, txVersion) };
       console.log(`[contractService] Creator wallet initialized: ${_wallets.creator.address}`);
     } catch (err) {
       console.warn(`[contractService] CREATOR_KEY invalid — skipping (${err.message})`);
@@ -46,7 +45,7 @@ function init() {
   }
   if (backerKey) {
     try {
-      _wallets.backer = { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, TransactionVersion.Testnet) };
+      _wallets.backer = { privateKey: backerKey, address: getAddressFromPrivateKey(backerKey, txVersion) };
       console.log(`[contractService] Backer wallet initialized: ${_wallets.backer.address}`);
     } catch (err) {
       console.warn(`[contractService] BACKER_KEY invalid — skipping (${err.message})`);
@@ -249,7 +248,7 @@ async function getTransactionStatus(txHash) {
 async function burnUsdcx({ amount, memo, idempotencyKey }) {
   if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
   const pk = _wallets.creator.privateKey;
-  const usdcxContract = process.env.USDCX_CONTRACT || 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx';
+  const usdcxContract = CHAIN_USDCX;
   const [addr, name] = usdcxContract.split('.');
   const args = [
     uintCV(amount),
@@ -275,7 +274,7 @@ async function testBroadcast() {
     
     result.step3 = 'nonce fetch';
     const address = _wallets.backer.address;
-    const nonceResp = await fetch(`https://api.testnet.hiro.so/v2/accounts/${address}?proof=0`);
+    const nonceResp = await fetch(`${API_URL}/v2/accounts/${address}?proof=0`);
     const nonceData = await nonceResp.json();
     result.chainNonce = Number(nonceData.nonce);
     result.balance = nonceData.balance;

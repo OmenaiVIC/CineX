@@ -7,14 +7,7 @@ import Select from '../components/ui/Select';
 import TransactionModal, { useTxModal } from '../components/common/TransactionModal';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import { createPool } from '../services/poolService';
-
-const CATEGORIES = [
-  { value: 'short-film', label: 'Short Film' },
-  { value: 'feature', label: 'Feature' },
-  { value: 'documentary', label: 'Documentary' },
-  { value: 'music-video', label: 'Music Video' },
-  { value: 'web-series', label: 'Web Series' },
-];
+import { CATEGORIES } from '../constants/categories';
 
 export default function PoolCreatePage() {
   const navigate = useNavigate();
@@ -25,7 +18,7 @@ export default function PoolCreatePage() {
   const [targetAmount, setTargetAmount] = useState('');
   const [contributionAmount, setContributionAmount] = useState('');
   const [maxMembers, setMaxMembers] = useState('10');
-  const [category, setCategory] = useState('short-film');
+  const [category, setCategory] = useState('film');
   const [deadline, setDeadline] = useState('');
   const [formError, setFormError] = useState('');
 

@@ -68,7 +68,7 @@ export interface Campaign {
   targetAmount: string;
   currentAmount: string;
   deadline: number;
-  category: 'short-film' | 'feature' | 'documentary' | 'music-video' | 'web-series';
+  category: 'film' | 'music' | 'gaming' | 'immersive-media' | 'publishing' | 'visual-art' | 'other';
   status: 'active' | 'funded' | 'failed' | 'completed';
   createdAt: number;
   updatedAt: number;
@@ -127,7 +127,7 @@ export interface VerificationApplication {
 
 type VerificationStatus = 'pending' | 'under-review' | 'approved' | 'rejected';
 
-export interface VerifiedFilmmaker {
+export interface VerifiedCreator {
   address: string;
   name: string;
   bio: string;

@@ -1,6 +1,6 @@
 import type {
   Campaign, Milestone, CampaignContribution, Profile, Rating, FeedEvent,
-  Pool, VerificationApplication, VerifiedFilmmaker, EscrowDeposit, EscrowRelease,
+  Pool, VerificationApplication, VerifiedCreator, EscrowDeposit, EscrowRelease,
   Endorsement, PortfolioItem, Collaboration, CredibilitySummary, UserSettings,
   PoolProposal, ProposalVote, PoolMember,
 } from '../types';
@@ -470,14 +470,14 @@ class DemoState {
     app.reviewer = reviewer;
     if (rejectionReason) app.rejectionReason = rejectionReason;
     if (approved) {
-      const vfm: VerifiedFilmmaker = {
+      const creator: VerifiedCreator = {
         address: app.applicant, name: app.name, bio: app.bio,
         portfolioUrl: app.portfolioUrl, previousWorks: app.previousWorks,
         socialMedia: app.socialMedia, verifiedAt: now(),
         credibilityScore: 75, completedCampaigns: data.campaigns.filter(c => c.creator === app.applicant && c.status === 'completed').length,
         totalFundedAmount: data.campaigns.filter(c => c.creator === app.applicant).reduce((s, c) => s + Number(c.currentAmount), 0).toString(),
       };
-      data.verifiedFilmmakers.push(vfm);
+      data.verifiedCreators.push(creator);
     }
     this.persist(data);
     this.emit('verification:reviewed', { id, approved });
@@ -622,15 +622,15 @@ class DemoState {
     return this.getData().walletBalances.find(w => w.address === address);
   }
 
-  getVerificationStatus(address: string): { applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker } {
+  getVerificationStatus(address: string): { applied: boolean; status?: string; verified: boolean; creator?: VerifiedCreator } {
     const data = this.getData();
     const apps = data.verificationApplications.filter(a => a.applicant === address);
-    const filmmaker = data.verifiedFilmmakers.find(f => f.address === address);
+    const creator = data.verifiedCreators.find(f => f.address === address);
     return {
       applied: apps.length > 0,
       status: apps[0]?.status,
-      verified: !!filmmaker,
-      filmmaker,
+      verified: !!creator,
+      creator,
     };
   }
 
@@ -664,8 +664,8 @@ class DemoState {
     return milestoneId ? data.escrowReleases.filter(r => r.escrowId === milestoneId) : [...data.escrowReleases];
   }
 
-  getVerifiedFilmmakers(): VerifiedFilmmaker[] {
-    return [...this.getData().verifiedFilmmakers];
+  getVerifiedCreators(): VerifiedCreator[] {
+    return [...this.getData().verifiedCreators];
   }
 
   getYieldClaims(campaignId?: string): YieldClaim[] {

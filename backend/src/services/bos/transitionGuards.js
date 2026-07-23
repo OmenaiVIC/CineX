@@ -139,6 +139,17 @@ export async function hasValidExchangeRate(_disbursement, ctx) {
 }
 
 /**
+ * disbursement_initiated → preflight_check
+ * Guard: disbursement exists (no external calls needed — preflight action does the real checks)
+ */
+export function preflightPassed(disbursement, _ctx) {
+  if (!disbursement) {
+    return { ok: false, error_code: 'u8201', reason: 'Disbursement not found' };
+  }
+  return { ok: true };
+}
+
+/**
  * Has the disbursement exceeded its retry budget?
  */
 export function withinRetryBudget(disbursement, _ctx) {

@@ -1,6 +1,6 @@
 import type {
   Campaign, Milestone, CampaignContribution, Profile, Rating, FeedEvent,
-  Pool, VerificationApplication, VerifiedFilmmaker, EscrowDeposit, EscrowRelease,
+  Pool, VerificationApplication, VerifiedCreator, EscrowDeposit, EscrowRelease,
   Endorsement, PortfolioItem, CredibilitySummary, ServiceResponse,
   PoolProposal, ProposalVote, PoolMember, CreateCampaignParams, ContributeToCampaignParams,
 } from '../types';
@@ -338,7 +338,7 @@ export async function addRating(rater: string, ratee: string, score: number, rev
 
 // ── Verification ──
 
-export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker }>> {
+export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; creator?: VerifiedCreator }>> {
   return ok(demoState.getVerificationStatus(address));
 }
 
@@ -362,8 +362,8 @@ export async function reviewApplication(id: string, reviewer: string, approved: 
   } catch (e: any) { return err(e.message); }
 }
 
-export async function getAllVerifiedFilmmakers(): Promise<ServiceResponse<VerifiedFilmmaker[]>> {
-  return ok(demoState.getVerifiedFilmmakers());
+export async function getAllVerifiedCreators(): Promise<ServiceResponse<VerifiedCreator[]>> {
+  return ok(demoState.getVerifiedCreators());
 }
 
 // ── Wallet ──

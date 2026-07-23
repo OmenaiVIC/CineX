@@ -76,15 +76,44 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Vercel (Frontend)**: `cine-x` project. Root `vercel.json` sets `rootDirectory: "app"`. Deployed at `https://cine-x-iota.vercel.app`.
 - **Vercel (Backend)**: `cine-x-api` project (separate for team isolation). Express app with `builds` config in `backend/vercel.json`. Deployed at `https://cine-x-api.vercel.app`. Uses `@vercel/node` runtime, lazy init pattern with `initPromise` middleware.
 - **Neon PostgreSQL**: Primary production database. `DATABASE_URL` → `ep-late-band-zarvw2jh-pooler.neon.tech`. Serverless driver (`NEON_DRIVER=serverless`). Auto-detected via `VERCEL=1` env var.
-- **Environment vars**: `CREATOR_KEY`, `BACKER_KEY`, `DATABASE_URL`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_BOOTSTRAP_KEY`, `RELAY_ADDRESS`, `RELAY_API_KEY`.
+
+## Chain Config
+
+- **Single source of truth**: `backend/src/config/chain.js` — exports `USDCX_CONTRACT`, `HIRO_API_URL`, `STACKS_NETWORK`, `DEPLOYER_ADDRESS`, `V2_DEPLOYER_ADDRESS`, `EXPLORER_URL`, `networkInstance`, `txVersion`
+- All 7 backend files that touch chain config import from this module (no hardcoded addresses/URLs)
+- `STACKS_NETWORK` env var: `"mainnet"` (default) or `"testnet"` — controls both network instance and USDCx contract address
+- `BASE_URL` env var: backend public URL for x402/relay callbacks (default: `http://localhost:3001`)
+- Devnet backend runs on port **3001**.
+
+## Environment Variables (Vercel `cine-x-api`)
+
+| Variable | Status | Notes |
+|---|---|---|
+| `DATABASE_URL` | ✅ Set | Neon PostgreSQL connection string |
+| `NEON_DRIVER` | ✅ Set | `serverless` |
+| `STACKS_NETWORK` | ✅ Set | `mainnet` |
+| `CREATOR_KEY` | ✅ Set | Testnet key for proxy tx signing |
+| `BACKER_KEY` | ✅ Set | Testnet key for proxy tx signing |
+| `RELAY_ADDRESS` | ✅ Set | Relay wallet address |
+| `RELAY_API_KEY` | ✅ Set | Server-to-server auth |
+| `ADMIN_BOOTSTRAP_KEY` | ✅ Set | Admin bootstrap secret |
+| `BASE_URL` | ✅ Set | `https://cine-x-api.vercel.app` |
+| `SMTP_USER` | ❌ Dead | Not configured on Vercel |
+| `SMTP_PASS` | ❌ Dead | Not configured on Vercel |
+| `SMTP_HOST` | ❌ Dead | Not configured on Vercel |
+| `SMTP_PORT` | ❌ Dead | Not configured on Vercel |
+| `CORS_ORIGIN` | ❌ Dead | Not configured on Vercel |
 
 ## Testing
 
-- **Vitest** with `@hirosystems/clarinet-sdk`.
-- **322 tests** across 14 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32), plus 11 individual contract test files.
+- **Vitest** with `@hirosystems/clarinet-sdk` (contracts) and `jsdom` + `@testing-library` (frontend).
+- **322 contract tests** across 14 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32), plus 11 individual contract test files.
+- **98 backend tests** across 10 files: 53 BOS pipeline/adapter tests (`bosWorkers.test.js`), relay/sponsor tests, plus API route tests.
+- **50 frontend tests** across 5 files: OnboardingWizard, CampaignCreationForm, DemoScenarioPage, EscrowStatus, MilestoneVoting.
 - `integration.test.ts` has 5 flows: create+contribute → milestone-escrow wrappers → milestone-verification lifecycle → claim → edge cases.
 - `createLinkedCampaigns()` helper creates campaign in both `milestone-escrow` (user-specified id) and `campaign-module` (auto-incremented).
 - Rendezvous fuzzing: `node scripts/run-rv-for-all.js` runs property tests on all contracts; requires `.tests.clar` stubs in `contracts/`.
+- Frontend test setup: `app/vitest.config.js` (jsdom, globals, `@` alias), `app/src/setupTests.js` (jest-dom matchers, localStorage/scrollTo mocks).
 
 ## Rendezvous
 
@@ -105,12 +134,12 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **BOS schema**: 10 tables in `backend/src/migrations/006_bos_schema.sql`
 - **Core tables**: `disbursements` (UUID PK, idempotency_key UNIQUE), `disbursement_audit` (append-only), `external_refs` (mutable identifiers), `external_status_snapshots` (immutable status history)
 - **Integration tables**: `yellow_card_webhook_events`, `manual_review_queue`, `relay_wallet_activity`, `on_chain_events`, `exchange_rates`, `config_snapshots`
-- **State machine**: 13 states (disbursement_initiated → settled/failed/cancelled), 24 transitions
+- **State machine**: 14 states (including `PREFLIGHT_CHECK`), 28+ transitions; WS-A adds `payout_gates`, `two_person_approvals`, `circuit_breaker_state` tables
 - **Idempotency**: `disbursements.idempotency_key` UNIQUE constraint; every handler must be idempotent under duplicate worker execution
 - **Adapter pattern**: BOS state machine design doc §5.1–5.3; adapters: `stacks-burn`, `xreserve-attestation`, `yellow-card-ngn`
 - **Error codes**: init u8201–u8209; burn u8210–u8218; attestation u8220–u8228; payout u8230–u8238; generic u8290–u8299
 - **Monitoring**: Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
-- **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_ATTESTATION_API_URL`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH`
+- **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_ATTESTATION_API_URL`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH` — **none configured on Vercel yet** (API credentials not obtained)
 
 ## Fee Sponsorship / Relay Architecture
 
@@ -124,7 +153,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Idempotency**: `X-Idempotency-Key` header (UUID) → cached result on duplicate
 - **Auth options**: Session-based (req.user.address) or API key (X-Relay-API-Key + X-Relay-User-Address)
 - **Key files**: `backend/src/services/sponsorService.js`, `backend/src/middleware/relayAuth.js`, `backend/src/services/relayMonitor.js`
-- **Tests**: 63 passing across 5 test files (relayAuth, sponsorService, relayMonitor, passkeyService, passkeyRoutes)
+- **Tests**: 98 passing across 10 test files (relayAuth, sponsorService, relayMonitor, passkeyService, passkeyRoutes, bosWorkers [53], api routes)
 
 ## Brand
 
@@ -258,13 +287,6 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - Hiro API call-read URL format: `/v2/contracts/call-read/{addr}/{name}/{fn}` (slash-separated, not dot)
   - Fresh vault per test run avoids `ERR_UNAUTHORISED` from re-onboarding already-initialized vaults
 
-### Next Steps
-1. **BOS worker implementation** — `backend/src/services/bosService.js` (state machine, adapters, workers)
-2. **Fix BOS monitor bug** — `updated_at` column missing in BOS tables
-3. **Set remaining Vercel env vars** — `SMTP_*`, `ADMIN_BOOTSTRAP_KEY` (manual dashboard entry for secrets)
-4. **Clean up debug scripts** — `app/scripts/debug-tx.mjs` (remove after E2E passes)
-5. **Restore frontend `.vercel/project.json`** to cine-x (currently set to cine-x-api for backend testing)
-
 ### Done This Session (2026-07-22 cont.)
 - **6.6 Deposit/Withdraw/Sign Flows — COMPLETE (frontend hooks + UI):**
   - `app/src/services/tokenService.ts` — SIP-010 balance, STX balance, tx status polling via Hiro API
@@ -312,6 +334,38 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
   - Added 9 destination-release transition tests to `tests/bosWorkers.test.js`: `isDestinationReleased` (happy/pending/error), `attestationConfirmedForRelease` guard, `destinationReleasedForPayout` guard, `executeTransition` for `attestation_confirmed → destination_release_submitted` and `destination_release_submitted → destination_release_confirmed`, `destination_release_submitted → failed` (retry budget)
   - All 44 tests pass (35 original + 9 new)
   - Commit `519c407` pushed to main
+
+### Done This Session (2026-07-227.4 Yellow Card Payout Initiation)
+- **7.4 Yellow Card Payout — COMPLETE:**
+  - Created `backend/src/services/bos/yellowcardAdapter.js` — REST client: `initiatePayout()`, `getPayoutStatus()`, `healthCheck()`; env-gated via `YELLOW_CARD_API_URL` + `YELLOW_CARD_API_KEY`; normalizes `successful` → `completed` status
+  - Updated `backend/src/services/bos/bridgeAdapterFactory.js` — `getYellowCardAdapter()` now returns real adapter (was throw-only stub)
+  - Created `backend/src/routes/webhooks.js` — `POST /yellowcard` → `handleYellowCardWebhook()`, `POST /yellowcard/test` (non-production only)
+  - Mounted in `backend/src/index.js` at `/api/bos/webhooks`
+  - Fixed `backend/src/migrations/006_bos_schema.sql` — added `updated_at TIMESTAMP DEFAULT NOW()` to `exchange_rates` table (monitoring was querying non-existent column)
+  - Fixed `backend/src/services/bos/monitoring/monitorJob.js` line 272: `'payout_submitted'` → `'yellowcard_payout_submitted'` (checkWebhookTimeouts was silently never firing)
+  - Fixed `backend/src/services/bos/transitionActions.js` lines 162-166: `usd_to_ngn` → `rate` (SQL column name mismatch in `submitYellowCardPayout`)
+  - Added `seedExchangeRate()` logic in `disbursementService.init()` — seeds default USDCx/NGN rate (env `DEFAULT_USDCX_NGN_RATE`, default 1650) when table is empty
+  - Added 9 tests to `tests/bosWorkers.test.js`: adapter wiring (2), exchange rate seed (2), webhook route (1), webhook handler (4)
+  - All 53 tests pass (44 + 9 new)
+  - Commit `83bdb04` pushed to main
+
+### Done This Session (2026-07-23)
+- **Full Refactor — Sector-Agnostic Demo + Chain Config Fix + Vercel Env Vars — COMPLETE:**
+- **A.1–A.3 DONE — Type rename `VerifiedFilmmaker` → `VerifiedCreator`**: `types/index.ts`, `DemoStorage.ts`, `demoState.ts`, `mockContractService.ts`, `mockSeedData.ts`, `verificationService.ts`
+- **A.4 DONE — Category dedup**: Added `DEFAULT_MILESTONES` + `CATEGORIES`/`CATEGORY_VALUES` constants in `app/src/constants/categories.ts`; updated 8 files to import shared constants
+- **A.5 DONE — OnboardingWizard film-specific strings**: Updated 3 hardcoded strings; test updated
+- **A.6 DONE — DemoStepCampaign + DemoStepVerify**: Milestones generic (Planning/Development/Delivery); vertical defaults to `'other'`; uses `CATEGORIES`
+- **A.7 DONE — DemoScenarioPage**: Multi-sector mock campaigns (music + gaming); test passes (9/9)
+- **A.8 DONE — Seed data fully diversified**: `mockSeedData.ts` (12 campaigns across 5 sectors); `DemoStorage.ts` (3 campaigns: film, music, visual-art); all old categories eliminated
+- **A.9 DONE — Tests verified**: 50/50 frontend pass; Vite build clean
+- **B1 DONE — Chain config module**: `backend/src/config/chain.js` — exports `USDCX_CONTRACT`, `HIRO_API_URL`, `STACKS_NETWORK`, `DEPLOYER_ADDRESS`, `V2_DEPLOYER_ADDRESS`, `EXPLORER_URL`, `networkInstance`, `txVersion`
+- **B2 DONE — Chain config wired**: All 7 backend production files import from `chain.js` (no hardcoded addresses/URLs)
+- **B3 DONE — BASE_URL default**: Fixed in `transitionActions.js`
+- **B5 DONE — .env.example updated**: Added `STACKS_NETWORK`, `BASE_URL`
+- **B6 DONE — Vercel env vars set**: 14 vars confirmed (4 dead: SMTP_HOST, SMTP_PORT, SMTP_PASS, CORS_ORIGIN)
+- **Backend tests verified**: 133/133 previously passing tests still pass after chain config refactor
+- **WS-B frontend components CREATED**: OnboardingWizard.tsx, CampaignCreationForm.tsx, EscrowStatus.tsx, MilestoneVoting.tsx, DemoScenarioPage.tsx
+- **WS-C (§7 BOS E2E Orchestration) — COMPLETE**: webhookVerifier.js, fallbackPoller.js, auditTimeline.js, evidenceCollector.js, migration 010; 35/35 tests pass
 
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)

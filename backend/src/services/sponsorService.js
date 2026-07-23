@@ -18,6 +18,7 @@
  */
 
 import { getDb } from '../database.js';
+import { HIRO_API_URL } from '../config/chain.js';
 
 // ---------------------------------------------------------------------------
 // Config cache (loaded from relay_config table, refreshed every 60s)
@@ -120,7 +121,7 @@ export async function checkSponsorship({
     const relayAddress = process.env.RELAY_ADDRESS || '';
     if (relayAddress) {
       try {
-        const resp = await fetch(`https://api.testnet.hiro.so/v2/accounts/${relayAddress}?proof=0`);
+        const resp = await fetch(`${HIRO_API_URL}/v2/accounts/${relayAddress}?proof=0`);
         const acct = await resp.json();
         const balance = Number(BigInt(acct.balance));
         if (balance < minBalance) {

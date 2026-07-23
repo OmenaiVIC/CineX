@@ -9,9 +9,8 @@ import Select from '../components/ui/Select';
 import TransactionModal, { useTxModal } from '../components/common/TransactionModal';
 import { createCampaign } from '../services/campaignService';
 import { addFeedEvent } from '../services/feedService';
+import { CATEGORIES, CATEGORY_VALUES, DEFAULT_MILESTONES } from '../constants/categories';
 import type { Campaign } from '../types';
-
-const CATEGORIES: Campaign['category'][] = ['short-film', 'feature', 'documentary', 'music-video', 'web-series'];
 
 export default function CreateCampaignPage() {
   const { currentUser } = useDemoMode();
@@ -24,7 +23,7 @@ export default function CreateCampaignPage() {
   const [description, setDescription] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [deadline, setDeadline] = useState('');
-  const [category, setCategory] = useState<Campaign['category']>('short-film');
+  const [category, setCategory] = useState<Campaign['category']>('film');
   const [tags, setTags] = useState('');
 
   if (!activeUser) {
@@ -105,7 +104,7 @@ export default function CreateCampaignPage() {
             <div>
               <label className="block text-sm text-gray-400 mb-1">Category *</label>
               <Select
-                options={CATEGORIES.map(c => ({ value: c, label: c.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) }))}
+                options={CATEGORIES.map(c => ({ value: c.value, label: c.label }))}
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Campaign['category'])}
               />

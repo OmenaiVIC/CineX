@@ -1,6 +1,6 @@
 import type {
   Campaign, Milestone, CampaignContribution, Profile, Rating, FeedEvent,
-  Pool, VerificationApplication, VerifiedFilmmaker, EscrowDeposit, EscrowRelease,
+  Pool, VerificationApplication, VerifiedCreator, EscrowDeposit, EscrowRelease,
   Endorsement, PortfolioItem, Collaboration, UserSettings, CredibilitySummary,
 } from '../types';
 import { SEED_ADDRESSES } from '../contexts/DemoStorage';
@@ -90,7 +90,7 @@ export type DemoData = {
   oraclePrices: OraclePrice[];
   systemStates: ContractState[];
   verificationApplications: VerificationApplication[];
-  verifiedFilmmakers: VerifiedFilmmaker[];
+  verifiedCreators: VerifiedCreator[];
   escrowDeposits: EscrowDeposit[];
   escrowReleases: EscrowRelease[];
   endorsements: Endorsement[];
@@ -137,50 +137,50 @@ export function buildSeedData(): DemoData {
         id: makeId('camp', nid()), title: 'Echoes of Harmattan',
         description: 'A poetic short film capturing the haunting beauty of the harmattan season in northern Nigeria through the eyes of a young girl discovering her grandmother\'s past. Shot on location in Kano and Katsina.',
         creator: C1, targetAmount: '250000', currentAmount: '187500',
-        deadline: d(30) + 86400000 * 60, category: 'short-film', status: 'active',
+        deadline: d(30) + 86400000 * 60, category: 'film', status: 'active',
         createdAt: d(45), updatedAt: d(2),
         tags: ['harmattan', 'northern-nigeria', 'poetic', 'family-history'],
       },
       {
-        id: makeId('camp', nid()), title: 'The Last Mangrove',
-        description: 'A feature-length documentary exploring the environmental and cultural impact of mangrove deforestation in the Niger Delta. Follows three generations of a fishing family fighting to preserve their ancestral waters.',
+        id: makeId('camp', nid()), title: 'Delta Frequencies',
+        description: 'A 10-track album blending highlife, Afrobeats, and ambient electronics — recorded across three studios in the Niger Delta. Features collaborations with five emerging artists and three legendary percussionists.',
         creator: C1, targetAmount: '800000', currentAmount: '800000',
-        deadline: d(90) + 86400000 * 30, category: 'documentary', status: 'funded',
+        deadline: d(90) + 86400000 * 30, category: 'music', status: 'funded',
         createdAt: d(120), updatedAt: d(5),
-        tags: ['environment', 'niger-delta', 'documentary', 'climate'],
+        tags: ['music', 'niger-delta', 'highlife', 'afrobeats'],
       },
       {
         id: makeId('camp', nid()), title: 'Satin Shadows',
         description: 'A vibrant feature film set in Lagos\'s underground fashion scene. A young tailor discovers a mysterious fabric that lets her see glimpses of the future.',
         creator: C2, targetAmount: '5000000', currentAmount: '1200000',
-        deadline: n + 86400000 * 45, category: 'feature', status: 'active',
+        deadline: n + 86400000 * 45, category: 'visual-art', status: 'active',
         createdAt: d(15), updatedAt: d(1),
         tags: ['lagos', 'fashion', 'fantasy', 'romance'],
       },
       {
-        id: makeId('camp', nid()), title: 'Lagos 2057',
-        description: 'A web series set in a futuristic Lagos where AI-run markets and ancient Yoruba traditions collide. A street hacker discovers she can communicate with orishas through code.',
+        id: makeId('camp', nid()), title: 'Orisha Protocol',
+        description: 'An indie narrative game where players navigate a futuristic Lagos through code and Yoruba mythology. Blend turn-based combat with puzzle-solving to restore balance between AI and tradition.',
         creator: EXTRA_CREATOR_1, targetAmount: '150000', currentAmount: '60000',
-        deadline: d(5), category: 'web-series', status: 'failed',
+        deadline: d(5), category: 'gaming', status: 'failed',
         createdAt: d(95), updatedAt: d(5),
-        tags: ['sci-fi', 'yoruba', 'lagos', 'web-series'],
+        tags: ['gaming', 'indie', 'yoruba', 'cyberpunk'],
       },
       {
         id: makeId('camp', nid()), title: 'Night Market',
         description: 'A feature film following three street vendors at Lagos\'s biggest night market whose lives intertwine through love, betrayal, and a missing lottery ticket worth millions.',
         creator: EXTRA_CREATOR_2, targetAmount: '3500000', currentAmount: '3500000',
-        deadline: d(120) + 86400000 * 15, category: 'feature', status: 'completed',
+        deadline: d(120) + 86400000 * 15, category: 'film', status: 'completed',
         createdAt: d(150), updatedAt: d(10),
         tags: ['lagos', 'drama', 'romance', 'comedy', 'night-market'],
         fundsClaimed: true,
       },
       {
-        id: makeId('camp', nid()), title: 'Drums of the Delta',
-        description: 'A music video celebrating the rhythmic traditions of the Niger Delta, featuring five legendary drummers from different communities collaborating for the first time.',
-        creator: C1, targetAmount: '50000', currentAmount: '1000',
-        deadline: n + 86400000 * 20, category: 'music-video', status: 'active',
-        createdAt: d(1), updatedAt: n,
-        tags: ['music', 'drums', 'niger-delta', 'culture'],
+        id: makeId('camp', nid()), title: 'Ancestral Threads',
+        description: 'A visual art exhibition tracing West African textile patterns from their historical roots to contemporary streetwear. Includes interactive digital installations.',
+        creator: EXTRA_CREATOR_2, targetAmount: '30000', currentAmount: '30000',
+        deadline: d(-10), category: 'visual-art', status: 'completed',
+        createdAt: d(100), updatedAt: d(-10),
+        tags: ['visual-art', 'textiles', 'west-africa', 'interactive'],
       },
     ],
 
@@ -192,10 +192,10 @@ export function buildSeedData(): DemoData {
       { id: makeId('mile', nid()), campaignId: makeId('camp', 1), title: 'Principal Photography — Katsina', description: 'Filming Katsina desert sequences and grandmother\'s compound interior scenes.', fundingRequired: '60000', deadline: d(30) + 86400000 * 42, status: 'active', deliverables: ['Raw footage — Katsina scenes'] },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 1), title: 'Post-Production — Editing & Sound', description: 'First cut assembly, color grading, sound design, and original score composition.', fundingRequired: '40000', deadline: d(30) + 86400000 * 56, status: 'active', deliverables: ['First cut', 'Color graded rushes', 'Sound mix'] },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 1), title: 'Festival Submission & Distribution', description: 'Prepare final DCP, submit to AFRIFF and FESPACO, arrange preliminary screening in Lagos.', fundingRequired: '25000', deadline: d(30) + 86400000 * 70, status: 'pending', deliverables: ['DCP master', 'Festival submission receipts', 'Press kit'] },
-      // The Last Mangrove (camp_2) — 6 milestones (all done)
+      // Delta Frequencies (camp_2) — 6 milestones (all done)
       { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Research & Community Outreach', description: 'Travel to 5 Niger Delta communities, conduct interviews, secure cooperation agreements.', fundingRequired: '100000', deadline: d(120) + 86400000 * 21, status: 'completed', deliverables: ['Research journal', 'Interview releases', 'Community agreements'], completedAt: d(105) },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'First Production Block — Rivers State', description: 'Filming in Port Harcourt and surrounding creek communities.', fundingRequired: '150000', deadline: d(120) + 86400000 * 42, status: 'completed', deliverables: ['Raw footage — Rivers block', 'Field notes', 'B-roll library'], completedAt: d(80) },
-      { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Second Production Block — Bayelsa', description: 'Underwater cinematography of mangrove root systems, aerial drone footage of deforestation.', fundingRequired: '180000', deadline: d(120) + 86400000 * 63, status: 'completed', deliverables: ['Underwater footage', 'Drone aerial footage', 'Interview footage'], completedAt: d(60) },
+      { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Studio Recording Block — Port Harcourt', description: 'Field recording sessions in Port Harcourt, capturing local instruments and vocal performances.', fundingRequired: '180000', deadline: d(120) + 86400000 * 63, status: 'completed', deliverables: ['Field recordings', 'Studio session takes', 'Interview footage'], completedAt: d(60) },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Expert Interviews & Archival Research', description: 'Interview climate scientists, govt officials, oil industry representatives. Source archival footage from 1970s-90s Niger Delta.', fundingRequired: '120000', deadline: d(120) + 86400000 * 84, status: 'completed', deliverables: ['Expert interview transcripts', 'Archival footage license', 'Fact-check report'], completedAt: d(40) },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Post-Production Assembly', description: 'Rough cut, picture lock, color grading, sound design, original score, narration recording.', fundingRequired: '150000', deadline: d(120) + 86400000 * 105, status: 'completed', deliverables: ['Rough cut', 'Picture lock', 'Final color grade', 'Sound mix'], completedAt: d(15) },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 2), title: 'Impact Campaign & Distribution', description: 'Partner with environmental NGOs for screening tours, submit to festivals, launch educational streaming.', fundingRequired: '100000', deadline: d(120) + 86400000 * 126, status: 'completed', deliverables: ['Impact campaign report', 'Festival submissions', 'Educational license package'], completedAt: d(5) },
@@ -205,7 +205,7 @@ export function buildSeedData(): DemoData {
       { id: makeId('mile', nid()), campaignId: makeId('camp', 3), title: 'Principal Photography — Week 3-4', description: 'Filming dream sequence montages, love interest scenes, climactic final fashion show.', fundingRequired: '1200000', deadline: n + 86400000 * 42, status: 'pending', deliverables: ['Week 3-4 raw footage'] },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 3), title: 'VFX & Post-Production', description: 'Magic realism VFX for prophetic fabric visions, color grading, original soundtrack production.', fundingRequired: '1200000', deadline: n + 86400000 * 60, status: 'pending', deliverables: ['VFX shots', 'Final color grade', 'Soundtrack master'] },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 3), title: 'Marketing & Premiere', description: 'Trailer release, social media campaign, Lagos premiere event, festival strategy.', fundingRequired: '600000', deadline: n + 86400000 * 75, status: 'pending', deliverables: ['Trailer', 'Marketing materials', 'Premiere event plan'] },
-      // Lagos 2057 (camp_4) — 3 milestones (failed)
+      // Orisha Protocol (camp_4) — 3 milestones (failed)
       { id: makeId('mile', nid()), campaignId: makeId('camp', 4), title: 'Script & World-Building', description: 'Finalize script, design futuristic Lagos visual language, create concept art.', fundingRequired: '40000', deadline: d(80), status: 'completed', deliverables: ['Final script', 'Concept art Bible'], completedAt: d(85) },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 4), title: 'Pilot Episode Shoot', description: 'Film the 30-minute pilot episode with 3 principal cast members.', fundingRequired: '60000', deadline: d(40), status: 'active', deliverables: ['Pilot raw footage'] },
       { id: makeId('mile', nid()), campaignId: makeId('camp', 4), title: 'Post-Production Pilot', description: 'Edit, VFX, sound design for pilot episode.', fundingRequired: '50000', deadline: d(10), status: 'pending', deliverables: ['Final pilot episode'] },
@@ -259,7 +259,7 @@ export function buildSeedData(): DemoData {
     ratings: [
       { id: makeId('rate', nid()), rater: B1, ratee: C1, score: 5, review: 'Chidi\'s previous work on "Silent Waters" was breathtaking. The cinematography and storytelling are world-class.', category: 'cinematography', createdAt: d(90), projectId: makeId('camp', 2) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_1, ratee: C1, score: 4, review: 'Professional and communicative throughout the production.', category: 'professionalism', createdAt: d(85), projectId: makeId('camp', 2) },
-      { id: makeId('rate', nid()), rater: EXTRA_BACKER_2, ratee: C1, score: 5, review: 'Delivered on time and exceeded expectations. The mangrove documentary is a masterpiece.', category: 'delivery', createdAt: d(80), projectId: makeId('camp', 2) },
+      { id: makeId('rate', nid()), rater: EXTRA_BACKER_2, ratee: C1, score: 5, review: 'Delivered on time and exceeded expectations. The Niger Delta field recordings are a masterpiece.', category: 'delivery', createdAt: d(80), projectId: makeId('camp', 2) },
       { id: makeId('rate', nid()), rater: B1, ratee: C1, score: 4, review: 'Great storytelling ability. Would collaborate again.', category: 'storytelling', createdAt: d(40), projectId: makeId('camp', 1) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_1, ratee: C1, score: 5, review: 'Exceptional eye for detail in post-production.', category: 'editing', createdAt: d(30), projectId: makeId('camp', 1) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_2, ratee: C1, score: 4, review: 'Handled complex location shoots with ease.', category: 'production', createdAt: d(25), projectId: makeId('camp', 1) },
@@ -269,7 +269,7 @@ export function buildSeedData(): DemoData {
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_2, ratee: C2, score: 3, review: 'Good concepts but some delays in communication during pre-production.', category: 'professionalism', createdAt: d(45), projectId: makeId('camp', 3) },
       { id: makeId('rate', nid()), rater: B1, ratee: C2, score: 4, review: 'Strong visual aesthetic and original storytelling voice.', category: 'storytelling', createdAt: d(15), projectId: makeId('camp', 3) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_1, ratee: C2, score: 5, review: 'The costume designs for the preview event were incredible.', category: 'costume-design', createdAt: d(10), projectId: makeId('camp', 3) },
-      { id: makeId('rate', nid()), rater: B1, ratee: EXTRA_CREATOR_1, score: 4, review: 'Promising Afrofuturist vision. The concept art for Lagos 2057 was impressive.', category: 'storytelling', createdAt: d(60), projectId: makeId('camp', 4) },
+      { id: makeId('rate', nid()), rater: B1, ratee: EXTRA_CREATOR_1, score: 4, review: 'Promising Afrofuturist vision. The concept art for Orisha Protocol was impressive.', category: 'storytelling', createdAt: d(60), projectId: makeId('camp', 4) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_3, ratee: EXTRA_CREATOR_1, score: 3, review: 'Interesting concept but the pilot needs more polish.', category: 'direction', createdAt: d(30), projectId: makeId('camp', 4) },
       { id: makeId('rate', nid()), rater: B1, ratee: EXTRA_CREATOR_2, score: 5, review: 'Tunde is Nollywood royalty. Every film he touches turns to gold.', category: 'overall', createdAt: d(100), projectId: makeId('camp', 5) },
       { id: makeId('rate', nid()), rater: EXTRA_BACKER_1, ratee: EXTRA_CREATOR_2, score: 5, review: 'Night Market is his best work yet. The character development is superb.', category: 'storytelling', createdAt: d(90), projectId: makeId('camp', 5) },
@@ -282,20 +282,20 @@ export function buildSeedData(): DemoData {
     // ── 30+ Feed Events ──
     feed: [
       { id: makeId('feed', nid()), type: 'campaign_created', actor: C1, targetId: makeId('camp', 1), summary: 'Chidi Okonkwo launched "Echoes of Harmattan" — a poetic short film capturing the harmattan season in northern Nigeria.', createdAt: d(45) },
-      { id: makeId('feed', nid()), type: 'campaign_created', actor: C1, targetId: makeId('camp', 2), summary: 'Chidi Okonkwo launched "The Last Mangrove" — a documentary on mangrove deforestation in the Niger Delta.', createdAt: d(120) },
+      { id: makeId('feed', nid()), type: 'campaign_created', actor: C1, targetId: makeId('camp', 2), summary: 'Chidi Okonkwo launched "Delta Frequencies" — an Afrobeat-electronic album fusing field sessions from the Niger Delta.', createdAt: d(120) },
       { id: makeId('feed', nid()), type: 'campaign_created', actor: C2, targetId: makeId('camp', 3), summary: 'Amara Obi launched "Satin Shadows" — a feature film set in Lagos\'s underground fashion scene.', createdAt: d(15) },
-      { id: makeId('feed', nid()), type: 'campaign_created', actor: EXTRA_CREATOR_1, targetId: makeId('camp', 4), summary: 'Funke Akindele launched "Lagos 2057" — a futuristic web series where AI and Yoruba traditions collide.', createdAt: d(95) },
+      { id: makeId('feed', nid()), type: 'campaign_created', actor: EXTRA_CREATOR_1, targetId: makeId('camp', 4), summary: 'Funke Akindele launched "Orisha Protocol" — an indie game blending AI, orishas, and Lagos street culture.', createdAt: d(95) },
       { id: makeId('feed', nid()), type: 'campaign_created', actor: EXTRA_CREATOR_2, targetId: makeId('camp', 5), summary: 'Tunde Bakare launched "Night Market" — a feature film set in Lagos\'s biggest night market.', createdAt: d(150) },
       { id: makeId('feed', nid()), type: 'campaign_created', actor: C1, targetId: makeId('camp', 6), summary: 'Chidi Okonkwo launched "Drums of the Delta" — a music video celebrating Niger Delta drumming traditions.', createdAt: d(1) },
       { id: makeId('feed', nid()), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 1), summary: 'Femi Balogun contributed ₦50,000 to "Echoes of Harmattan".', createdAt: d(40) },
-      { id: makeId('feed', nid()), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 2), summary: 'Femi Balogun contributed ₦200,000 to "The Last Mangrove".', createdAt: d(100) },
-      { id: makeId('feed', nid()), type: 'campaign_funded', actor: EXTRA_BACKER_2, targetId: makeId('camp', 2), summary: '"The Last Mangrove" reached its funding goal of ₦800,000!', createdAt: d(90) },
+      { id: makeId('feed', nid()), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 2), summary: 'Femi Balogun contributed ₦200,000 to "Delta Frequencies".', createdAt: d(100) },
+      { id: makeId('feed', nid()), type: 'campaign_funded', actor: EXTRA_BACKER_2, targetId: makeId('camp', 2), summary: '"Delta Frequencies" reached its funding goal of ₦800,000!', createdAt: d(90) },
       { id: makeId('feed', nid()), type: 'campaign_funded', actor: EXTRA_BACKER_1, targetId: makeId('camp', 5), summary: '"Night Market" reached its funding goal of ₦3,500,000!', createdAt: d(120) },
       { id: makeId('feed', nid()), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 6), summary: 'Femi Balogun was the first backer for "Drums of the Delta"!', createdAt: d(1) },
       { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 1), summary: 'Chidi Okonkwo completed Pre-Production & Script Finalization for "Echoes of Harmattan".', createdAt: d(20) },
       { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 2), summary: 'Chidi Okonkwo completed Principal Photography in Kano for "Echoes of Harmattan".', createdAt: d(10) },
-      { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 10), summary: 'Chidi Okonkwo completed Post-Production Assembly for "The Last Mangrove".', createdAt: d(15) },
-      { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 11), summary: 'Chidi Okonkwo completed Impact Campaign & Distribution for "The Last Mangrove".', createdAt: d(5) },
+      { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 10), summary: 'Chidi Okonkwo completed Post-Production Assembly for "Delta Frequencies".', createdAt: d(15) },
+      { id: makeId('feed', nid()), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 11), summary: 'Chidi Okonkwo completed Impact Campaign & Distribution for "Delta Frequencies".', createdAt: d(5) },
       { id: makeId('feed', nid()), type: 'milestone_reached', actor: C2, targetId: makeId('mile', 12), summary: 'Amara Obi completed Costume Design & Fabric Sourcing for "Satin Shadows".', createdAt: n - 86400000 * 3 },
       { id: makeId('feed', nid()), type: 'milestone_reached', actor: EXTRA_CREATOR_2, targetId: makeId('mile', 21), summary: 'Tunde Bakare completed Post-Production & Distribution for "Night Market" — film is finished!', createdAt: d(40) },
       { id: makeId('feed', nid()), type: 'rating_received', actor: C1, targetId: makeId('rate', 1), summary: 'Chidi Okonkwo received a 5-star review from Femi Balogun for cinematography.', createdAt: d(90) },
@@ -315,21 +315,21 @@ export function buildSeedData(): DemoData {
         id: makeId('pool', nid()), name: 'Satin Shadows Backers Guild',
         description: 'A collaborative funding pool for backers of Satin Shadows. Members pool contributions for higher tier rewards and shared credit.',
         creator: C2, maxMembers: 20, currentMembers: 3, contributionAmount: '100000',
-        category: 'feature', status: 'open',
+        category: 'publishing', status: 'open',
         deadline: n + 86400000 * 30, targetAmount: '2000000', currentAmount: '600000',
       },
       {
         id: makeId('pool', nid()), name: 'Niger Delta Documentary Collective',
         description: 'A funding pool for the Niger Delta documentary series. Members vote on which communities and stories to feature next.',
         creator: C1, maxMembers: 15, currentMembers: 5, contributionAmount: '50000',
-        category: 'documentary', status: 'active',
+        category: 'visual-art', status: 'active',
         deadline: n + 86400000 * 60, targetAmount: '1000000', currentAmount: '500000',
       },
       {
         id: makeId('pool', nid()), name: 'Lagos Film Fund',
         description: 'A pooled investment fund for Lagos-based feature films. Members share in the success of every funded project.',
         creator: EXTRA_CREATOR_2, maxMembers: 50, currentMembers: 12, contributionAmount: '250000',
-        category: 'feature', status: 'active',
+        category: 'film', status: 'active',
         deadline: n + 86400000 * 90, targetAmount: '5000000', currentAmount: '1250000',
       },
     ],
@@ -412,11 +412,11 @@ export function buildSeedData(): DemoData {
     verificationApplications: [
       { id: makeId('vapp', nid()), applicant: C1, name: 'Chidi Okonkwo', bio: 'Award-winning documentary filmmaker from Enugu.', portfolioUrl: 'chidiokonkwo.film', previousWorks: ['Silent Waters', 'Echoes of the North'], socialMedia: { twitter: '@chidifilms', instagram: '@chidi_okonkwo', website: 'chidiokonkwo.film' }, bondAmount: '50000', documents: { identityProof: '0xdoc_id_001', portfolioProof: '0xdoc_port_001' }, status: 'approved', submittedAt: d(190), reviewedAt: d(185), reviewer: 'admin' },
       { id: makeId('vapp', nid()), applicant: EXTRA_CREATOR_2, name: 'Tunde Bakare', bio: 'Veteran Nollywood producer with 15+ features.', portfolioUrl: 'tundebakarefilms.com', previousWorks: ['Night Market', 'Lagos Dreams', 'The Last Bus'], socialMedia: { twitter: '@tundebakare', website: 'tundebakarefilms.com' }, bondAmount: '100000', documents: { identityProof: '0xdoc_id_002' }, status: 'approved', submittedAt: d(260), reviewedAt: d(255), reviewer: 'admin' },
-      { id: makeId('vapp', nid()), applicant: EXTRA_CREATOR_1, name: 'Funke Akindele', bio: 'Award-winning actress and emerging Afrofuturist producer.', portfolioUrl: '', previousWorks: ['Lagos 2057 concept trailer'], socialMedia: { twitter: '@funkeakindele', instagram: '@funke_akindele' }, bondAmount: '25000', documents: { identityProof: '0xdoc_id_003' }, status: 'pending', submittedAt: d(10) },
+      { id: makeId('vapp', nid()), applicant: EXTRA_CREATOR_1, name: 'Funke Akindele', bio: 'Award-winning actress and emerging Afrofuturist producer.', portfolioUrl: '', previousWorks: ['Orisha Protocol concept trailer'], socialMedia: { twitter: '@funkeakindele', instagram: '@funke_akindele' }, bondAmount: '25000', documents: { identityProof: '0xdoc_id_003' }, status: 'pending', submittedAt: d(10) },
     ],
 
     // ── Verified Filmmakers (2) ──
-    verifiedFilmmakers: [
+    verifiedCreators: [
       { address: C1, name: 'Chidi Okonkwo', bio: 'Award-winning documentary filmmaker from Enugu.', portfolioUrl: 'chidiokonkwo.film', previousWorks: ['Silent Waters', 'Echoes of the North'], socialMedia: { twitter: '@chidifilms', instagram: '@chidi_okonkwo', website: 'chidiokonkwo.film' }, verifiedAt: d(185), credibilityScore: 88, completedCampaigns: 2, totalFundedAmount: '1050000' },
       { address: EXTRA_CREATOR_2, name: 'Tunde Bakare', bio: 'Veteran Nollywood producer with 15+ feature films.', portfolioUrl: 'tundebakarefilms.com', previousWorks: ['Night Market', 'Lagos Dreams', 'The Last Bus', 'Eko Sunset'], socialMedia: { twitter: '@tundebakare', website: 'tundebakarefilms.com' }, verifiedAt: d(255), credibilityScore: 92, completedCampaigns: 5, totalFundedAmount: '8500000' },
     ],
@@ -440,7 +440,7 @@ export function buildSeedData(): DemoData {
 
     // ── Endorsements (8) ──
     endorsements: [
-      { id: makeId('endo', nid()), endorser: B1, endorserName: 'Femi Balogun', rating: 5, comment: 'Exceptional research and community engagement for the mangrove documentary.', timestamp: d(100), projectId: makeId('camp', 2) },
+      { id: makeId('endo', nid()), endorser: B1, endorserName: 'Femi Balogun', rating: 5, comment: 'Exceptional research and community engagement for the Niger Delta field recordings.', timestamp: d(100), projectId: makeId('camp', 2) },
       { id: makeId('endo', nid()), endorser: EXTRA_BACKER_1, endorserName: 'Sarah Adeyemi', rating: 4, comment: 'Professional communication throughout the project.', timestamp: d(85), projectId: makeId('camp', 2) },
       { id: makeId('endo', nid()), endorser: EXTRA_BACKER_2, endorserName: 'James Okafor', rating: 5, comment: 'Delivered an outstanding documentary on time and on budget.', timestamp: d(80), projectId: makeId('camp', 2) },
       { id: makeId('endo', nid()), endorser: B1, endorserName: 'Femi Balogun', rating: 5, comment: 'The Harmattan short film is visually stunning. Chidi\'s best work yet.', timestamp: d(18), projectId: makeId('camp', 1) },
@@ -452,14 +452,14 @@ export function buildSeedData(): DemoData {
 
     // ── Portfolio Items (8) ──
     portfolioItems: [
-      { id: makeId('port', nid()), address: C1, title: 'Silent Waters', description: 'A feature documentary exploring the ecological and human impact of river pollution in Nigeria\'s industrial heartland. Won Best Documentary at AFRIFF 2025.', category: 'documentary', role: 'Director/Cinematographer', year: 2025, mediaUrls: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'], awards: ['Best Documentary — AFRIFF 2025', 'Audience Choice Award — Lagos Film Festival 2025'] },
-      { id: makeId('port', nid()), address: C1, title: 'Echoes of the North', description: 'A poetic short film capturing daily life across three northern Nigerian cities through the eyes of street musicians. Shot entirely on vintage lenses.', category: 'short-film', role: 'Director/Producer', year: 2024, mediaUrls: ['https://www.youtube.com/watch?v=abcdef12345'], awards: ['Official Selection — FESPACO 2024'] },
-      { id: makeId('port', nid()), address: C2, title: 'Satin Shadows — Concept Teaser', description: 'Concept teaser for the upcoming feature film showcasing the avant-garde costume design and magical realism aesthetic.', category: 'feature', role: 'Director/Costume Designer', year: 2026, mediaUrls: ['https://vimeo.com/987654321'] },
-      { id: makeId('port', nid()), address: C2, title: 'Lagos Fashion Week — Opening Sequence', description: 'Commissioned short film for Lagos Fashion Week 2025, blending documentary and fashion cinematography.', category: 'short-film', role: 'Director', year: 2025, mediaUrls: [], awards: ['Best Fashion Film — Lagos Fashion Week 2025'] },
-      { id: makeId('port', nid()), address: EXTRA_CREATOR_1, title: 'Lagos 2057 — Concept Trailer', description: 'Concept trailer for the Afrofuturist web series blending AI, orishas, and Lagos street culture.', category: 'web-series', role: 'Producer/Creator', year: 2026, mediaUrls: [] },
-      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'Night Market — Feature Film', description: 'A feature film following three street vendors at Lagos\'s biggest night market. Completed and released.', category: 'feature', role: 'Director/Producer', year: 2026, mediaUrls: ['https://www.youtube.com/watch?v=nightmarket2026'], awards: ['Official Selection — AFRIFF 2026'] },
-      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'Lagos Dreams', description: 'A coming-of-age drama set in the bustling streets of mainland Lagos. Premiered at the 2024 Lagos Film Festival.', category: 'feature', role: 'Director', year: 2024, mediaUrls: [], awards: ['Best Director — Lagos Film Festival 2024'] },
-      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'The Last Bus', description: 'A short film about the final night of Lagos\'s iconic yellow Danfo buses before a government fleet replacement.', category: 'short-film', role: 'Producer', year: 2023, mediaUrls: [], awards: ['Best Short Film — AFRIFF 2023'] },
+      { id: makeId('port', nid()), address: C1, title: 'Silent Waters', description: 'A feature documentary exploring the ecological and human impact of river pollution in Nigeria\'s industrial heartland. Won Best Documentary at AFRIFF 2025.', category: 'film', role: 'Director/Cinematographer', year: 2025, mediaUrls: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'], awards: ['Best Documentary — AFRIFF 2025', 'Audience Choice Award — Lagos Film Festival 2025'] },
+      { id: makeId('port', nid()), address: C1, title: 'Echoes of the North', description: 'A poetic short film capturing daily life across three northern Nigerian cities through the eyes of street musicians. Shot entirely on vintage lenses.', category: 'film', role: 'Director/Producer', year: 2024, mediaUrls: ['https://www.youtube.com/watch?v=abcdef12345'], awards: ['Official Selection — FESPACO 2024'] },
+      { id: makeId('port', nid()), address: C2, title: 'Satin Shadows — Concept Teaser', description: 'Concept teaser for the upcoming feature film showcasing the avant-garde costume design and magical realism aesthetic.', category: 'visual-art', role: 'Director/Costume Designer', year: 2026, mediaUrls: ['https://vimeo.com/987654321'] },
+      { id: makeId('port', nid()), address: C2, title: 'Lagos Fashion Week — Opening Sequence', description: 'Commissioned short film for Lagos Fashion Week 2025, blending documentary and fashion cinematography.', category: 'film', role: 'Director', year: 2025, mediaUrls: [], awards: ['Best Fashion Film — Lagos Fashion Week 2025'] },
+      { id: makeId('port', nid()), address: EXTRA_CREATOR_1, title: 'Orisha Protocol — Concept Trailer', description: 'Concept trailer for the Afrofuturist indie game blending AI, orishas, and Lagos street culture.', category: 'gaming', role: 'Producer/Creator', year: 2026, mediaUrls: [] },
+      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'Night Market — Feature Film', description: 'A feature film following three street vendors at Lagos\'s biggest night market. Completed and released.', category: 'film', role: 'Director/Producer', year: 2026, mediaUrls: ['https://www.youtube.com/watch?v=nightmarket2026'], awards: ['Official Selection — AFRIFF 2026'] },
+      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'Lagos Dreams', description: 'A coming-of-age drama set in the bustling streets of mainland Lagos. Premiered at the 2024 Lagos Film Festival.', category: 'film', role: 'Director', year: 2024, mediaUrls: [], awards: ['Best Director — Lagos Film Festival 2024'] },
+      { id: makeId('port', nid()), address: EXTRA_CREATOR_2, title: 'The Last Bus', description: 'A short film about the final night of Lagos\'s iconic yellow Danfo buses before a government fleet replacement.', category: 'film', role: 'Producer', year: 2023, mediaUrls: [], awards: ['Best Short Film — AFRIFF 2023'] },
     ],
 
     // ── Collaborations (3) ──
@@ -483,9 +483,9 @@ export function buildSeedData(): DemoData {
 
     // ── Credibility Summaries (6) ──
     credibilitySummaries: [
-      { address: C1, summary: 'Chidi Okonkwo has a strong track record of 2 successfully funded campaigns with a 100% milestone completion rate. Rated 4.6/5 across 7 reviews with particular strengths in cinematography (5.0 avg) and storytelling (4.5 avg). Completed "The Last Mangrove" (₦800,000) on time and under budget. Currently running "Echoes of Harmattan" (₦250,000 target) with 75% funded and 3 of 5 milestones delivered ahead of schedule. Model predicts 92% probability of successful delivery based on historical performance.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
+      { address: C1, summary: 'Chidi Okonkwo has a strong track record of 2 successfully funded campaigns with a 100% milestone completion rate. Rated 4.6/5 across 7 reviews with particular strengths in production quality (5.0 avg) and storytelling (4.5 avg). Completed "Delta Frequencies" (₦800,000) on time and under budget. Currently running "Echoes of Harmattan" (₦250,000 target) with 75% funded and 3 of 5 milestones delivered ahead of schedule. Model predicts 92% probability of successful delivery based on historical performance.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
       { address: C2, summary: 'Amara Obi is an emerging feature film director with 1 active campaign raising ₦5,000,000 for "Satin Shadows". 5 peer ratings averaging 4.2/5 with outstanding costume design (5.0 avg) and direction (4.5 avg). Milestone 1/5 (Costume Design) completed on schedule. Communication professionalism rated 3.0 — an area for improvement. Model projects 78% probability of campaign success with strong creative execution but recommends improved backer communication.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
-      { address: EXTRA_CREATOR_1, summary: 'Funke Akindele is an emerging Afrofuturist creator with 1 campaign ("Lagos 2057") that did not reach its funding goal (40% of ₦150,000 target). 2 peer ratings averaging 3.5/5. The concept received praise for originality but execution was rated as needing polish. Verification application is currently pending. Model suggests focusing on building a stronger portfolio and backer communication strategy before launching the next campaign.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
+      { address: EXTRA_CREATOR_1, summary: 'Funke Akindele is an emerging Afrofuturist creator with 1 campaign ("Orisha Protocol") that did not reach its funding goal (40% of ₦150,000 target). 2 peer ratings averaging 3.5/5. The concept received praise for originality but execution was rated as needing polish. Verification application is currently pending. Model suggests focusing on building a stronger portfolio and backer communication strategy before launching the next campaign.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
       { address: EXTRA_CREATOR_2, summary: 'Tunde Bakare is a veteran Nollywood producer with 5 successfully funded campaigns and a 100% delivery rate. Rated 4.7/5 across 10 reviews with consistent excellence across all categories. "Night Market" (₦3,500,000) was completed on schedule and has been selected for AFRIFF 2026. Tunde has mentored 3 emerging filmmakers through the CineX platform. Model predicts 96% probability of successful delivery for any future campaign.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
       { address: B1, summary: 'Femi Balogun is a highly active platform backer with contributions to 5 campaigns totaling ₦880,500. Has participated in 3 funding pools and cast 8 milestone approval votes. Average rating given: 4.6/5. Known for thoughtful, detailed reviews that help creators improve. Consistently one of the first backers on new campaigns.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },
       { address: EXTRA_BACKER_2, summary: 'James Okafor is a high-value backer with contributions totaling ₦2,600,000 across 4 campaigns. Known for making large contributions to documentary and feature film projects. Member of 2 funding pools. Values transparency and regular milestone updates from creators.', generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0', disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.' },

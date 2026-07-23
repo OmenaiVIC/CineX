@@ -1,4 +1,4 @@
-import type { VerificationApplication, VerifiedFilmmaker, ServiceResponse } from '../types';
+import type { VerificationApplication, VerifiedCreator, ServiceResponse } from '../types';
 import * as api from './api';
 import * as mock from './mockContractService';
 import { isDemoMode } from './demo';
@@ -7,10 +7,10 @@ interface StatusResponse {
   applied: boolean;
   applications: VerificationApplication[];
   verified: boolean;
-  filmmaker: VerifiedFilmmaker | null;
+  creator: VerifiedCreator | null;
 }
 
-export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; filmmaker?: VerifiedFilmmaker }>> {
+export async function getVerificationStatus(address: string): Promise<ServiceResponse<{ applied: boolean; status?: string; verified: boolean; creator?: VerifiedCreator }>> {
   if (isDemoMode()) return mock.getVerificationStatus(address);
   const res = await api.get<StatusResponse>(`/verification/status/${address}`);
   if (!res.success || !res.data) return { success: false, error: res.error || 'Failed to get verification status' };
@@ -20,7 +20,7 @@ export async function getVerificationStatus(address: string): Promise<ServiceRes
       applied: res.data.applied,
       status: res.data.applications?.[0]?.status,
       verified: res.data.verified,
-      filmmaker: res.data.filmmaker || undefined,
+      creator: res.data.creator || undefined,
     },
   };
 }
@@ -66,9 +66,9 @@ export async function reviewApplication(id: string, reviewer: string, approved: 
   return { success: true, data: res.data, transactionId: approved ? `tx_vapp_approve_${id}` : undefined };
 }
 
-export async function getAllVerifiedFilmmakers(): Promise<ServiceResponse<VerifiedFilmmaker[]>> {
-  if (isDemoMode()) return mock.getAllVerifiedFilmmakers();
-  const res = await api.get<VerifiedFilmmaker[]>('/verification/filmmakers');
-  if (!res.success) return { success: false, error: res.error || 'Failed to fetch filmmakers' };
+export async function getAllVerifiedCreators(): Promise<ServiceResponse<VerifiedCreator[]>> {
+  if (isDemoMode()) return mock.getAllVerifiedCreators();
+  const res = await api.get<VerifiedCreator[]>('/verification/creators');
+  if (!res.success) return { success: false, error: res.error || 'Failed to fetch creators' };
   return { success: true, data: res.data || [] };
 }

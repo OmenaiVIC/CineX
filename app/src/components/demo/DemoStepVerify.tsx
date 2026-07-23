@@ -3,16 +3,9 @@ import { openContractCall } from '@stacks/connect';
 import { standardPrincipalCV, stringAsciiCV, uintCV, bufferCV } from '@stacks/transactions';
 import { useStacksConnect } from '../../hooks/useStacksConnect';
 import TransactionModal, { useTxModal } from '../common/TransactionModal';
+import { CATEGORIES } from '../../constants/categories';
 
 const DEPLOYER = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-
-const VERTICALS = [
-  { value: 'film', label: 'Film' },
-  { value: 'music', label: 'Music' },
-  { value: 'gaming', label: 'Gaming' },
-  { value: 'immersive-media', label: 'Immersive Media' },
-  { value: 'other', label: 'Other' },
-];
 
 function hashString(s: string): Uint8Array {
   const encoder = new TextEncoder();
@@ -24,7 +17,7 @@ export default function DemoStepVerify() {
   const tx = useTxModal();
 
   const [name, setName] = useState('');
-  const [vertical, setVertical] = useState('film');
+  const [vertical, setVertical] = useState('other');
   const [txId, setTxId] = useState('');
   const [done, setDone] = useState(false);
 
@@ -120,7 +113,7 @@ export default function DemoStepVerify() {
                   color: 'var(--text)', fontSize: '.9rem', outline: 'none', cursor: 'pointer',
                 }}
               >
-                {VERTICALS.map(v => (
+                {CATEGORIES.map(v => (
                   <option key={v.value} value={v.value} style={{ background: '#0a0a0f' }}>{v.label}</option>
                 ))}
               </select>

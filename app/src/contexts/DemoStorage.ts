@@ -1,6 +1,6 @@
 import type {
   Campaign, Milestone, CampaignContribution, Profile, Rating, FeedEvent,
-  Pool, VerificationApplication, VerifiedFilmmaker, EscrowDeposit, EscrowRelease,
+  Pool, VerificationApplication, VerifiedCreator, EscrowDeposit, EscrowRelease,
   Endorsement, PortfolioItem, Collaboration, UserSettings, CredibilitySummary,
 } from '../types';
 
@@ -21,7 +21,7 @@ export interface DemoData {
   feed: FeedEvent[];
   pools: Pool[];
   verificationApplications: VerificationApplication[];
-  verifiedFilmmakers: VerifiedFilmmaker[];
+  verifiedCreators: VerifiedCreator[];
   escrowDeposits: EscrowDeposit[];
   escrowReleases: EscrowRelease[];
   endorsements: Endorsement[];
@@ -69,23 +69,23 @@ function buildSeedData(): DemoData {
         id: makeId('camp', 1), title: 'Echoes of Harmattan',
         description: 'A poetic short film capturing the haunting beauty of the harmattan season in northern Nigeria through the eyes of a young girl discovering her grandmother\'s past. Shot on location in Kano and Katsina.',
         creator: C1, targetAmount: '250000', currentAmount: '187500',
-        deadline: d(30) + 86400000 * 60, category: 'short-film', status: 'active',
+        deadline: d(30) + 86400000 * 60, category: 'film', status: 'active',
         createdAt: d(45), updatedAt: d(2),
         tags: ['harmattan', 'northern-nigeria', 'poetic', 'family-history'],
       },
       {
-        id: makeId('camp', 2), title: 'The Last Mangrove',
-        description: 'A feature-length documentary exploring the environmental and cultural impact of mangrove deforestation in the Niger Delta. Follows three generations of a fishing family fighting to preserve their ancestral waters.',
+        id: makeId('camp', 2), title: 'Delta Frequencies',
+        description: 'An album fusing Afrobeat with electronic soundscapes, recording field sessions across the Niger Delta.',
         creator: C1, targetAmount: '800000', currentAmount: '800000',
-        deadline: d(90) + 86400000 * 30, category: 'documentary', status: 'funded',
+        deadline: d(90) + 86400000 * 30, category: 'music', status: 'funded',
         createdAt: d(120), updatedAt: d(5),
-        tags: ['environment', 'niger-delta', 'documentary', 'climate'],
+        tags: ['music', 'afrobeat', 'niger-delta', 'electronic'],
       },
       {
         id: makeId('camp', 3), title: 'Satin Shadows',
         description: 'A vibrant feature film set in Lagos\'s underground fashion scene. A young tailor discovers a mysterious fabric that lets her see glimpses of the future, forcing her to navigate love, betrayal, and the high-stakes world of avant-garde couture.',
         creator: C2, targetAmount: '5000000', currentAmount: '1200000',
-        deadline: n + 86400000 * 45, category: 'feature', status: 'active',
+        deadline: n + 86400000 * 45, category: 'visual-art', status: 'active',
         createdAt: d(15), updatedAt: d(1),
         tags: ['lagos', 'fashion', 'fantasy', 'romance'],
       },
@@ -99,7 +99,7 @@ function buildSeedData(): DemoData {
       { id: makeId('mile', 5), campaignId: makeId('camp', 1), title: 'Festival Submission & Distribution', description: 'Prepare final DCP, submit to AFRIFF and FESPACO, arrange preliminary screening in Lagos.', fundingRequired: '25000', deadline: d(30) + 86400000 * 70, status: 'active', deliverables: ['DCP master', 'Festival submission receipts', 'Press kit'] },
       { id: makeId('mile', 6), campaignId: makeId('camp', 2), title: 'Research & Community Outreach', description: 'Travel to 5 Niger Delta communities, conduct interviews, secure cooperation agreements.', fundingRequired: '100000', deadline: d(120) + 86400000 * 21, status: 'completed', deliverables: ['Research journal', 'Interview releases', 'Community agreements'], completedAt: d(105) },
       { id: makeId('mile', 7), campaignId: makeId('camp', 2), title: 'First Production Block — Rivers State', description: 'Filming in Port Harcourt and surrounding creek communities.', fundingRequired: '150000', deadline: d(120) + 86400000 * 42, status: 'completed', deliverables: ['Raw footage — Rivers block', 'Field notes', 'B-roll library'], completedAt: d(80) },
-      { id: makeId('mile', 8), campaignId: makeId('camp', 2), title: 'Second Production Block — Bayelsa', description: 'Underwater cinematography of mangrove root systems, aerial drone footage of deforestation.', fundingRequired: '180000', deadline: d(120) + 86400000 * 63, status: 'completed', deliverables: ['Underwater footage', 'Drone aerial footage', 'Interview footage'], completedAt: d(60) },
+      { id: makeId('mile', 8), campaignId: makeId('camp', 2), title: 'Studio Recording Block — Port Harcourt', description: 'Field recording sessions in Port Harcourt, capturing local instruments and vocal performances.', fundingRequired: '180000', deadline: d(120) + 86400000 * 63, status: 'completed', deliverables: ['Field recordings', 'Studio session takes', 'Interview footage'], completedAt: d(60) },
       { id: makeId('mile', 9), campaignId: makeId('camp', 2), title: 'Expert Interviews & Archival Research', description: 'Interview climate scientists, govt officials, oil industry representatives. Source archival footage from 1970s-90s Niger Delta.', fundingRequired: '120000', deadline: d(120) + 86400000 * 84, status: 'completed', deliverables: ['Expert interview transcripts', 'Archival footage license', 'Fact-check report'], completedAt: d(40) },
       { id: makeId('mile', 10), campaignId: makeId('camp', 2), title: 'Post-Production Assembly', description: 'Rough cut, picture lock, color grading, sound design, original score, narration recording.', fundingRequired: '150000', deadline: d(120) + 86400000 * 105, status: 'completed', deliverables: ['Rough cut', 'Picture lock', 'Final color grade', 'Sound mix'], completedAt: d(15) },
       { id: makeId('mile', 11), campaignId: makeId('camp', 2), title: 'Impact Campaign & Distribution', description: 'Partner with environmental NGOs for screening tours, submit to festivals, launch educational streaming.', fundingRequired: '100000', deadline: d(120) + 86400000 * 126, status: 'active', deliverables: ['Impact campaign report', 'Festival submissions', 'Educational license package'] },
@@ -131,7 +131,7 @@ function buildSeedData(): DemoData {
     ratings: [
       { id: makeId('rate', 1), rater: B1, ratee: C1, score: 5, review: 'Chidi\'s previous work on "Silent Waters" was breathtaking. The cinematography and storytelling are world-class.', category: 'cinematography', createdAt: d(90), projectId: makeId('camp', 2) },
       { id: makeId('rate', 2), rater: 'ST4XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0001', ratee: C1, score: 4, review: 'Professional and communicative throughout the production.', category: 'professionalism', createdAt: d(85), projectId: makeId('camp', 2) },
-      { id: makeId('rate', 3), rater: 'ST5XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0002', ratee: C1, score: 5, review: 'Delivered on time and exceeded expectations. The mangrove documentary is a masterpiece.', category: 'delivery', createdAt: d(80), projectId: makeId('camp', 2) },
+      { id: makeId('rate', 3), rater: 'ST5XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0002', ratee: C1, score: 5, review: 'Delivered on time and exceeded expectations. The Niger Delta field recordings are a masterpiece.', category: 'delivery', createdAt: d(80), projectId: makeId('camp', 2) },
       { id: makeId('rate', 4), rater: B1, ratee: C1, score: 4, review: 'Great storytelling ability. Would collaborate again.', category: 'storytelling', createdAt: d(40), projectId: makeId('camp', 1) },
       { id: makeId('rate', 5), rater: 'ST4XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0001', ratee: C1, score: 5, review: 'Exceptional eye for detail in post-production.', category: 'editing', createdAt: d(30), projectId: makeId('camp', 1) },
       { id: makeId('rate', 6), rater: 'ST5XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0002', ratee: C1, score: 4, review: 'Handled complex location shoots with ease.', category: 'production', createdAt: d(25), projectId: makeId('camp', 1) },
@@ -145,15 +145,15 @@ function buildSeedData(): DemoData {
 
     feed: [
       { id: makeId('feed', 1), type: 'campaign_created', actor: C1, targetId: makeId('camp', 1), summary: 'Chidi Okonkwo launched "Echoes of Harmattan" — a poetic short film capturing the harmattan season in northern Nigeria.', createdAt: d(45) },
-      { id: makeId('feed', 2), type: 'campaign_created', actor: C1, targetId: makeId('camp', 2), summary: 'Chidi Okonkwo launched "The Last Mangrove" — a documentary on mangrove deforestation in the Niger Delta.', createdAt: d(120) },
+      { id: makeId('feed', 2), type: 'campaign_created', actor: C1, targetId: makeId('camp', 2), summary: 'Chidi Okonkwo launched "Delta Frequencies" — an Afrobeat-electronic album fusing field sessions from the Niger Delta.', createdAt: d(120) },
       { id: makeId('feed', 3), type: 'campaign_created', actor: C2, targetId: makeId('camp', 3), summary: 'Amara Obi launched "Satin Shadows" — a feature film set in Lagos\'s underground fashion scene.', createdAt: d(15) },
       { id: makeId('feed', 4), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 1), summary: 'Femi Balogun contributed ₦50,000 to "Echoes of Harmattan".', createdAt: d(40) },
-      { id: makeId('feed', 5), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 2), summary: 'Femi Balogun contributed ₦200,000 to "The Last Mangrove".', createdAt: d(100) },
+      { id: makeId('feed', 5), type: 'campaign_funded', actor: B1, targetId: makeId('camp', 2), summary: 'Femi Balogun contributed ₦200,000 to "Delta Frequencies".', createdAt: d(100) },
       { id: makeId('feed', 6), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 1), summary: 'Chidi Okonkwo completed Pre-Production & Script Finalization for "Echoes of Harmattan".', createdAt: d(20) },
       { id: makeId('feed', 7), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 2), summary: 'Chidi Okonkwo completed Principal Photography in Kano for "Echoes of Harmattan".', createdAt: d(10) },
-      { id: makeId('feed', 8), type: 'campaign_funded', actor: 'ST5XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0002', targetId: makeId('camp', 2), summary: '"The Last Mangrove" reached its funding goal of ₦800,000!', createdAt: d(90) },
+      { id: makeId('feed', 8), type: 'campaign_funded', actor: 'ST5XYZKV0RJXZFY1DGX8MNSNYVE3VGZJSRTP0002', targetId: makeId('camp', 2), summary: '"Delta Frequencies" reached its funding goal of ₦800,000!', createdAt: d(90) },
       { id: makeId('feed', 9), type: 'rating_received', actor: C1, targetId: makeId('rate', 1), summary: 'Chidi Okonkwo received a 5-star review from Femi Balogun for cinematography.', createdAt: d(90) },
-      { id: makeId('feed', 10), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 10), summary: 'Chidi Okonkwo completed Post-Production Assembly for "The Last Mangrove".', createdAt: d(15) },
+      { id: makeId('feed', 10), type: 'milestone_reached', actor: C1, targetId: makeId('mile', 10), summary: 'Chidi Okonkwo completed Post-Production Assembly for "Delta Frequencies".', createdAt: d(15) },
       { id: makeId('feed', 11), type: 'milestone_reached', actor: C2, targetId: makeId('mile', 12), summary: 'Amara Obi completed Costume Design & Fabric Sourcing for "Satin Shadows".', createdAt: n - 86400000 * 3 },
       { id: makeId('feed', 12), type: 'pool_formed', actor: C2, targetId: makeId('pool', 1), summary: 'Amara Obi formed a backers\' pool for "Satin Shadows" — crowdfunding collaboration.', createdAt: d(10) },
     ],
@@ -163,7 +163,7 @@ function buildSeedData(): DemoData {
         id: makeId('pool', 1), name: 'Satin Shadows Backers Guild',
         description: 'A collaborative funding pool for backers of Satin Shadows. Members pool contributions for higher tier rewards and shared credit.',
         creator: C2, maxMembers: 20, currentMembers: 3, contributionAmount: '100000',
-        category: 'feature', status: 'open',
+        category: 'music', status: 'open',
         deadline: n + 86400000 * 30, targetAmount: '2000000', currentAmount: '600000',
       },
     ],
@@ -177,7 +177,7 @@ function buildSeedData(): DemoData {
     credibilitySummaries: [
       {
         address: C1,
-        summary: 'Chidi Okonkwo has a strong track record of 2 successfully funded campaigns with a 100% milestone completion rate. Rated 4.6/5 across 7 reviews with particular strengths in cinematography (5.0 avg) and storytelling (4.5 avg). Completed "The Last Mangrove" (₦800,000) on time and under budget. Currently running "Echoes of Harmattan" (₦250,000 target) with 75% funded and 3 of 5 milestones delivered ahead of schedule. Model predicts 92% probability of successful delivery based on historical performance.',
+        summary: 'Chidi Okonkwo has a strong track record of 2 successfully funded campaigns with a 100% milestone completion rate. Rated 4.6/5 across 7 reviews with particular strengths in production quality (5.0 avg) and storytelling (4.5 avg). Completed "Delta Frequencies" (₦800,000) on time and under budget. Currently running "Echoes of Harmattan" (₦250,000 target) with 75% funded and 3 of 5 milestones delivered ahead of schedule. Model predicts 92% probability of successful delivery based on historical performance.',
         generatedAt: new Date().toISOString(), model: 'CineX Credibility v1.0',
         disclaimer: 'AI-generated summary based on platform history and peer ratings. Not financial advice.',
       },
@@ -190,7 +190,7 @@ function buildSeedData(): DemoData {
     ],
 
     verificationApplications: [],
-    verifiedFilmmakers: [],
+    verifiedCreators: [],
     escrowDeposits: [],
     escrowReleases: [],
     endorsements: [],
@@ -198,27 +198,27 @@ function buildSeedData(): DemoData {
       {
         id: makeId('port', 1), address: C1, title: 'Silent Waters',
         description: 'A feature documentary exploring the ecological and human impact of river pollution in Nigeria\'s industrial heartland. Won Best Documentary at AFRIFF 2025.',
-        category: 'documentary', role: 'Director/Cinematographer', year: 2025,
+        category: 'film', role: 'Director/Cinematographer', year: 2025,
         mediaUrls: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://vimeo.com/123456789'],
         awards: ['Best Documentary — AFRIFF 2025', 'Audience Choice Award — Lagos Film Festival 2025'],
       },
       {
         id: makeId('port', 2), address: C1, title: 'Echoes of the North',
         description: 'A poetic short film capturing daily life across three northern Nigerian cities through the eyes of street musicians. Shot entirely on vintage lenses.',
-        category: 'short-film', role: 'Director/Producer', year: 2024,
+        category: 'film', role: 'Director/Producer', year: 2024,
         mediaUrls: ['https://www.youtube.com/watch?v=abcdef12345'],
         awards: ['Official Selection — FESPACO 2024'],
       },
       {
         id: makeId('port', 3), address: C2, title: 'Satin Shadows — Concept Teaser',
         description: 'Concept teaser for the upcoming feature film showcasing the avant-garde costume design and magical realism aesthetic.',
-        category: 'feature', role: 'Director/Costume Designer', year: 2026,
+        category: 'visual-art', role: 'Director/Costume Designer', year: 2026,
         mediaUrls: ['https://vimeo.com/987654321', 'https://www.youtube.com/watch?v=zyxwvutsrq'],
       },
       {
         id: makeId('port', 4), address: C2, title: 'Lagos Fashion Week — Opening Sequence',
         description: 'Commissioned short film for Lagos Fashion Week 2025, blending documentary and fashion cinematography.',
-        category: 'short-film', role: 'Director', year: 2025,
+        category: 'film', role: 'Director', year: 2025,
         mediaUrls: ['https://drive.google.com/file/d/1Y_Zu9nltx6mPxlqsBObGM3Ikw9YrbLXz/view'],
         awards: ['Best Fashion Film — Lagos Fashion Week 2025'],
       },
@@ -298,7 +298,7 @@ export function addItem<T extends Record<string, unknown>>(
       : collection === 'contributions' ? 'cont'
       : collection === 'profiles' ? 'prof'
       : collection === 'verificationApplications' ? 'vapp'
-      : collection === 'verifiedFilmmakers' ? 'vfm'
+      : collection === 'verifiedCreators' ? 'vfm'
       : collection === 'escrowDeposits' ? 'esc'
       : collection === 'escrowReleases' ? 'esr'
       : collection === 'endorsements' ? 'endo'

@@ -13,6 +13,25 @@
 
 const XRESERVE_API_URL = process.env.XRESERVE_API_URL || 'https://api.xreserve.com/v1';
 const XRESERVE_API_KEY = process.env.XRESERVE_API_KEY || '';
+const XRESERVE_ENV = process.env.XRESERVE_ENV || 'production'; // 'sandbox' | 'production'
+
+/**
+ * Error taxonomy for xReserve API errors.
+ * transient: network timeout, 5xx, rate limit — safe to retry
+ * permanent: 4xx (except 429), invalid request — do NOT retry
+ * unknown: unexpected error shape
+ */
+export function classifyError(error) {
+  if (error && error.name === 'AbortError') return 'transient';
+  if (error && error.name === 'TypeError' && error.message?.includes('fetch')) return 'transient';
+  const status = error?.status || error?.statusCode;
+  if (status) {
+    if (status === 429) return 'transient';
+    if (status >= 500) return 'transient';
+    if (status >= 400 && status < 500) return 'permanent';
+  }
+  return 'unknown';
+}
 
 /**
  * Build common fetch options for xReserve API calls
@@ -21,8 +40,27 @@ function _headers(extra = {}) {
   return {
     'Content-Type': 'application/json',
     ...(XRESERVE_API_KEY ? { 'Authorization': `Bearer ${XRESERVE_API_KEY}` } : {}),
+    ...(XRESERVE_ENV === 'sandbox' ? { 'X-Environment': 'sandbox' } : {}),
     ...extra,
   };
+}
+
+/**
+ * Execute a fetch with timeout and error classification
+ */
+async function _fetch(url, options = {}, { timeoutMs = 10000 } = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return resp;
+  } catch (err) {
+    clearTimeout(timer);
+    const classified = classifyError(err);
+    err._classification = classified;
+    throw err;
+  }
 }
 
 /**
@@ -36,7 +74,7 @@ function _headers(extra = {}) {
  */
 export async function requestAttestation({ tx_id, token_contract, amount_sats }) {
   const url = `${XRESERVE_API_URL}/burns`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'POST',
     headers: _headers(),
     body: JSON.stringify({
@@ -49,7 +87,10 @@ export async function requestAttestation({ tx_id, token_contract, amount_sats })
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`xReserve attestation request failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`xReserve attestation request failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -60,7 +101,7 @@ export async function requestAttestation({ tx_id, token_contract, amount_sats })
 }
 
 /**
- * GET /v1/burns/{burnTxHash}/attestation — poll attestation status
+ * GET /v1/attestations/{attestationRef} — poll attestation status
  *
  * @param {string} attestationId — the attestation reference ID
  * @returns {Promise<{ status: string, attestation_data?: Object }>}
@@ -68,14 +109,17 @@ export async function requestAttestation({ tx_id, token_contract, amount_sats })
  */
 export async function getAttestationStatus(attestationId) {
   const url = `${XRESERVE_API_URL}/attestations/${attestationId}`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'GET',
     headers: _headers(),
   });
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`xReserve attestation status failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`xReserve attestation status failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -97,7 +141,7 @@ export async function getAttestationStatus(attestationId) {
  */
 export async function releaseDestination({ attestation_id, recipient_btc, amount_sats, idempotencyKey }) {
   const url = `${XRESERVE_API_URL}/attestations/${attestation_id}/release`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'POST',
     headers: _headers({ 'X-Idempotency-Key': idempotencyKey || '' }),
     body: JSON.stringify({
@@ -108,7 +152,10 @@ export async function releaseDestination({ attestation_id, recipient_btc, amount
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`xReserve release request failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`xReserve release request failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -127,14 +174,17 @@ export async function releaseDestination({ attestation_id, recipient_btc, amount
  */
 export async function getReleaseStatus(releaseId) {
   const url = `${XRESERVE_API_URL}/releases/${releaseId}`;
-  const resp = await fetch(url, {
+  const resp = await _fetch(url, {
     method: 'GET',
     headers: _headers(),
   });
 
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`xReserve release status failed (${resp.status}): ${body.substring(0, 200)}`);
+    const err = new Error(`xReserve release status failed (${resp.status}): ${body.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
   }
 
   const data = await resp.json();
@@ -151,11 +201,10 @@ export async function getReleaseStatus(releaseId) {
 export async function healthCheck() {
   const start = Date.now();
   try {
-    const resp = await fetch(`${XRESERVE_API_URL}/health`, {
+    const resp = await _fetch(`${XRESERVE_API_URL}/health`, {
       method: 'GET',
       headers: _headers(),
-      signal: AbortSignal.timeout(5000),
-    });
+    }, { timeoutMs: 5000 });
     return { healthy: resp.ok, latencyMs: Date.now() - start };
   } catch (err) {
     return { healthy: false, latencyMs: Date.now() - start, error: err.message };
@@ -168,4 +217,5 @@ export default {
   releaseDestination,
   getReleaseStatus,
   healthCheck,
+  classifyError,
 };

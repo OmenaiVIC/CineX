@@ -15,6 +15,28 @@ import * as actions from './transitionActions.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TRANSITIONS = new Map([
+  // ── Preflight (§8 SAFE Forwarding) ─────────────────────────────────────
+  [`${S.DISBURSEMENT_INITIATED}→${S.PREFLIGHT_CHECK}`, {
+    description: 'Run financial safety gates before burn phase',
+    guard:  guards.preflightPassed,
+    action: actions.runPreflightCheck,
+  }],
+  [`${S.PREFLIGHT_CHECK}→${S.BURN_SUBMITTED}`, {
+    description: 'Preflight passed — proceed with USDCx burn',
+    guard:  guards.disbursementExists,
+    action: actions.submitBurn,
+  }],
+  [`${S.PREFLIGHT_CHECK}→${S.MANUAL_REVIEW}`, {
+    description: 'Preflight failed — escalate to manual review',
+    guard:  guards.disbursementExists,
+    action: actions.moveToManualReview,
+  }],
+  [`${S.PREFLIGHT_CHECK}→${S.FAILED}`, {
+    description: 'Preflight fatal — disbursement failed',
+    guard:  guards.disbursementExists,
+    action: actions.markFailed,
+  }],
+
   // ── Burn lifecycle ──────────────────────────────────────────────────────
   [`${S.DISBURSEMENT_INITIATED}→${S.BURN_SUBMITTED}`, {
     description: 'Broadcast USDCx burn tx to Stacks chain',

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import contractService from '../services/contractService.js';
+import { HIRO_API_URL, STACKS_NETWORK, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, EXPLORER_URL } from '../config/chain.js';
 
 const router = Router();
 
@@ -185,7 +186,7 @@ router.post('/release', async (req, res) => {
 // GET /api/demo/ping-hiro — test Hiro API connectivity
 router.get('/ping-hiro', async (req, res) => {
   try {
-    const resp = await fetch('https://api.testnet.hiro.so/v2/info');
+    const resp = await fetch(`${HIRO_API_URL}/v2/info`);
     const data = await resp.json();
     res.json({ ok: true, peer_version: data.peer_version, burn_block_height: data.burn_block_height });
   } catch (err) {

@@ -123,10 +123,10 @@ export async function initiateDisbursement({
   // ── Fetch the record to pass to the state machine ─────────────────────
   const disbursement = await db.get(`SELECT * FROM disbursements WHERE id = $1`, [id]);
 
-  // ── Execute first transition: initiated → burn_submitted ───────────────
+  // ── Execute first transition: initiated → preflight_check ──────────────
   const result = await executeTransition(
     disbursement,
-    DisbursementState.BURN_SUBMITTED,
+    DisbursementState.PREFLIGHT_CHECK,
     ctx(),
     {},
     'worker'
