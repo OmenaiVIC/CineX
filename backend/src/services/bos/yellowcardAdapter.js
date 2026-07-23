@@ -3,16 +3,17 @@
  *
  * Implements the adapter interface consumed by transitionGuards.js and transitionActions.js.
  *
- * EXTERNAL ASSUMPTIONS (locked in xreserve-integration-surface-lock.md §6.3):
- *   Q3: Exact Yellow Card API endpoints, auth mechanism, response shapes — to be verified.
- *   Yellow Card provides REST API for NGN bank transfers with sandbox and production environments.
+ * Auth: YcHmacV1 scheme — HMAC-SHA256 signature over (timestamp + apiKey + bodyHash)
+ *       using YELLOW_CARD_SECRET_KEY. Not Bearer tokens.
  *
- * Endpoints below match the surface lock §6.3 placeholder contract.
- * Real endpoints drop in when Yellow Card docs are available.
+ * Endpoints: Base URL is /business (NOT /v1).
+ *   Sandbox: https://sandbox-api.yellowcard.io/business
+ *   Production: https://api.yellowcard.io/business
  */
 
-const YELLOW_CARD_API_URL = process.env.YELLOW_CARD_API_URL || 'https://api.yellowcard.io/v1';
+const YELLOW_CARD_API_URL = process.env.YELLOW_CARD_API_URL || 'https://api.yellowcard.io/business';
 const YELLOW_CARD_API_KEY = process.env.YELLOW_CARD_API_KEY || '';
+const YELLOW_CARD_SECRET_KEY = process.env.YELLOW_CARD_SECRET_KEY || '';
 const YELLOW_CARD_ENV = process.env.YELLOW_CARD_ENV || 'production'; // 'sandbox' | 'production'
 const YELLOW_CARD_WEBHOOK_SECRET = process.env.YELLOW_CARD_WEBHOOK_SECRET || '';
 
@@ -35,13 +36,41 @@ export function classifyError(error) {
 }
 
 /**
+ * Compute YcHmacV1 signature for Yellow Card API request.
+ *
+ * Signature = HMAC-SHA256(secret, timestamp + apiKey + bodyHash)
+ * bodyHash  = SHA-256 hex of request body (empty string for GET/DELETE)
+ * timestamp = ISO-8601 UTC, e.g. "2026-07-23T12:00:00Z"
+ *
+ * @param {string} method — HTTP method
+ * @param {string|null} body — raw JSON body string (null for GET)
+ * @param {string} secret — YELLOW_CARD_SECRET_KEY
+ * @param {string} apiKey — YELLOW_CARD_API_KEY
+ * @returns {{ authorization: string, timestamp: string }}
+ */
+function _computeAuth(method, body, secret = YELLOW_CARD_SECRET_KEY, apiKey = YELLOW_CARD_API_KEY) {
+  if (!secret || !apiKey) {
+    return { authorization: '', timestamp: '' };
+  }
+  const crypto = require('crypto');
+  const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const bodyHash = (body && method !== 'GET' && method !== 'DELETE')
+    ? crypto.createHash('sha256').update(body).digest('hex')
+    : '';
+  const message = timestamp + apiKey + bodyHash;
+  const signature = crypto.createHmac('sha256', secret).update(message).digest('hex');
+  const authValue = `YcHmacV1 ${JSON.stringify({ timestamp, apiKey, bodyHash, signature })}`;
+  return { authorization: authValue, timestamp };
+}
+
+/**
  * Build common fetch options for Yellow Card API calls
  */
-function _headers(extra = {}) {
+function _headers(method, body, extra = {}) {
+  const { authorization } = _computeAuth(method, body);
   return {
     'Content-Type': 'application/json',
-    ...(YELLOW_CARD_API_KEY ? { 'Authorization': `Bearer ${YELLOW_CARD_API_KEY}` } : {}),
-    ...(YELLOW_CARD_ENV === 'sandbox' ? { 'X-Environment': 'sandbox' } : {}),
+    ...(authorization ? { 'Authorization': authorization } : {}),
     ...extra,
   };
 }
@@ -98,7 +127,7 @@ export function verifyWebhookSignature(payload, signature, secret = YELLOW_CARD_
 }
 
 /**
- * POST /v1/payments — initiate NGN payout
+ * POST /business/payments — initiate NGN payout
  *
  * @param {Object} params
  * @param {string} params.idempotency_key   — unique key to prevent duplicate payouts
@@ -110,22 +139,23 @@ export function verifyWebhookSignature(payload, signature, secret = YELLOW_CARD_
  * @returns {Promise<{ payout_id: string, status: string }>}
  */
 export async function initiatePayout({ idempotency_key, amount, recipient_type, recipient, currency, callback_url }) {
+  const body = JSON.stringify({
+    amount: String(amount),
+    currency: currency || 'NGN',
+    recipientType: recipient_type || 'bank_account',
+    recipient: recipient || {},
+    callbackUrl: callback_url || '',
+  });
   const url = `${YELLOW_CARD_API_URL}/payments`;
   const resp = await _fetch(url, {
     method: 'POST',
-    headers: _headers({ 'X-Idempotency-Key': idempotency_key || '' }),
-    body: JSON.stringify({
-      amount: String(amount),
-      currency: currency || 'NGN',
-      recipientType: recipient_type || 'bank_account',
-      recipient: recipient || {},
-      callbackUrl: callback_url || '',
-    }),
+    headers: _headers('POST', body, { 'X-Idempotency-Key': idempotency_key || '' }),
+    body,
   });
 
   if (!resp.ok) {
-    const body = await resp.text();
-    const err = new Error(`Yellow Card payout failed (${resp.status}): ${body.substring(0, 200)}`);
+    const text = await resp.text();
+    const err = new Error(`Yellow Card payout failed (${resp.status}): ${text.substring(0, 200)}`);
     err.status = resp.status;
     err._classification = classifyError(err);
     throw err;
@@ -139,7 +169,7 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
 }
 
 /**
- * GET /v1/payments/{paymentId} — poll payout status
+ * GET /business/payments/{paymentId} — poll payout status
  *
  * @param {string} payoutId — Yellow Card payment ID
  * @returns {Promise<{ status: string, payout_data?: Object }>}
@@ -149,12 +179,12 @@ export async function getPayoutStatus(payoutId) {
   const url = `${YELLOW_CARD_API_URL}/payments/${payoutId}`;
   const resp = await _fetch(url, {
     method: 'GET',
-    headers: _headers(),
+    headers: _headers('GET', null),
   });
 
   if (!resp.ok) {
-    const body = await resp.text();
-    const err = new Error(`Yellow Card status query failed (${resp.status}): ${body.substring(0, 200)}`);
+    const text = await resp.text();
+    const err = new Error(`Yellow Card status query failed (${resp.status}): ${text.substring(0, 200)}`);
     err.status = resp.status;
     err._classification = classifyError(err);
     throw err;
@@ -180,7 +210,7 @@ export async function healthCheck() {
   try {
     const resp = await _fetch(`${YELLOW_CARD_API_URL}/health`, {
       method: 'GET',
-      headers: _headers(),
+      headers: _headers('GET', null),
     }, { timeoutMs: 5000 });
     return { healthy: resp.ok, latencyMs: Date.now() - start };
   } catch (err) {
