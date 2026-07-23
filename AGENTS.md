@@ -139,7 +139,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Adapter pattern**: BOS state machine design doc §5.1–5.3; adapters: `stacks-burn`, `xreserve-attestation`, `yellow-card-ngn`
 - **Error codes**: init u8201–u8209; burn u8210–u8218; attestation u8220–u8228; payout u8230–u8238; generic u8290–u8299
 - **Monitoring**: Prometheus metrics, Grafana dashboards, PagerDuty alerts, reaper workers
-- **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_ATTESTATION_API_URL`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH` — **none configured on Vercel yet** (API credentials not obtained)
+- **Secrets**: `YELLOW_CARD_API_KEY`, `YELLOW_CARD_SECRET_KEY`, `YELLOW_CARD_ENV`, `YELLOW_CARD_WEBHOOK_SECRET`, `XRESERVE_API_URL`, `XRESERVE_API_KEY`, `XRESERVE_ENV`, `BOS_STATE_SIGNING_KEY`, `BOS_TX_SIGNING_KEY`, `NEON_DATABASE_URL`, `NEON_BOS_BRANCH` — **none configured on Vercel yet** (API credentials not obtained)
 
 ## Fee Sponsorship / Relay Architecture
 

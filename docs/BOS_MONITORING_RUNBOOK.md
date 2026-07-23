@@ -252,7 +252,7 @@ POST /api/bos/monitoring/alerts/:id/acknowledge
 | `YELLOW_CARD_API_KEY` | Yellow Card API key | Yes (for payout) |
 | `YELLOW_CARD_SECRET_KEY` | Yellow Card secret key | Yes (for payout) |
 | `YELLOW_CARD_ENV` | `sandbox` or `production` | Yes (for payout) |
-| `XRESERVE_ATTESTATION_API_URL` | xReserve attestation endpoint | Yes (for attestation) |
+| `XRESERVE_API_URL` | xReserve API base URL | Yes (for attestation) |
 
 ---
 
