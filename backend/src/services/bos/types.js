@@ -113,8 +113,8 @@ export const FAILED_STATES = new Set([
 /**
  * @typedef {Object} YellowCardInitRequest
  * @property {string} idempotency_key
- * @property {number} amount           — in satoshis (sats)
- * @property {string} recipient_type   — 'mobile_money' | 'bank_account' | ...
+ * @property {number} amount           — amount in target currency's smallest unit (e.g., NGN kobo)
+ * @property {string} recipient_type   — 'bank_account' | 'mobile_money' | ...
  * @property {Object} recipient        — { account_number, bank_code, ... }
  * @property {string} currency         — 'NGN'
  * @property {string} callback_url     — webhook URL for status updates

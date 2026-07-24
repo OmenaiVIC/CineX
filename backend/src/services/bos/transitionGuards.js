@@ -108,7 +108,7 @@ export async function isPayoutConfirmed(disbursement, ctx) {
     return { ok: false, error_code: 'u8231', reason: 'No payout external_ref found' };
   }
   try {
-    const status = await ctx.adapters.yellowcard.getPayoutStatus(ref.identifier_value);
+    const status = await ctx.adapters.yellowcard.lookupSend(ref.identifier_value);
     if (status.status === 'completed') {
       return { ok: true, details: { payout_id: ref.identifier_value } };
     }

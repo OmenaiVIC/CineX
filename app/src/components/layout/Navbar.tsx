@@ -40,8 +40,8 @@ export default function Navbar() {
             <button onClick={openGuide} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               How It Works
             </button>
-            <button onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
-              Explore the Demo
+            <button onClick={() => navigate('/demo-scenario')} className="text-xs text-gray-500 hover:text-[#4ade80] transition-colors hidden sm:block">
+              Try Demo
             </button>
             <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               Litepaper

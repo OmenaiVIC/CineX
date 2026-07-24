@@ -7,8 +7,10 @@
  *       using YELLOW_CARD_SECRET_KEY. Not Bearer tokens.
  *
  * Endpoints: Base URL is /business (NOT /v1).
- *   Sandbox: https://sandbox-api.yellowcard.io/business
+ *   Sandbox: https://sandbox.api.yellowcard.io/business
  *   Production: https://api.yellowcard.io/business
+ *
+ * Reference: docs/yellowcard-api-reference.md
  */
 
 const YELLOW_CARD_API_URL = process.env.YELLOW_CARD_API_URL || 'https://api.yellowcard.io/business';
@@ -126,19 +128,23 @@ export function verifyWebhookSignature(payload, signature, secret = YELLOW_CARD_
   return expected === cleanSig;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Core Send Methods (NGN Payout)
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * POST /business/payments — initiate NGN payout
+ * POST /business/send — Submit NGN payout request
  *
  * @param {Object} params
  * @param {string} params.idempotency_key   — unique key to prevent duplicate payouts
- * @param {number|string} params.amount     — amount in NGN kobo (or smallest unit)
- * @param {string} params.recipient_type    — 'bank_account' | 'mobile_money'
- * @param {Object} params.recipient         — recipient details (bankCode, accountNumber, etc.)
+ * @param {number|string} params.amount     — amount in NGN kobo (smallest unit)
  * @param {string} params.currency          — 'NGN'
+ * @param {string} params.recipient_type    — 'bank_account' | 'mobile_money'
+ * @param {Object} params.recipient         — { bankCode, accountNumber, accountName?, type? }
  * @param {string} [params.callback_url]    — webhook URL for status updates
- * @returns {Promise<{ payout_id: string, status: string }>}
+ * @returns {Promise<{ send_id: string, status: string, sequence_id?: string }>}
  */
-export async function initiatePayout({ idempotency_key, amount, recipient_type, recipient, currency, callback_url }) {
+export async function submitSend({ idempotency_key, amount, currency, recipient_type, recipient, callback_url }) {
   const body = JSON.stringify({
     amount: String(amount),
     currency: currency || 'NGN',
@@ -146,7 +152,7 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
     recipient: recipient || {},
     callbackUrl: callback_url || '',
   });
-  const url = `${YELLOW_CARD_API_URL}/payments`;
+  const url = `${YELLOW_CARD_API_URL}/send`;
   const resp = await _fetch(url, {
     method: 'POST',
     headers: _headers('POST', body, { 'X-Idempotency-Key': idempotency_key || '' }),
@@ -155,7 +161,7 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
 
   if (!resp.ok) {
     const text = await resp.text();
-    const err = new Error(`Yellow Card payout failed (${resp.status}): ${text.substring(0, 200)}`);
+    const err = new Error(`Yellow Card send failed (${resp.status}): ${text.substring(0, 200)}`);
     err.status = resp.status;
     err._classification = classifyError(err);
     throw err;
@@ -163,20 +169,21 @@ export async function initiatePayout({ idempotency_key, amount, recipient_type, 
 
   const data = await resp.json();
   return {
-    payout_id: data.paymentId || data.payout_id || data.id,
-    status: data.status || 'pending',
+    send_id: data.id || data.paymentId || data.sendId,
+    status: normalizeStatus(data.status),
+    sequence_id: data.sequenceId || undefined,
   };
 }
 
 /**
- * GET /business/payments/{paymentId} — poll payout status
+ * GET /business/send/{sendId} — Lookup payout status
  *
- * @param {string} payoutId — Yellow Card payment ID
- * @returns {Promise<{ status: string, payout_data?: Object }>}
- *   status: 'pending' | 'completed' | 'failed'
+ * @param {string} sendId — Yellow Card send ID
+ * @returns {Promise<{ status: string, data?: Object }>}
+ *   status: 'pending' | 'processing' | 'completed' | 'failed'
  */
-export async function getPayoutStatus(payoutId) {
-  const url = `${YELLOW_CARD_API_URL}/payments/${payoutId}`;
+export async function lookupSend(sendId) {
+  const url = `${YELLOW_CARD_API_URL}/send/${sendId}`;
   const resp = await _fetch(url, {
     method: 'GET',
     headers: _headers('GET', null),
@@ -184,45 +191,251 @@ export async function getPayoutStatus(payoutId) {
 
   if (!resp.ok) {
     const text = await resp.text();
-    const err = new Error(`Yellow Card status query failed (${resp.status}): ${text.substring(0, 200)}`);
+    const err = new Error(`Yellow Card lookup failed (${resp.status}): ${text.substring(0, 200)}`);
     err.status = resp.status;
     err._classification = classifyError(err);
     throw err;
   }
 
   const data = await resp.json();
-  // Normalize status: Yellow Card may use 'successful' instead of 'completed'
-  let status = data.status || 'pending';
-  if (status === 'successful') status = 'completed';
-
   return {
-    status,
-    payout_data: data,
+    status: normalizeStatus(data.status),
+    data,
   };
 }
 
 /**
- * Health check — verify Yellow Card API is reachable
- * @returns {Promise<{ healthy: boolean, latencyMs?: number, error?: string }>}
+ * GET /business/sends — List sends with optional filters
+ *
+ * @param {Object} [params]
+ * @param {number} [params.limit]   — max results (default 20)
+ * @param {number} [params.offset]  — pagination offset
+ * @param {string} [params.status]  — filter by status
+ * @returns {Promise<{ sends: Array, total?: number }>}
+ */
+export async function listSends({ limit, offset, status } = {}) {
+  const params = new URLSearchParams();
+  if (limit) params.set('limit', String(limit));
+  if (offset) params.set('offset', String(offset));
+  if (status) params.set('status', status);
+  const qs = params.toString();
+  const url = `${YELLOW_CARD_API_URL}/sends${qs ? '?' + qs : ''}`;
+  const resp = await _fetch(url, {
+    method: 'GET',
+    headers: _headers('GET', null),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    const err = new Error(`Yellow Card list sends failed (${resp.status}): ${text.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
+  }
+
+  const data = await resp.json();
+  return { sends: data.sends || data.data || data, total: data.total };
+}
+
+/**
+ * GET /business/sends/fee — Get fee estimate for a send
+ *
+ * @param {Object} params
+ * @param {number|string} params.amount   — amount in NGN kobo
+ * @param {string} params.currency        — 'NGN'
+ * @returns {Promise<{ fee: number, total: number }>}
+ */
+export async function getSendFee({ amount, currency = 'NGN' }) {
+  const params = new URLSearchParams({ amount: String(amount), currency });
+  const url = `${YELLOW_CARD_API_URL}/sends/fee?${params.toString()}`;
+  const resp = await _fetch(url, {
+    method: 'GET',
+    headers: _headers('GET', null),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    const err = new Error(`Yellow Card fee query failed (${resp.status}): ${text.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
+  }
+
+  const data = await resp.json();
+  return {
+    fee: data.fee || 0,
+    total: data.total || Number(amount),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Account & Config Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /business/account — Health check / verify API is reachable
+ * @returns {Promise<{ healthy: boolean, latencyMs?: number, data?: Object, error?: string }>}
  */
 export async function healthCheck() {
   const start = Date.now();
   try {
-    const resp = await _fetch(`${YELLOW_CARD_API_URL}/health`, {
+    const resp = await _fetch(`${YELLOW_CARD_API_URL}/account`, {
       method: 'GET',
       headers: _headers('GET', null),
     }, { timeoutMs: 5000 });
-    return { healthy: resp.ok, latencyMs: Date.now() - start };
+    const data = resp.ok ? await resp.json().catch(() => null) : null;
+    return { healthy: resp.ok, latencyMs: Date.now() - start, data };
   } catch (err) {
     return { healthy: false, latencyMs: Date.now() - start, error: err.message };
   }
 }
 
+/**
+ * POST /business/details/bank — Resolve/verify a bank account
+ *
+ * @param {Object} params
+ * @param {string} params.bankCode      — bank code (e.g., '044' for Access Bank)
+ * @param {string} params.accountNumber — account number
+ * @returns {Promise<{ valid: boolean, account_name?: string, bank_name?: string }>}
+ */
+export async function resolveBankAccount({ bankCode, accountNumber }) {
+  const body = JSON.stringify({ bankCode, accountNumber });
+  const url = `${YELLOW_CARD_API_URL}/details/bank`;
+  const resp = await _fetch(url, {
+    method: 'POST',
+    headers: _headers('POST', body),
+    body,
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    const err = new Error(`Yellow Card bank resolve failed (${resp.status}): ${text.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
+  }
+
+  const data = await resp.json();
+  return {
+    valid: true,
+    account_name: data.accountName || data.account_name,
+    bank_name: data.bankName || data.bank_name,
+    ...data,
+  };
+}
+
+/**
+ * GET /business/channels — List available payout channels
+ *
+ * @returns {Promise<{ channels: Array }>}
+ */
+export async function getChannels() {
+  const url = `${YELLOW_CARD_API_URL}/channels`;
+  const resp = await _fetch(url, {
+    method: 'GET',
+    headers: _headers('GET', null),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    const err = new Error(`Yellow Card channels query failed (${resp.status}): ${text.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
+  }
+
+  const data = await resp.json();
+  return { channels: data.channels || data.data || data };
+}
+
+/**
+ * GET /business/rates — Get current exchange rates
+ *
+ * @param {Object} [params]
+ * @param {string} [params.from]  — source currency (e.g., 'USDC')
+ * @param {string} [params.to]    — target currency (e.g., 'NGN')
+ * @param {number|string} [params.amount] — amount for conversion estimate
+ * @returns {Promise<{ rate: number, from?: string, to?: string }>}
+ */
+export async function getRates({ from, to, amount } = {}) {
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  if (amount) params.set('amount', String(amount));
+  const qs = params.toString();
+  const url = `${YELLOW_CARD_API_URL}/rates${qs ? '?' + qs : ''}`;
+  const resp = await _fetch(url, {
+    method: 'GET',
+    headers: _headers('GET', null),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    const err = new Error(`Yellow Card rates query failed (${resp.status}): ${text.substring(0, 200)}`);
+    err.status = resp.status;
+    err._classification = classifyError(err);
+    throw err;
+  }
+
+  const data = await resp.json();
+  return {
+    rate: data.rate || data.data?.rate,
+    from: data.from || from,
+    to: data.to || to,
+    ...data,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Backward-Compat Aliases
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @deprecated Use submitSend() instead. Kept for backward compatibility.
+ */
+export async function initiatePayout({ idempotency_key, amount, recipient_type, recipient, currency, callback_url }) {
+  return submitSend({ idempotency_key, amount, recipient_type, recipient, currency, callback_url });
+}
+
+/**
+ * @deprecated Use lookupSend() instead. Kept for backward compatibility.
+ */
+export async function getPayoutStatus(payoutId) {
+  return lookupSend(payoutId);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Normalize Yellow Card status values to canonical BOS statuses
+ * @param {string} raw — status from Yellow Card API
+ * @returns {string} normalized status
+ */
+function normalizeStatus(raw) {
+  if (!raw) return 'pending';
+  if (raw === 'successful') return 'completed';
+  return raw;
+}
+
 export default {
-  initiatePayout,
-  getPayoutStatus,
+  // Core send methods
+  submitSend,
+  lookupSend,
+  listSends,
+  getSendFee,
+  // Account & config
   healthCheck,
+  resolveBankAccount,
+  getChannels,
+  getRates,
+  // Webhook verification
   signWebhook,
   verifyWebhookSignature,
+  // Error classification
   classifyError,
+  // Backward-compat aliases
+  initiatePayout,
+  getPayoutStatus,
 };

@@ -197,34 +197,33 @@ export async function submitYellowCardPayout(disbursement, ctx) {
   const log = ctx.getLogger('transition:submitYellowCardPayout');
   const db = ctx.getDb();
 
-  // Fetch current exchange rate for NGN calculation
-  const rateRow = await db.get(
-    `SELECT rate FROM exchange_rates WHERE pair = 'USDCx/NGN' ORDER BY updated_at DESC LIMIT 1`
-  );
-  if (!rateRow) throw new Error('No exchange rate available');
+  const amount_ngn = disbursement.amount_ngn_expected;
+  if (!amount_ngn || amount_ngn <= 0) {
+    throw new Error(`amount_ngn_expected missing or zero: ${amount_ngn}`);
+  }
 
-  const amount_ngn = Math.round(disbursement.amount_usd * rateRow.rate * 100);
+  const recipient_type = deriveRecipientType(disbursement.ngn_recipient);
 
-  log.info({ id: disbursement.id, amount_usd: disbursement.amount_usd, amount_ngn }, 'Submitting Yellow Card payout');
+  log.info({ id: disbursement.id, amount_ngn, recipient_type }, 'Submitting Yellow Card payout');
 
-  const payout = await ctx.adapters.yellowcard.initiatePayout({
+  const payout = await ctx.adapters.yellowcard.submitSend({
     idempotency_key: `payout:${disbursement.id}`,
-    amount: disbursement.amount_usdcx,
-    recipient_type: 'mobile_money',
-    recipient: disbursement.ngn_recipient || {},
+    amount: amount_ngn,
     currency: 'NGN',
+    recipient_type,
+    recipient: disbursement.ngn_recipient || {},
     callback_url: `${process.env.BASE_URL || 'https://cine-x-api.vercel.app'}/api/bos/webhooks/yellowcard`,
   });
 
-  await upsertExternalRef(db, disbursement.id, 'yellowcard', 'payout_id', payout.payout_id, {
+  await upsertExternalRef(db, disbursement.id, 'yellowcard', 'payout_id', payout.send_id, {
     submitted_at: new Date().toISOString(),
     amount_ngn,
-    exchange_rate: rateRow.rate,
+    exchange_rate: disbursement.exchange_rate || null,
     payout_data: payout,
   });
 
-  log.info({ id: disbursement.id, payout_id: payout.payout_id }, 'Yellow Card payout submitted');
-  return { payout_id: payout.payout_id, amount_ngn };
+  log.info({ id: disbursement.id, payout_id: payout.send_id }, 'Yellow Card payout submitted');
+  return { payout_id: payout.send_id, amount_ngn };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -237,7 +236,7 @@ export async function confirmYellowCardPayout(disbursement, ctx) {
   const db = ctx.getDb();
 
   const ref = await getExternalRef(db, disbursement.id, 'yellowcard', 'payout_id');
-  const payout = await ctx.adapters.yellowcard.getPayoutStatus(ref.identifier_value);
+  const payout = await ctx.adapters.yellowcard.lookupSend(ref.identifier_value);
 
   await upsertExternalRef(db, disbursement.id, 'yellowcard', 'payout_id', ref.identifier_value, {
     ...ref.metadata,
@@ -339,4 +338,16 @@ async function _getAttestationId(db, disbursementId) {
 async function isBurnConfirmed(disbursement, ctx) {
   const status = await ctx.adapters.stacks.getTransactionStatus(disbursement.external_tx_id);
   return { burn_block_height: status.block_height };
+}
+
+/**
+ * Derive Yellow Card recipient_type from ngn_recipient payload.
+ * Defaults to 'bank_account' if unknown.
+ */
+function deriveRecipientType(recipient) {
+  if (!recipient) return 'bank_account';
+  if (recipient.type) return recipient.type;
+  if (recipient.bankCode || recipient.bank_code || recipient.accountNumber || recipient.account_number) return 'bank_account';
+  if (recipient.mobile_number || recipient.phoneNumber || recipient.provider) return 'mobile_money';
+  return 'bank_account';
 }
