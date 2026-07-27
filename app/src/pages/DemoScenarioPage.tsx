@@ -109,10 +109,16 @@ const DEMO_CAMPAIGNS: Record<UserRole, {
 };
 
 export function DemoScenarioPage() {
-  const { isDemoMode } = useDemoMode();
+  const { isDemoMode, toggleDemoMode } = useDemoMode();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [scene, setScene] = useState<Scene>('select');
   const [voteCounts, setVoteCounts] = useState<Record<string, { approves: number; rejects: number }>>({});
+
+  useEffect(() => {
+    if (!isDemoMode) {
+      toggleDemoMode();
+    }
+  }, []);
 
   const demoData = selectedRole ? DEMO_CAMPAIGNS[selectedRole] : null;
 
@@ -149,17 +155,6 @@ export function DemoScenarioPage() {
   const handleSubmitProof = useCallback((milestoneId: string) => {
     setScene('complete');
   }, []);
-
-  if (!isDemoMode) {
-    return (
-      <div style={styles.fallback}>
-        <h2 style={styles.fallbackHeading}>Demo Mode Required</h2>
-        <p style={styles.fallbackText}>
-          Enable demo mode to explore the creator and backer flows.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div style={styles.page}>

@@ -40,7 +40,7 @@ export default function Navbar() {
             <button onClick={openGuide} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               How It Works
             </button>
-            <button onClick={() => navigate('/demo-scenario')} className="text-xs text-gray-500 hover:text-[#4ade80] transition-colors hidden sm:block">
+            <button onClick={() => navigate('/demo-scenario')} className="text-xs text-gray-500 hover:text-[#4ade80] transition-colors">
               Try Demo
             </button>
             <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
