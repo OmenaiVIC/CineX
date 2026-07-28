@@ -13,6 +13,7 @@ vi.mock('@stacks/transactions', () => ({
   someCV: vi.fn((v) => ({ type: 'some', value: v })),
   noneCV: vi.fn(() => ({ type: 'none' })),
   stringAsciiCV: vi.fn((v) => ({ type: 'string-ascii', value: v })),
+  principalCV: vi.fn((v) => ({ type: 'principal', value: v })),
   getAddressFromPrivateKey: vi.fn(() => 'ST1RELAYADDRESS1234567890ABCDEF'),
   TransactionVersion: { Testnet: 0x80 },
 }));

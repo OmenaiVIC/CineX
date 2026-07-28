@@ -153,6 +153,24 @@ async function passkeyTransfer({
   const contractAddr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
   const contractName = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
 
+  // SIP-018 domain binding validation — reject unknown domains
+  const VALID_DOMAINS = {
+    'cinex-smart-vault': { version: '1.0.0', chainIds: [1, 2143456] },
+  };
+  const domain = VALID_DOMAINS[domainName];
+  if (!domain) {
+    throw new Error(`Invalid SIP-018 domain: ${domainName}`);
+  }
+  if (domain.version !== domainVersion) {
+    throw new Error(`Invalid domain version: ${domainVersion}`);
+  }
+  if (!domain.chainIds.includes(domainChainId)) {
+    throw new Error(`Invalid domain chain-id: ${domainChainId}`);
+  }
+  if (!domainWallet || typeof domainWallet !== 'string') {
+    throw new Error('domainWallet required');
+  }
+
   // v4: auth-id is in message params, NOT in sig-auth tuple
   const sigAuth = tupleCV({
     pubkey: bufferCV(Buffer.from(pubkey, 'hex')),
@@ -225,14 +243,16 @@ async function passkeyTransfer({
 /**
  * Read-only: get vault owner
  */
-async function getVaultOwner() {
+async function getVaultOwner(vaultAddress, vaultName) {
+  const addr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const name = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
   const resp = await fetch(
-    `${API_URL}/v2/contracts/call-read/${VAULT_CONTRACT_ADDRESS}/${VAULT_CONTRACT_NAME}/get-owner`,
+    `${API_URL}/v2/contracts/call-read/${addr}/${name}/get-owner`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sender: VAULT_CONTRACT_ADDRESS,
+        sender: addr,
         arguments: [],
       }),
     }
@@ -244,14 +264,144 @@ async function getVaultOwner() {
 /**
  * Read-only: check if vault is initialized
  */
-async function getVaultInitialized() {
+async function getVaultInitialized(vaultAddress, vaultName) {
+  const addr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const name = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
   const resp = await fetch(
-    `${API_URL}/v2/contracts/call-read/${VAULT_CONTRACT_ADDRESS}/${VAULT_CONTRACT_NAME}/is-initialized`,
+    `${API_URL}/v2/contracts/call-read/${addr}/${name}/is-initialized`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sender: VAULT_CONTRACT_ADDRESS,
+        sender: addr,
+        arguments: [],
+      }),
+    }
+  );
+  if (!resp.ok) throw new Error(`Hiro API ${resp.status}`);
+  return resp.json();
+}
+
+/**
+ * Propose recovery — admin broadcasts propose-recovery tx on vault contract.
+ * Sets new-pubkey and starts 72h veto window.
+ *
+ * @param {Object} params
+ * @param {string} params.newPubkey - 33-byte hex P-256 public key for recovery
+ * @param {string} [params.vaultAddress] - Vault contract address
+ * @param {string} [params.vaultName] - Vault contract name
+ * @returns {Promise<{txid: string}>}
+ */
+async function proposeRecovery({ newPubkey, vaultAddress, vaultName }) {
+  if (!_initialized || !_relayKey) {
+    init();
+    if (!_initialized || !_relayKey) {
+      throw new Error('Passkey relay not initialized — CREATOR_KEY required');
+    }
+  }
+
+  const contractAddr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const contractName = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
+
+  const functionArgs = [
+    bufferCV(Buffer.from(newPubkey, 'hex')),
+  ];
+
+  const nonce = await ensureNonce();
+  const tx = await makeContractCall({
+    contractAddress: contractAddr,
+    contractName: contractName,
+    functionName: 'propose-recovery',
+    functionArgs,
+    senderKey: _relayKey,
+    network: _network,
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Allow,
+    fee: 100000,
+    nonce,
+    clarityVersion: 4,
+  });
+
+  const ser = tx.serialize();
+  let serializedTx;
+  if (typeof ser === 'string') {
+    serializedTx = ser;
+  } else {
+    serializedTx = Buffer.from(ser).toString('hex');
+  }
+  const txid = await broadcast(serializedTx);
+  _nonce = nonce + 1;
+
+  console.log(`[passkeyService] Propose recovery broadcast: ${txid}`);
+  return { txid };
+}
+
+/**
+ * Execute recovery — admin broadcasts execute-recovery tx after 72h veto window.
+ *
+ * @param {Object} params
+ * @param {string} [params.vaultAddress] - Vault contract address
+ * @param {string} [params.vaultName] - Vault contract name
+ * @returns {Promise<{txid: string}>}
+ */
+async function executeRecovery({ vaultAddress, vaultName }) {
+  if (!_initialized || !_relayKey) {
+    init();
+    if (!_initialized || !_relayKey) {
+      throw new Error('Passkey relay not initialized — CREATOR_KEY required');
+    }
+  }
+
+  const contractAddr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const contractName = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
+
+  const nonce = await ensureNonce();
+  const tx = await makeContractCall({
+    contractAddress: contractAddr,
+    contractName: contractName,
+    functionName: 'execute-recovery',
+    functionArgs: [],
+    senderKey: _relayKey,
+    network: _network,
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Allow,
+    fee: 100000,
+    nonce,
+    clarityVersion: 4,
+  });
+
+  const ser = tx.serialize();
+  let serializedTx;
+  if (typeof ser === 'string') {
+    serializedTx = ser;
+  } else {
+    serializedTx = Buffer.from(ser).toString('hex');
+  }
+  const txid = await broadcast(serializedTx);
+  _nonce = nonce + 1;
+
+  console.log(`[passkeyService] Execute recovery broadcast: ${txid}`);
+  return { txid };
+}
+
+/**
+ * Read-only: get vault recovery state
+ * Returns { recovery-pubkey: (optional buff 33), recovery-proposed-at: (optional uint) }
+ *
+ * @param {string} [vaultAddress]
+ * @param {string} [vaultName]
+ * @returns {Promise<Object>} Hiro call-read response with recovery state
+ */
+async function getRecoveryState(vaultAddress, vaultName) {
+  const addr = vaultAddress || DEFAULT_VAULT_CONTRACT_ADDRESS;
+  const name = vaultName || DEFAULT_VAULT_CONTRACT_NAME;
+  const resp = await fetch(
+    `${API_URL}/v2/contracts/call-read/${addr}/${name}/get-recovery-state`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: addr,
         arguments: [],
       }),
     }
@@ -272,4 +422,7 @@ export {
   isInitialized,
   confirmTransfer,
   failTransfer,
+  proposeRecovery,
+  executeRecovery,
+  getRecoveryState,
 };

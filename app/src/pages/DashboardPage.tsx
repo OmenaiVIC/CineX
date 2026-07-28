@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import CreatorDashboard from '../components/dashboard/CreatorDashboard';
 import BackerDashboard from '../components/dashboard/BackerDashboard';
+import RecoveryStatus from '../components/wallet/RecoveryStatus';
 import { useCreatorCampaigns, useBackerContributions, useCreatorContributions } from '../hooks/useCampaigns';
 import { getCampaigns } from '../services/campaignService';
 import { getPools } from '../services/poolService';
@@ -76,6 +77,7 @@ export default function DashboardPage() {
           ← Explore Campaigns
         </button>
         {banner}
+        <RecoveryStatus />
         <CreatorDashboard
           campaigns={campaigns}
           milestones={allMilestones}
@@ -94,6 +96,7 @@ export default function DashboardPage() {
         ← Explore Campaigns
       </button>
       {banner}
+      <RecoveryStatus />
       <BackerDashboard
         contributions={contributions}
         campaigns={allCampaigns}

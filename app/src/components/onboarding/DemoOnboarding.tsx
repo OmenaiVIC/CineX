@@ -73,7 +73,7 @@ export default function DemoOnboarding({ onComplete }: Props) {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-white">Choose your role</h2>
               <p className="text-sm text-gray-400">This shapes your dashboard and available actions.</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => handleRoleSelect('creative')}
                   className="p-6 rounded-xl border border-gray-800 hover:border-[#4ade80] hover:bg-[rgba(74,222,128,0.05)] transition-all text-left group"
@@ -89,6 +89,14 @@ export default function DemoOnboarding({ onComplete }: Props) {
                   <span className="text-2xl block mb-2">🤝</span>
                   <span className="font-semibold text-white group-hover:text-[#4ade80]">Backer</span>
                   <p className="text-xs text-gray-500 mt-1">Fund campaigns, vote on milestones, earn rewards</p>
+                </button>
+                <button
+                  onClick={() => handleRoleSelect('gatekeeper')}
+                  className="p-6 rounded-xl border border-gray-800 hover:border-[#4ade80] hover:bg-[rgba(74,222,128,0.05)] transition-all text-left group"
+                >
+                  <span className="text-2xl block mb-2">🔍</span>
+                  <span className="font-semibold text-white group-hover:text-[#4ade80]">Gatekeeper</span>
+                  <p className="text-xs text-gray-500 mt-1">Endorse creative profiles and verify delivery</p>
                 </button>
               </div>
             </div>

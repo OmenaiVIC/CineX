@@ -24,6 +24,7 @@ const { upsertExternalRef, getExternalRef } = await import('../backend/src/servi
 const disbursementService = await import('../backend/src/services/bos/disbursementService.js');
 const stuckReaper = await import('../backend/src/services/bos/stuckStateReaper.js');
 const reconciliationWorker = await import('../backend/src/services/bos/reconciliationWorker.js');
+const { amountTolerance, attributableFunds, beneficiaryPayload, whitelistPrerequisite, perDisbursementCap, dailyPayoutCap, runAllGates } = await import('../backend/src/services/bos/payoutGates.js');
 
 // ── Test helpers ─────────────────────────────────────────────────────────────
 function makeDisbursement(overrides = {}) {
@@ -85,7 +86,7 @@ function makeCtx(overrides = {}) {
 describe('BOS Types', () => {
   it('has all 14 disbursement states', () => {
     const states = Object.values(S);
-    expect(states).toHaveLength(13);
+    expect(states).toHaveLength(14);
     expect(states).toContain('disbursement_initiated');
     expect(states).toContain('settled');
     expect(states).toContain('failed');
@@ -327,8 +328,20 @@ describe('BOS Destination Release Transitions', () => {
 
   it('destinationReleasedForPayout guard re-validates release', async () => {
     const { destinationReleasedForPayout } = await import('../backend/src/services/bos/transitionGuards.js');
-    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
     const ctx = makeCtx();
+    // 1. isDestinationReleased → _getExternalRef
+    mockDb.get.mockResolvedValueOnce({ identifier_value: 'rel-001' });
+    // 2. amountTolerance → no prior milestone (returns null → passes with warning)
+    mockDb.get.mockResolvedValueOnce(null);
+    // 3. attributableFunds → escrowRow
+    mockDb.get.mockResolvedValueOnce({ id: 'disp-other' });
+    // 4. attributableFunds → campaignDisbursements SUM
+    mockDb.get.mockResolvedValueOnce({ total_disbursed: 100_000_000 });
+    // 5. attributableFunds → fundingRow SUM (must match amount_usdcx)
+    mockDb.get.mockResolvedValueOnce({ total_funded: 100_000_000 });
+    // 6. whitelistPrerequisite → profile verified
+    mockDb.get.mockResolvedValueOnce({ address: 'SP.Creator', verified: true });
+
     const disp = makeDisbursement({ id: 'disp-001', status: S.DESTINATION_RELEASE_CONFIRMED });
     const result = await destinationReleasedForPayout(disp, ctx);
     expect(result.ok).toBe(true);
@@ -711,6 +724,179 @@ describe('BOS Exchange Rate Seed', () => {
 
     // Should not insert
     expect(mockDb.run).not.toHaveBeenCalled();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10b. Payout Caps (§7.6 — perDisbursementCap + dailyPayoutCap)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('BOS Payout Caps', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDb.get.mockReset();
+    mockDb.run.mockReset();
+    mockDb.all.mockReset();
+    mockDb.get.mockResolvedValue(undefined);
+    mockDb.run.mockResolvedValue(undefined);
+    mockDb.all.mockResolvedValue([]);
+    delete process.env.BOS_MAX_PER_DISBURSEMENT_USD;
+    delete process.env.BOS_DAILY_PAYOUT_CAP_USD;
+  });
+
+  afterAll(() => {
+    delete process.env.BOS_MAX_PER_DISBURSEMENT_USD;
+    delete process.env.BOS_DAILY_PAYOUT_CAP_USD;
+  });
+
+  // ── perDisbursementCap ──────────────────────────────────────────────────────
+
+  describe('perDisbursementCap', () => {
+    it('passes when env var not set (gate disabled)', async () => {
+      const d = makeDisbursement({ amount_usd: 99999 });
+      const result = await perDisbursementCap(d, makeCtx());
+      expect(result.ok).toBe(true);
+      expect(result.warning).toBe('per_disbursement_cap_disabled');
+    });
+
+    it('passes when amount is below cap', async () => {
+      process.env.BOS_MAX_PER_DISBURSEMENT_USD = '5000';
+      const d = makeDisbursement({ amount_usd: 100 });
+      const result = await perDisbursementCap(d, makeCtx());
+      expect(result.ok).toBe(true);
+      expect(result.details.cap_usd).toBe(5000);
+    });
+
+    it('passes when amount equals cap', async () => {
+      process.env.BOS_MAX_PER_DISBURSEMENT_USD = '100';
+      const d = makeDisbursement({ amount_usd: 100 });
+      const result = await perDisbursementCap(d, makeCtx());
+      expect(result.ok).toBe(true);
+    });
+
+    it('fails when amount exceeds cap', async () => {
+      process.env.BOS_MAX_PER_DISBURSEMENT_USD = '50';
+      const d = makeDisbursement({ amount_usd: 100 });
+      const result = await perDisbursementCap(d, makeCtx());
+      expect(result.ok).toBe(false);
+      expect(result.error_code).toBe('u824B');
+      expect(result.reason).toContain('exceeds per-disbursement cap');
+    });
+
+    it('fails when amount_usd is zero', async () => {
+      process.env.BOS_MAX_PER_DISBURSEMENT_USD = '5000';
+      const d = makeDisbursement({ amount_usd: 0 });
+      const result = await perDisbursementCap(d, makeCtx());
+      expect(result.ok).toBe(false);
+      expect(result.error_code).toBe('u824B');
+    });
+  });
+
+  // ── dailyPayoutCap ──────────────────────────────────────────────────────────
+
+  describe('dailyPayoutCap', () => {
+    it('passes when env var not set (gate disabled)', async () => {
+      const d = makeDisbursement({ amount_usd: 99999 });
+      const result = await dailyPayoutCap(d, makeCtx());
+      expect(result.ok).toBe(true);
+      expect(result.warning).toBe('daily_payout_cap_disabled');
+    });
+
+    it('passes when projected total is below cap', async () => {
+      process.env.BOS_DAILY_PAYOUT_CAP_USD = '50000';
+      const ctx = makeCtx();
+      mockDb.get.mockResolvedValueOnce({ daily_total: 10000 });
+
+      const d = makeDisbursement({ amount_usd: 5000 });
+      const result = await dailyPayoutCap(d, ctx);
+      expect(result.ok).toBe(true);
+      expect(result.details.daily_total_so_far).toBe(10000);
+      expect(result.details.projected).toBe(15000);
+    });
+
+    it('fails when projected total would exceed cap', async () => {
+      process.env.BOS_DAILY_PAYOUT_CAP_USD = '50000';
+      const ctx = makeCtx();
+      mockDb.get.mockResolvedValueOnce({ daily_total: 48000 });
+
+      const d = makeDisbursement({ amount_usd: 5000 });
+      const result = await dailyPayoutCap(d, ctx);
+      expect(result.ok).toBe(false);
+      expect(result.error_code).toBe('u824C');
+      expect(result.reason).toContain('would exceed daily cap');
+      expect(result.details.projected).toBe(53000);
+    });
+
+    it('passes when daily total is zero', async () => {
+      process.env.BOS_DAILY_PAYOUT_CAP_USD = '50000';
+      const ctx = makeCtx();
+      mockDb.get.mockResolvedValueOnce({ daily_total: 0 });
+
+      const d = makeDisbursement({ amount_usd: 5000 });
+      const result = await dailyPayoutCap(d, ctx);
+      expect(result.ok).toBe(true);
+      expect(result.details.projected).toBe(5000);
+    });
+
+    it('returns error on DB failure', async () => {
+      process.env.BOS_DAILY_PAYOUT_CAP_USD = '50000';
+      const ctx = makeCtx();
+      mockDb.get.mockRejectedValueOnce(new Error('DB connection lost'));
+
+      const d = makeDisbursement({ amount_usd: 1000 });
+      const result = await dailyPayoutCap(d, ctx);
+      expect(result.ok).toBe(false);
+      expect(result.error_code).toBe('u824C');
+      expect(result.reason).toContain('DB connection lost');
+    });
+  });
+
+  // ── runAllGates integration ─────────────────────────────────────────────────
+
+  describe('runAllGates with payout caps', () => {
+    it('stops at perDisbursementCap when it fails', async () => {
+      process.env.BOS_MAX_PER_DISBURSEMENT_USD = '50';
+      const ctx = makeCtx();
+
+      const d = makeDisbursement({ amount_usd: 100 });
+      const result = await runAllGates(d, ctx);
+      expect(result.ok).toBe(false);
+      expect(result.gate_results[0].gate).toBe('per_disbursement_cap');
+      expect(result.gate_results[0].ok).toBe(false);
+      // Should stop — no further gates run
+      expect(result.gate_results).toHaveLength(1);
+    });
+
+    it('stops at dailyPayoutCap when it fails', async () => {
+      process.env.BOS_DAILY_PAYOUT_CAP_USD = '50000';
+      const ctx = makeCtx();
+      mockDb.get.mockResolvedValueOnce({ daily_total: 49000 });
+
+      const d = makeDisbursement({ amount_usd: 2000 });
+      const result = await runAllGates(d, ctx);
+      expect(result.ok).toBe(false);
+      expect(result.gate_results[0].gate).toBe('per_disbursement_cap');
+      expect(result.gate_results[0].ok).toBe(true);
+      expect(result.gate_results[1].gate).toBe('daily_payout_cap');
+      expect(result.gate_results[1].ok).toBe(false);
+      // Stops after dailyPayoutCap
+      expect(result.gate_results).toHaveLength(2);
+    });
+
+    it('runs all 6 gates when caps are disabled and all pass', async () => {
+      const ctx = makeCtx();
+      mockDb.get
+        .mockResolvedValueOnce({ amount_usd: 100 }) // amountTolerance
+        .mockResolvedValueOnce({ amount_usdcx: 100_000_000 }) // attributableFunds
+        .mockResolvedValueOnce({ verified: true }); // whitelist
+
+      const d = makeDisbursement({ amount_usd: 100 });
+      const result = await runAllGates(d, ctx);
+      expect(result.ok).toBe(true);
+      // 6 gates: per_disbursement_cap, daily_payout_cap, amount_tolerance, attributable_funds, beneficiary_payload, whitelist
+      expect(result.gate_results).toHaveLength(6);
+      expect(result.gate_results.every(r => r.ok)).toBe(true);
+    });
   });
 });
 

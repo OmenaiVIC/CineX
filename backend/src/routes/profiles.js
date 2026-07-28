@@ -80,10 +80,42 @@ router.post('/:address/ratings', requireAuth, async (req, res, next) => {
   try {
     const db = await getDb();
     const { raterAddress, score, comment, commentHash, txId, projectId } = req.body;
+
+    // Validation: required fields
     if (!raterAddress || !score || score < 1 || score > 5) {
       db.release();
       return res.status(400).json({ error: 'raterAddress and score (1-5) required' });
     }
+
+    // Validation: cannot rate yourself
+    if (raterAddress === req.params.address) {
+      db.release();
+      return res.status(400).json({ error: 'Cannot rate yourself' });
+    }
+
+    // Validation: duplicate rating prevention (rater + target + project)
+    const existing = await db.get(
+      'SELECT id FROM ratings WHERE rater_address = $1 AND target_address = $2 AND (project_id = $3 OR (project_id IS NULL AND $3 IS NULL))',
+      [raterAddress, req.params.address, projectId || null]
+    );
+    if (existing) {
+      db.release();
+      return res.status(409).json({ error: 'You have already rated this user for this project' });
+    }
+
+    // Validation: eligibility — rater must have participated in a campaign with the target
+    // Check if rater contributed to any campaign where target is creator
+    const participation = await db.get(`
+      SELECT 1 FROM campaigns
+      WHERE creator_address = $1
+      AND id IN (SELECT campaign_id FROM contributions WHERE contributor_address = $2)
+      LIMIT 1
+    `, [req.params.address, raterAddress]);
+    if (!participation) {
+      db.release();
+      return res.status(403).json({ error: 'You must have contributed to a campaign by this creator to rate them' });
+    }
+
     const created = await db.run(`
       INSERT INTO ratings (rater_address, target_address, score, comment, comment_hash, tx_id, project_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7)

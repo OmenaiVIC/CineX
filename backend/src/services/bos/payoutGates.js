@@ -1,5 +1,87 @@
 import { DisbursementState } from './types.js';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Gate: perDisbursementCap
+// §7.6 — Maximum-per-disbursement cap (env: BOS_MAX_PER_DISBURSEMENT_USD)
+// Rejects if amount_usd exceeds the configured per-disbursement maximum.
+// Returns ok:true (no-op) when env var is unset or zero (gate disabled).
+// ─────────────────────────────────────────────────────────────────────────────
+export async function perDisbursementCap(disbursement, ctx) {
+  const log = ctx.getLogger('gate:perDisbursementCap');
+  const cap = Number(process.env.BOS_MAX_PER_DISBURSEMENT_USD);
+
+  if (!cap || cap <= 0) {
+    return { ok: true, warning: 'per_disbursement_cap_disabled', details: { cap_usd: null } };
+  }
+
+  const amountUsd = Number(disbursement.amount_usd);
+  if (!amountUsd || amountUsd <= 0) {
+    return { ok: false, error_code: 'u824B', reason: 'amount_usd is zero or negative', details: { amount_usd: disbursement.amount_usd } };
+  }
+
+  if (amountUsd > cap) {
+    log?.warn({ id: disbursement.id, amount_usd: amountUsd, cap_usd: cap }, 'Per-disbursement cap exceeded');
+    return {
+      ok: false,
+      error_code: 'u824B',
+      reason: `amount_usd ${amountUsd} exceeds per-disbursement cap ${cap}`,
+      details: { amount_usd: amountUsd, cap_usd: cap },
+    };
+  }
+
+  return { ok: true, details: { amount_usd: amountUsd, cap_usd: cap } };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gate: dailyPayoutCap
+// §7.6 — Configurable daily payout cap (env: BOS_DAILY_PAYOUT_CAP_USD)
+// Aggregates all non-failed/cancelled payouts in the last 24h and rejects
+// if adding the current disbursement would exceed the daily cap.
+// Returns ok:true (no-op) when env var is unset or zero (gate disabled).
+// ─────────────────────────────────────────────────────────────────────────────
+export async function dailyPayoutCap(disbursement, ctx) {
+  const log = ctx.getLogger('gate:dailyPayoutCap');
+  const cap = Number(process.env.BOS_DAILY_PAYOUT_CAP_USD);
+
+  if (!cap || cap <= 0) {
+    return { ok: true, warning: 'daily_payout_cap_disabled', details: { cap_usd: null } };
+  }
+
+  const amountUsd = Number(disbursement.amount_usd);
+  if (!amountUsd || amountUsd <= 0) {
+    return { ok: false, error_code: 'u824C', reason: 'amount_usd is zero or negative', details: { amount_usd: disbursement.amount_usd } };
+  }
+
+  try {
+    const db = ctx.getDb();
+    const row = await db.get(
+      `SELECT COALESCE(SUM(amount_usd), 0) as daily_total
+       FROM disbursements
+       WHERE status NOT IN ($1, $2, $3)
+         AND created_at >= NOW() - INTERVAL '24 hours'`,
+      [DisbursementState.FAILED, DisbursementState.CANCELLED, DisbursementState.MANUAL_REVIEW]
+    );
+
+    const dailyTotal = Number(row?.daily_total || 0);
+    const projected = dailyTotal + amountUsd;
+
+    if (projected > cap) {
+      log?.warn({ id: disbursement.id, daily_total: dailyTotal, projected, cap_usd: cap }, 'Daily payout cap would be exceeded');
+      return {
+        ok: false,
+        error_code: 'u824C',
+        reason: `Projected daily total ${projected} would exceed daily cap ${cap}`,
+        details: { daily_total_so_far: dailyTotal, adding: amountUsd, projected, cap_usd: cap },
+      };
+    }
+
+    return { ok: true, details: { daily_total_so_far: dailyTotal, projected, cap_usd: cap } };
+  } catch (err) {
+    log?.error({ id: disbursement.id, error: err.message }, 'Daily payout cap check failed');
+    return { ok: false, error_code: 'u824C', reason: `Daily cap check failed: ${err.message}` };
+  }
+}
+
 export async function amountTolerance(disbursement, ctx) {
   const log = ctx.getLogger('gate:amountTolerance');
   const amountUsd = Number(disbursement.amount_usd);
@@ -185,6 +267,8 @@ export async function runAllGates(disbursement, ctx) {
   const gateResults = [];
 
   const gates = [
+    { name: 'per_disbursement_cap', fn: perDisbursementCap },
+    { name: 'daily_payout_cap', fn: dailyPayoutCap },
     { name: 'amount_tolerance', fn: amountTolerance },
     { name: 'attributable_funds', fn: attributableFunds },
     { name: 'beneficiary_payload', fn: beneficiaryPayload },

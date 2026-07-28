@@ -337,7 +337,7 @@ describe('runAllGates', () => {
     const d = mkDisbursement();
     const result = await runAllGates(d, ctx);
     expect(result.ok).toBe(true);
-    expect(result.gate_results).toHaveLength(4);
+    expect(result.gate_results).toHaveLength(6);
     expect(result.gate_results.every(r => r.ok)).toBe(true);
   });
 

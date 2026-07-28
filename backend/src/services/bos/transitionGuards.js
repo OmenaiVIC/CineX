@@ -4,6 +4,10 @@
  */
 
 import { DisbursementState } from './types.js';
+import { runAllGates } from './payoutGates.js';
+import { TwoPersonApproval } from './twoPersonApproval.js';
+
+const twoPersonApproval = new TwoPersonApproval();
 
 /**
  * Check that a disbursement exists and is in an expected state
@@ -92,10 +96,25 @@ export async function isDestinationReleased(disbursement, ctx) {
 
 /**
  * destination_release_confirmed → yellowcard_payout_submitted
- * Guard: destination release confirmed (re-validates)
+ * Guard: destination release confirmed (re-validates) + payout gates + 2-of-N approval
  */
 export async function destinationReleasedForPayout(disbursement, ctx) {
-  return isDestinationReleased(disbursement, ctx);
+  const release = await isDestinationReleased(disbursement, ctx);
+  if (!release.ok) return release;
+
+  // Enforce payout gates before Yellow Card payout
+  const gates = await runAllGates(disbursement, ctx);
+  if (!gates.ok) {
+    return { ok: false, error_code: 'u8235', reason: `Payout gates failed: ${gates.gate_results.find(r => !r.ok)?.reason}` };
+  }
+
+  // Enforce 2-of-N approval before Yellow Card payout
+  const tpResult = await twoPersonApproval.check(disbursement, ctx);
+  if (!tpResult.ok) {
+    return { ok: false, error_code: tpResult.error_code, reason: tpResult.reason };
+  }
+
+  return { ok: true, details: release.details };
 }
 
 /**

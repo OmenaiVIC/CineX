@@ -5,10 +5,13 @@
  * Layer 2: sponsorService (policy engine)
  * Layer 3: passkeyService (relay executor)
  *
- * POST /api/passkey/transfer  — Relay a passkey-signed STX transfer
- * GET  /api/passkey/vault-state — Read vault on-chain state
- * GET  /api/passkey/quota/:address — Get user's daily quota status
- * GET  /api/passkey/health — Relay wallet health check
+ * POST /api/passkey/transfer           — Relay a passkey-signed STX transfer
+ * GET  /api/passkey/vault-state        — Read vault on-chain state
+ * GET  /api/passkey/quota/:address     — Get user's daily quota status
+ * POST /api/passkey/recovery/propose   — Admin proposes key recovery (72h timelock)
+ * POST /api/passkey/recovery/execute   — Admin executes recovery after veto window
+ * GET  /api/passkey/recovery/state     — Read vault recovery state
+ * GET  /api/passkey/health             — Relay wallet health check
  */
 
 import { Router } from 'express';
@@ -154,6 +157,75 @@ router.get('/quota/:address', async (req, res, next) => {
     res.json(quota);
   } catch (err) {
     console.error('[passkey/quota] Error:', err.message);
+    next(err);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/passkey/recovery/propose — Admin proposes key recovery
+// Sets new-pubkey and starts 72h veto window on vault contract.
+// ─────────────────────────────────────────────────────────────
+router.post('/recovery/propose',
+  relayAuthMiddleware({ rateLimit: 5 }),
+  async (req, res, next) => {
+    try {
+      const { newPubkey, vaultAddress, vaultName } = req.body;
+
+      if (!newPubkey || typeof newPubkey !== 'string') {
+        return res.status(400).json({ error: 'newPubkey is required (33-byte hex string)' });
+      }
+      if (newPubkey.length !== 66) {
+        return res.status(400).json({ error: 'newPubkey must be 66 hex characters (33 bytes)' });
+      }
+
+      const result = await passkeyService.proposeRecovery({
+        newPubkey,
+        vaultAddress,
+        vaultName,
+      });
+
+      res.json({ txid: result.txid, status: 'proposed' });
+    } catch (err) {
+      console.error('[passkey/recovery/propose] Error:', err.message);
+      next(err);
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/passkey/recovery/execute — Admin executes recovery
+// After 72h veto window, rotates owner-pubkey to new key.
+// ─────────────────────────────────────────────────────────────
+router.post('/recovery/execute',
+  relayAuthMiddleware({ rateLimit: 5 }),
+  async (req, res, next) => {
+    try {
+      const { vaultAddress, vaultName } = req.body;
+
+      const result = await passkeyService.executeRecovery({
+        vaultAddress,
+        vaultName,
+      });
+
+      res.json({ txid: result.txid, status: 'executed' });
+    } catch (err) {
+      console.error('[passkey/recovery/execute] Error:', err.message);
+      next(err);
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/passkey/recovery/state — Read vault recovery state
+// Returns recovery-pubkey, proposed-at, veto-until from chain.
+// ─────────────────────────────────────────────────────────────
+router.get('/recovery/state', async (req, res, next) => {
+  try {
+    const { vaultAddress, vaultName } = req.query;
+    const state = await passkeyService.getRecoveryState(vaultAddress, vaultName);
+    res.json(state);
+  } catch (err) {
+    console.error('[passkey/recovery/state] Error:', err.message);
     next(err);
   }
 });

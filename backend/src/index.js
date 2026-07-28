@@ -33,6 +33,7 @@ import monitorJob from './services/bos/monitoring/monitorJob.js';
 import * as stuckReaper from './services/bos/stuckStateReaper.js';
 import * as reconciliationWorker from './services/bos/reconciliationWorker.js';
 import * as disbursementService from './services/bos/disbursementService.js';
+import { initIndexer, startIndexer, stopIndexer } from './services/indexerWorker.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -147,6 +148,22 @@ async function ensureInit() {
   pipelineWorker.start();    // 30s interval — scans and advances all actionable disbursements
   console.log('✅ Pipeline worker started');
 
+  // Initialize and start Activity Feed Indexer — polls Hiro API for contract events
+  try {
+    const db = await getDb();
+    await initIndexer(db);
+    db.release();
+    startIndexer({ query: async (sql, params) => {
+      const c = await getDb();
+      const result = await c.run(sql, params);
+      c.release();
+      return result;
+    }});
+    console.log('✅ Activity Feed Indexer started');
+  } catch (err) {
+    console.warn(`⚠️  Indexer init failed: ${err.message}`);
+  }
+
   // Start relay wallet balance monitor (5min interval)
   if (process.env.RELAY_ADDRESS) {
     const { startMonitoring } = await import('./services/relayMonitor.js');
@@ -213,6 +230,7 @@ function shutdown() {
   monitorJob.stop();
   stuckReaper.stop();
   reconciliationWorker.stop();
+  stopIndexer();
   if (stopRelayMonitor) stopRelayMonitor();
   process.exit(0);
 }

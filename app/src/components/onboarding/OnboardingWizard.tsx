@@ -29,6 +29,12 @@ const ROLE_OPTIONS: { role: UserRole; title: string; desc: string; icon: string 
     desc: 'Support creative projects and vote to release funds when milestones are met',
     icon: '❤️',
   },
+  {
+    role: 'gatekeeper',
+    title: 'I verify projects',
+    desc: 'Endorse creative profiles and verify delivery for funded campaigns',
+    icon: '🔍',
+  },
 ];
 
 export function OnboardingWizard({ onComplete, isDemo }: OnboardingWizardProps) {

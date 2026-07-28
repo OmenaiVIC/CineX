@@ -450,3 +450,91 @@ export async function getRelayQuota(address: string): Promise<RelayQuota> {
 export function getExplorerUrl(txid: string): string {
   return `https://explorer.hiro.so/txid/${txid}?chain=testnet`;
 }
+
+// ---------------------------------------------------------------------------
+// Recovery Management
+// ---------------------------------------------------------------------------
+
+/**
+ * Read the vault's recovery state (proposed pubkey + block height).
+ */
+export async function getRecoveryState(
+  vaultAddress: string,
+  vaultName: string,
+): Promise<any> {
+  const [addr, name] = [vaultAddress || VAULT_CONTRACT_ADDRESS, vaultName || VAULT_CONTRACT_NAME];
+  const contractId = `${addr}.${name}`;
+  const encodedFn = encodeURIComponent('get-recovery-state');
+  const res = await fetch(
+    `${API_BASE.replace('/api', '')}/passkey/vault-state?contractId=${encodeURIComponent(contractId)}&fn=${encodedFn}`,
+  );
+  if (!res.ok) throw new Error(`Failed to fetch recovery state: HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Propose a new P-256 public key for vault recovery (admin-signed via relay).
+ */
+export async function proposeRecovery(
+  newPubkey: string,
+  vaultAddress?: string,
+  vaultName?: string,
+): Promise<{ txid: string; status: string }> {
+  const keypair = await getOrCreateKeypair();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Relay-Api-Key': '***REMOVED***',
+    'X-Relay-User-Address': keypair.address,
+  };
+
+  const res = await fetch(`${API_BASE}/passkey/recovery/propose`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      newPubkey,
+      vaultAddress: vaultAddress || VAULT_CONTRACT_ADDRESS,
+      vaultName: vaultName || VAULT_CONTRACT_NAME,
+    }),
+  });
+
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try { errMsg = (await res.json()).error || errMsg; } catch { /* ignore */ }
+    throw new Error(errMsg);
+  }
+  return res.json();
+}
+
+/**
+ * Execute a previously proposed recovery (admin-signed via relay).
+ * Only succeeds after the 72-hour veto window has expired.
+ */
+export async function executeRecovery(
+  vaultAddress?: string,
+  vaultName?: string,
+): Promise<{ txid: string; status: string }> {
+  const keypair = await getOrCreateKeypair();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Relay-Api-Key': '***REMOVED***',
+    'X-Relay-User-Address': keypair.address,
+  };
+
+  const res = await fetch(`${API_BASE}/passkey/recovery/execute`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      vaultAddress: vaultAddress || VAULT_CONTRACT_ADDRESS,
+      vaultName: vaultName || VAULT_CONTRACT_NAME,
+    }),
+  });
+
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try { errMsg = (await res.json()).error || errMsg; } catch { /* ignore */ }
+    throw new Error(errMsg);
+  }
+  return res.json();
+}

@@ -248,7 +248,7 @@ export interface Milestone {
   completedAt?: number;
 }
 
-export type UserRole = 'creative' | 'backer';
+export type UserRole = 'creative' | 'backer' | 'gatekeeper';
 
 export interface OnboardingState {
   address: string;

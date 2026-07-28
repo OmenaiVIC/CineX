@@ -38,6 +38,30 @@
 - Devnet backend runs on port **3001**.
 - Run `clarinet check` before any test run.
 
+## Activity Feed Indexer (§11.4)
+
+- **Worker:** `backend/src/services/indexerWorker.js` — polls Hiro API for contract events
+- **Contracts indexed:** campaign-module-2, milestone-escrow, milestone-verification, reputation, funding-pool, project-verification-module, oracle-proxy
+- **Dedup:** `feed_events` table has `UNIQUE INDEX (tx_id, event_type) WHERE tx_id IS NOT NULL`
+- **Cursor:** `feed_index_cursor` table stores `last_block_height` per contract for resumable catch-up
+- **Config:** `INDEXER_POLL_INTERVAL_MS` (default 60s), `INDEXER_BATCH_SIZE` (default 50)
+- **Wired:** `backend/src/index.js` starts indexer on boot, stops on SIGTERM
+
+## Rating Validation Rules (§11.2)
+
+- **Self-rating prevention:** `raterAddress === targetAddress` → 400
+- **Duplicate prevention:** `UNIQUE(rater_address, target_address, project_id)` → 409
+- **Eligibility:** Rater must have contributed to a campaign where target is creator → 403
+- **Location:** `backend/src/routes/profiles.js` POST `/:address/ratings`
+
+## ILP Architecture (§12.1-12.2)
+
+- **Status:** P2 — Conditional on grant confirmation
+- **Doc:** `docs/ILP_ARCHITECTURE.md` — full architecture, schema, endpoints, sequence diagrams
+- **Tables:** `ilp_transfers` (transfer tracking), `ilp_cursor` (resumable indexing)
+- **Depends on:** xReserve adapter (exists), BOS pipeline (exists), Yellow Card (exists)
+- **Missing:** ILP Connector component, demo harness
+
 ## On-Chain Bridge (Backend Proxy Pattern)
 
 The backend uses `CREATOR_KEY` and `BACKER_KEY` env var private keys to broadcast smart contract txs as a proxy for Web2 users. All mutation endpoints follow a **dual-write** pattern: write to SQLite first, then broadcast on-chain (wrapped in try/catch — chain failure never blocks the Web2 flow).
