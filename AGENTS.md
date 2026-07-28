@@ -132,7 +132,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 
 - **Vitest** with `@hirosystems/clarinet-sdk` (contracts) and `jsdom` + `@testing-library` (frontend).
 - **322 contract tests** across 14 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32), plus 11 individual contract test files.
-- **98 backend tests** across 10 files: 53 BOS pipeline/adapter tests (`bosWorkers.test.js`), relay/sponsor tests, plus API route tests.
+- **232 backend tests** across 12 files: 53 BOS pipeline/adapter tests (`bosWorkers.test.js`), relay/sponsor tests, API route tests, 9 AI tests (`ai.test.js`).
 - **50 frontend tests** across 5 files: OnboardingWizard, CampaignCreationForm, DemoScenarioPage, EscrowStatus, MilestoneVoting.
 - `integration.test.ts` has 5 flows: create+contribute → milestone-escrow wrappers → milestone-verification lifecycle → claim → edge cases.
 - `createLinkedCampaigns()` helper creates campaign in both `milestone-escrow` (user-specified id) and `campaign-module` (auto-incremented).
@@ -390,6 +390,15 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Backend tests verified**: 133/133 previously passing tests still pass after chain config refactor
 - **WS-B frontend components CREATED**: OnboardingWizard.tsx, CampaignCreationForm.tsx, EscrowStatus.tsx, MilestoneVoting.tsx, DemoScenarioPage.tsx
 - **WS-C (§7 BOS E2E Orchestration) — COMPLETE**: webhookVerifier.js, fallbackPoller.js, auditTimeline.js, evidenceCollector.js, migration 010; 35/35 tests pass
+
+### Done This Session (2026-07-28 — §11.5 AI Credibility Summary — Option A ✅)
+- **ai.js Postgres fix**: `INSERT OR REPLACE` → `INSERT ... ON CONFLICT` (was silently overwriting on unique key violation instead of upserting). Added `AbortController` timeout (15s), extracted `upsertSummary()` helper and `SUMMARY_DISCLAIMER` constant.
+- **OPENAI_API_KEY**: Added to `.env.example` with documentation; optional — missing key triggers fallback path ("post-launch" message + portfolio count).
+- **AICredibilityModal.tsx**: Extracted from ProfilePage inline markup to `app/src/components/common/AICredibilityModal.tsx`. Has loading skeleton (pulsing 3 bars), error + retry button, empty state, and `disclaimer` footer. Takes `isOpen`, `credibility`, `loading`, `error`, `onRefresh`, `onClose` props.
+- **ProfilePage.tsx**: Refactored — uses `credibilityLoading` + `credibilityError` state vars; `handleOpenCredibility` auto-loads on first open; `handleRefreshCredibility` sets error state on failure; inline modal replaced with `<AICredibilityModal>` component.
+- **Backend tests (ai.test.js)**: 9 tests across the full lifecycle — missing address (400), rate limit exhaustion (429), profile not found (404), cache hit (200 + no db query), fallback without API key (200 + cached), OpenAI success (200 + gpt-4), OpenAI error (500), AbortController timeout (504), empty portfolio (200). Uses Express + `http` request simulation with mocked `database.js` and `global.fetch`.
+- **Test results**: 232/232 backend ✅ (12 files, was 223), 50/50 frontend ✅, Vite build clean.
+- **Evidence docs updated**: `docs/evidence/index.md` — §11.5 marked ✅, LOC counts updated, ai.test.js added to test list, date bumped.
 
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)

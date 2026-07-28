@@ -13,6 +13,7 @@ import { getCreatorCampaigns, getBackerContributions } from '../services/campaig
 import { addFeedEvent } from '../services/feedService';
 import { API_BASE } from '../services/api';
 import PortfolioSection from '../components/portfolio/PortfolioSection';
+import AICredibilityModal from '../components/common/AICredibilityModal';
 import type { Profile, Rating, CredibilitySummary, Campaign, CampaignContribution } from '../types';
 
 function StarRating({ value, onChange, readonly = false }: { value: number; onChange?: (v: number) => void; readonly?: boolean }) {
@@ -50,6 +51,8 @@ export default function ProfilePage() {
   const [credibility, setCredibility] = useState<CredibilitySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCredibility, setShowCredibility] = useState(false);
+  const [credibilityLoading, setCredibilityLoading] = useState(false);
+  const [credibilityError, setCredibilityError] = useState<string | null>(null);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [avatarUrlInput, setAvatarUrlInput] = useState('');
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -112,8 +115,22 @@ export default function ProfilePage() {
 
   const handleRefreshCredibility = async () => {
     if (!address) return;
+    setCredibilityLoading(true);
+    setCredibilityError(null);
     const res = await refreshCredibilitySummary(address);
-    if (res.success && res.data) setCredibility(res.data);
+    if (res.success && res.data) {
+      setCredibility(res.data);
+    } else {
+      setCredibilityError(res.error || 'Failed to load credibility summary.');
+    }
+    setCredibilityLoading(false);
+  };
+
+  const handleOpenCredibility = async () => {
+    setShowCredibility(true);
+    if (!credibility && !credibilityLoading) {
+      await handleRefreshCredibility();
+    }
   };
 
   if (loading) {
@@ -228,7 +245,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-600 mt-3">Joined {new Date(profile.joinedAt).toLocaleDateString()}</p>
               )}
               <button
-                onClick={() => setShowCredibility(true)}
+                onClick={handleOpenCredibility}
                 className="mt-3 text-xs text-[#00e5ff] hover:underline"
               >
                 View AI Credibility
@@ -386,28 +403,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {showCredibility && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCredibility(false)}>
-          <div className="bg-[#0a0a0f] border border-[#1a1a2e] rounded-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">AI Credibility Summary</h3>
-              <button onClick={handleRefreshCredibility} className="text-xs text-[#00e5ff] hover:underline">Refresh</button>
-            </div>
-            <div className="bg-black/30 rounded-lg p-4 mb-4">
-              {!credibility ? (
-                <p className="text-sm text-gray-500">Loading...</p>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-300 leading-relaxed">{credibility.summary}</p>
-                  <p className="text-xs text-gray-600 mt-2">Model: {credibility.model}</p>
-                  <p className="text-xs text-gray-500 italic">{credibility.disclaimer}</p>
-                </div>
-              )}
-            </div>
-            <button onClick={() => setShowCredibility(false)} className="w-full px-4 py-2 bg-gray-800 text-gray-300 rounded-full text-sm hover:bg-gray-700 transition-colors">Close</button>
-          </div>
-        </div>
-      )}
+      <AICredibilityModal
+        isOpen={showCredibility}
+        credibility={credibility}
+        loading={credibilityLoading}
+        error={credibilityError}
+        onRefresh={handleRefreshCredibility}
+        onClose={() => { setShowCredibility(false); setCredibilityError(null); }}
+      />
 
       <TransactionModal
         isOpen={tx.isOpen}

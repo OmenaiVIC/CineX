@@ -26,7 +26,7 @@
 | §11.2 Rating System | ✅ | `backend/src/routes/profiles.js` (validation rules at POST /:address/ratings) |
 | §11.3 Pool Discovery | 🟡 | `backend/src/routes/pools.js` + `app/src/pages/PoolExplorePage.tsx` |
 | §11.4 Activity Feed Indexer | ✅ | `backend/src/services/indexerWorker.js` (274 lines) |
-| §11.5 AI Credibility Summary | 🟡 | `backend/src/routes/ai.js` exists, frontend integration partial |
+| §11.5 AI Credibility Summary | ✅ | `backend/src/routes/ai.js` (Postgres fix, AbortController timeout, fallback path), `app/src/components/common/AICredibilityModal.tsx` (standalone modal with loading/error/empty states), `backend/tests/ai.test.js` (9 tests), `backend/.env.example` (`OPENAI_API_KEY` doc) |
 
 ## §12 — Interledger Protocol (0/2 = 0%)
 
@@ -51,8 +51,8 @@
 - `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32)
 
 ### Backend Tests
-- 133+ tests across 10+ test files
-- `backend/tests/bosWorkers.test.js` (53), `backend/tests/indexerWorker.test.js` (11), `backend/tests/ratingValidation.test.js` (11)
+- 232 tests across 12 test files
+- `backend/tests/bosWorkers.test.js` (53), `backend/tests/indexerWorker.test.js` (11), `backend/tests/ratingValidation.test.js` (11), `backend/tests/ai.test.js` (9)
 
 ### Frontend Tests
 - 50 tests across 5 test files
@@ -66,7 +66,9 @@
 | `backend/src/routes/profiles.js` | Profile + Rating Validation | ~400 |
 | `backend/src/routes/pools.js` | Funding Pool Routes | 358 |
 | `backend/src/routes/feed.js` | Activity Feed Backend | ~200 |
-| `backend/src/routes/ai.js` | AI Credibility Summary | ~150 |
+| `backend/src/routes/ai.js` | AI Credibility Summary | 119 |
+| `app/src/components/common/AICredibilityModal.tsx` | AI Credibility Modal UI | ~120 |
+| `backend/tests/ai.test.js` | AI Credibility Tests (9 tests) | ~260 |
 | `backend/src/config/chain.js` | Chain Config (single source of truth) | ~50 |
 | `docs/ILP_ARCHITECTURE.md` | ILP Architecture | ~250 |
 
@@ -87,8 +89,11 @@ cd backend && npx vitest run --run tests/indexerWorker.test.js
 
 # Rating validation tests only
 cd backend && npx vitest run --run tests/ratingValidation.test.js
+
+# AI credibility tests only
+cd backend && npx vitest run --run tests/ai.test.js
 ```
 
 ---
 
-*Last updated: 2026-07-27*
+*Last updated: 2026-07-28*
