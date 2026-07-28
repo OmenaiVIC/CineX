@@ -11,6 +11,16 @@
 | 🟡 | Partial — work in progress |
 | ❌ | Not started |
 
+## §7 — BOS Orchestration (4/4 = 100%)
+
+| Deliverable | Status | Evidence |
+|-------------|--------|----------|
+| §7.1 XReserve Bridge Adapter | ✅ | `backend/src/services/bos/xreserveAdapter.js`, `backend/src/services/bos/bridgeAdapterFactory.js` |
+| §7.2 Pipeline Worker | ✅ | `backend/src/services/bos/pipelineWorker.js` (full 10-step lifecycle) |
+| §7.3 Destination-Side Release | ✅ | Transition tests in `tests/bosWorkers.test.js` |
+| §7.4 Yellow Card Payout | ✅ | `backend/src/services/bos/yellowcardAdapter.js`, `backend/src/routes/webhooks.js` |
+| DeGrants M1 — BOS Prototype | ✅ | All above + `docs/bos-state-machine-design.md`, `docs/BOS_MONITORING_RUNBOOK.md` |
+
 ## §10 — Pilot Execution (4/4 = 100%)
 
 | Deliverable | Status | Evidence |

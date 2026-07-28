@@ -24,6 +24,7 @@ export function CampaignCreationForm({ onSubmit, onCancel, isDemo }: CampaignCre
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('film');
+  const [customCategory, setCustomCategory] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [deadline, setDeadline] = useState('');
   const [milestones, setMilestones] = useState<MilestoneDraft[]>(INITIAL_MILESTONES);
@@ -108,6 +109,15 @@ export function CampaignCreationForm({ onSubmit, onCancel, isDemo }: CampaignCre
           <option key={c.value} value={c.value}>{c.label}</option>
         ))}
       </select>
+      {category === 'other' && (
+        <input
+          style={styles.input}
+          value={customCategory}
+          onChange={(e) => setCustomCategory(e.target.value)}
+          placeholder="Describe your category..."
+          maxLength={60}
+        />
+      )}
 
       {/* Target Amount */}
       <label style={styles.label}>Funding goal (digital dollars)</label>
