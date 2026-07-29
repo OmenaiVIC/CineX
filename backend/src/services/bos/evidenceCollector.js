@@ -171,7 +171,7 @@ async function getEvidence({ db, disbursementId }) {
   }));
 }
 
-module.exports = {
+export {
   EVIDENCE_TYPES,
   recordEvidence,
   recordApiResponse,

@@ -461,6 +461,10 @@ async function getAverageRating(targetAddress) {
   return await readOnlyCall('reputation', 'get-average-rating', [standardPrincipalCV(targetAddress)]);
 }
 
+async function getScoreData(targetAddress) {
+  return await readOnlyCall('reputation', 'get-score-data', [standardPrincipalCV(targetAddress)]);
+}
+
 async function addPortfolio(projectName, projectUrl, projectDescription, completionYear) {
   if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
   const pk = _wallets.creator.privateKey;
@@ -938,6 +942,7 @@ export default {
   getPortfolio,
   rateUser,
   getAverageRating,
+  getScoreData,
   createMilestones,
   submitMilestone,
   endorseMilestone,

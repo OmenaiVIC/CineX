@@ -28,15 +28,15 @@
 | §10.1 Pilot Launch Checklist | ✅ | See `section-10-1-pilot-launch-checklist.md` |
 | §10.2 Pilot Execution Plan | ✅ | See `section-10-2-pilot-execution-plan.md` |
 
-## §11 — Tier 2 Features (4/5 = 80%)
+## §11 — Tier 2 Features (3/5 = 60%)
 
 | Deliverable | Status | Evidence |
 |-------------|--------|----------|
 | §11.1 Reputation & KYC | 🟡 | Partial — backend routes exist, frontend stubs |
 | §11.2 Rating System | ✅ | `backend/src/routes/profiles.js` (validation rules at POST /:address/ratings) |
 | §11.3 Pool Discovery | 🟡 | `backend/src/routes/pools.js` + `app/src/pages/PoolExplorePage.tsx` |
-| §11.4 Activity Feed Indexer | ✅ | `backend/src/services/indexerWorker.js` (274 lines) |
-| §11.5 AI Credibility Summary | ✅ | `backend/src/routes/ai.js` (Postgres fix, AbortController timeout, fallback path), `app/src/components/common/AICredibilityModal.tsx` (standalone modal with loading/error/empty states), `backend/tests/ai.test.js` (9 tests), `backend/.env.example` (`OPENAI_API_KEY` doc) |
+| §11.4 Activity Feed Indexer | ✅ | `backend/src/services/indexerWorker.js`, `backend/src/routes/feed.js`, `app/src/hooks/useFeed.ts`, `app/src/services/feedService.ts`, `app/src/components/common/ActivityFeed.tsx` (wired into `HomePage.tsx`) |
+| §11.5 AI Credibility Summary | ✅ | `backend/src/routes/ai.js` (Postgres fix, AbortController timeout, fallback path, on-chain reputation fetch via contractService), `app/src/components/common/AICredibilityModal.tsx` (standalone modal with loading/error/empty states), `backend/tests/ai.test.js` (9 tests), `backend/.env.example` (`OPENAI_API_KEY` doc) |
 
 ## §12 — Interledger Protocol (0/2 = 0%)
 
@@ -78,6 +78,7 @@
 | `backend/src/routes/feed.js` | Activity Feed Backend | ~200 |
 | `backend/src/routes/ai.js` | AI Credibility Summary | 119 |
 | `app/src/components/common/AICredibilityModal.tsx` | AI Credibility Modal UI | ~120 |
+| `app/src/components/common/ActivityFeed.tsx` | Activity Feed UI | ~70 |
 | `backend/tests/ai.test.js` | AI Credibility Tests (9 tests) | ~260 |
 | `backend/src/config/chain.js` | Chain Config (single source of truth) | ~50 |
 | `docs/ILP_ARCHITECTURE.md` | ILP Architecture | ~250 |

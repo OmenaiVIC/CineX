@@ -400,6 +400,15 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Test results**: 232/232 backend ✅ (12 files, was 223), 50/50 frontend ✅, Vite build clean.
 - **Evidence docs updated**: `docs/evidence/index.md` — §11.5 marked ✅, LOC counts updated, ai.test.js added to test list, date bumped.
 
+### Done This Session (2026-07-29 — §11.3 ActivityFeed + §11.4 Indexer fix + §11.5 On-chain AI)
+- **§11.4 #1 — CRITICAL indexer wrapper bug fixed**: `src/index.js` passed `{ query: ... }` to `startIndexer()`, but indexer calls `db.get()`, `db.run()`, `db.all()` — indexer was completely non-functional in production. Fixed with a factory wrapper exposing `.get()`, `.run()`, `.all()` — each acquires a fresh connection per call.
+- **§11.4 #2 — contractService on-chain reputation reads**: `getScoreData()` added and exported from `contractService.js` — calls `reputation.get-score-data` read-only function returning `{total-ratings, total-score}`.
+- **§11.5 #1 — On-chain reputation in GPT prompt**: `ai.js` now imports `contractService`, fetches `getAverageRating` + `getScoreData` on each `/summary` request, appends on-chain data to the prompt body.
+- **§11.3 #1 — ActivityFeed component**: `app/src/components/common/ActivityFeed.tsx` built and wired into `HomePage.tsx` as a new "Platform Activity" section replacing the previous placeholder text. Shows 10 events with type icons, summaries, and relative timestamps. Uses the existing `useFeed` hook and `feedService`.
+- **HomePage.tsx**: Updated tech preview text from "Coming in the next sprint" to "Now live" for AI credibility + activity feed.
+- **docs/evidence/index.md**: §11.4 evidence updated to include ActivityFeed.tsx; §11.5 evidence updated for on-chain reputation fetch; ActivityFeed.tsx added to Key Files Reference.
+- **Test results**: 232/232 backend ✅, 50/50 frontend ✅, Vite build clean.
+
 ### Key URLs
 - Backend: `https://cine-x-api.vercel.app` (Vercel, separate project `cine-x-api`)
 - Frontend: `https://cine-x-iota.vercel.app`

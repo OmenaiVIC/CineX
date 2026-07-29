@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../database.js';
+import contractService from '../services/contractService.js';
 
 const router = Router();
 
@@ -56,11 +57,31 @@ router.post('/summary', async (req, res, next) => {
     const profile = await db.get('SELECT * FROM profiles WHERE address = $1', [address]);
     if (!profile) { db.release(); return res.status(404).json({ error: 'Profile not found. Create a profile first.' }); }
     const portfolio = await db.all('SELECT * FROM portfolio_items WHERE address = $1 ORDER BY year DESC', [address]);
+
+    // Fetch on-chain reputation data
+    let onChainRep = '';
+    try {
+      const [avgRating, scoreData] = await Promise.allSettled([
+        contractService.getAverageRating(address),
+        contractService.getScoreData(address),
+      ]);
+      if (avgRating.status === 'fulfilled' && avgRating.value?.result) {
+        onChainRep += `On-chain Average Rating: ${avgRating.value.result}\n`;
+      }
+      if (scoreData.status === 'fulfilled' && scoreData.value?.okay) {
+        const sd = scoreData.value.result || scoreData.value;
+        const totalRatings = sd['total-ratings'] ?? sd.totalRatings ?? 'N/A';
+        const totalScore = sd['total-score'] ?? sd.totalScore ?? 'N/A';
+        onChainRep += `On-chain Rating Count: ${totalRatings}\nOn-chain Total Score: ${totalScore}\n`;
+      }
+    } catch (_) { /* on-chain data unavailable */ }
+
     db.release();
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      const fallback = `This user has been active in the creative economy. Based on their profile, they have ${portfolio.length} portfolio item(s). Connect with them to learn more about their work.`;
+      const repPart = onChainRep ? ` They have on-chain reputation data available.` : '';
+      const fallback = `This user has been active in the creative economy. Based on their profile, they have ${portfolio.length} portfolio item(s).${repPart} Connect with them to learn more about their work.`;
       const db2 = await getDb();
       await upsertSummary(db2, address, fallback, 'fallback');
       db2.release();
@@ -76,7 +97,7 @@ Name/Handle: ${profile.username || 'Unnamed'}
 Stacks Address: ${address}
 Bio: ${profile.bio || 'No bio provided'}
 Portfolio Projects: ${portfolio.map(p => p.title).join(', ') || 'None provided yet'}
-
+${onChainRep ? `\nOn-Chain Reputation Data:\n${onChainRep}` : ''}
 Produce exactly 3 sentences covering: professional background, notable achievements, and any observations.`;
 
     try {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ActivityFeed from '../components/common/ActivityFeed';
 
 const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901';
 
@@ -260,13 +261,27 @@ export default function HomePage() {
                   <li><code>milestone-escrow</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
                   <li><code>project-verification-module</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
                 </ul>
-                <p><strong>🔨 Coming in the next sprint:</strong> polished creator/backer dashboards, AI credibility summaries, activity feeds, and wallet abstraction — all informed by your feedback.</p>
+                <p><strong>✅ Now live:</strong> AI credibility summaries and global activity feed. <strong>Coming next:</strong> polished creator/backer dashboards and wallet abstraction — all informed by your feedback.</p>
                 <p><strong>📜 Full source code:</strong> <a href="https://github.com/mediafintech/CineX/tree/main/contracts" target="_blank" rel="noopener noreferrer">github.com/mediafintech/CineX</a></p>
                 <p><em>Every contract call you make today helps prove the financial engine is real. Your feedback decides what we build next.</em></p>
               </div>
             </details>
           </div>
 
+        </div>
+      </section>
+
+      {/* ACTIVITY FEED */}
+      <section className="lp-section">
+        <div className="lp-section-inner">
+          <div className="lp-label" style={{ textAlign: 'center' }}>Live Activity Feed</div>
+          <h2 className="lp-title" style={{ textAlign: 'center' }}>Platform Activity</h2>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto 32px', maxWidth: 600 }}>
+            Real-time activity from campaigns, milestones, ratings, and verification events across the CineX ecosystem.
+          </p>
+          <div style={{ maxWidth: 700, margin: '0 auto' }}>
+            <ActivityFeed limit={10} />
+          </div>
         </div>
       </section>
 

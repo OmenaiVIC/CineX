@@ -153,12 +153,12 @@ async function ensureInit() {
     const db = await getDb();
     await initIndexer(db);
     db.release();
-    startIndexer({ query: async (sql, params) => {
-      const c = await getDb();
-      const result = await c.run(sql, params);
-      c.release();
-      return result;
-    }});
+    // Pass a factory wrapper so each tick gets a fresh connection
+    startIndexer({
+      get: async (sql, params) => { const c = await getDb(); try { return await c.get(sql, params); } finally { c.release(); } },
+      run: async (sql, params) => { const c = await getDb(); try { return await c.run(sql, params); } finally { c.release(); } },
+      all: async (sql, params) => { const c = await getDb(); try { return await c.all(sql, params); } finally { c.release(); } },
+    });
     console.log('✅ Activity Feed Indexer started');
   } catch (err) {
     console.warn(`⚠️  Indexer init failed: ${err.message}`);

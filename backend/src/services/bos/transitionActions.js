@@ -6,6 +6,7 @@
 
 import { DisbursementState } from './types.js';
 import { USDCX_CONTRACT } from '../../config/chain.js';
+import { recordTxHash, recordApiResponse, recordGateResult } from './evidenceCollector.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Action: runPreflightCheck
@@ -29,6 +30,11 @@ export async function runPreflightCheck(disbursement, ctx) {
          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
         [disbursement.id, gate.gate, gate.ok, gate.error_code, gate.reason, gate.warning, JSON.stringify(gate.details || {})]
       );
+      await recordGateResult({
+        db, disbursementId: disbursement.id,
+        gateName: gate.gate, passed: gate.ok,
+        reason: gate.reason, details: { error_code: gate.error_code, warning: gate.warning },
+      });
     }
   }
 
@@ -68,6 +74,8 @@ export async function submitBurn(disbursement, ctx) {
     burn_amount: disbursement.amount_usdcx,
     submitted_at: new Date().toISOString(),
   });
+
+  await recordTxHash({ db, disbursementId: disbursement.id, chain: 'stacks', txHash: burnTxId, details: { action: 'burn', amount: disbursement.amount_usdcx } });
 
   log.info({ id: disbursement.id, burnTxId }, 'Burn tx submitted');
   return { external_tx_id: burnTxId };
@@ -113,6 +121,8 @@ export async function requestAttestation(disbursement, ctx) {
     attestation_data: attestation,
   });
 
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'xreserve', method: 'requestAttestation', response: attestation });
+
   log.info({ id: disbursement.id, attestation_id: attestation.attestation_id }, 'Attestation requested');
   return { attestation_id: attestation.attestation_id };
 }
@@ -134,6 +144,8 @@ export async function confirmAttestation(disbursement, ctx) {
     confirmed_at: new Date().toISOString(),
     attestation_data: attestation,
   });
+
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'xreserve', method: 'getAttestationStatus', response: attestation });
 
   log.info({ id: disbursement.id, attestation_id: ref.identifier_value }, 'Attestation confirmed');
   return { attestation_id: ref.identifier_value };
@@ -162,6 +174,8 @@ export async function submitDestinationRelease(disbursement, ctx) {
     release_data: release,
   });
 
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'xreserve', method: 'releaseDestination', response: release });
+
   log.info({ id: disbursement.id, release_id: release.release_id }, 'Destination release submitted');
   return { release_id: release.release_id };
 }
@@ -183,6 +197,8 @@ export async function confirmDestinationRelease(disbursement, ctx) {
     confirmed_at: new Date().toISOString(),
     release_data: release,
   });
+
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'xreserve', method: 'getReleaseStatus', response: release });
 
   log.info({ id: disbursement.id, release_id: ref.identifier_value }, 'Destination release confirmed');
   return { release_id: ref.identifier_value };
@@ -222,6 +238,8 @@ export async function submitYellowCardPayout(disbursement, ctx) {
     payout_data: payout,
   });
 
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'yellowcard', method: 'submitSend', response: payout });
+
   log.info({ id: disbursement.id, payout_id: payout.send_id }, 'Yellow Card payout submitted');
   return { payout_id: payout.send_id, amount_ngn };
 }
@@ -243,6 +261,8 @@ export async function confirmYellowCardPayout(disbursement, ctx) {
     confirmed_at: new Date().toISOString(),
     payout_data: payout,
   });
+
+  await recordApiResponse({ db, disbursementId: disbursement.id, adapter: 'yellowcard', method: 'lookupSend', response: payout });
 
   log.info({ id: disbursement.id, payout_id: ref.identifier_value }, 'Yellow Card payout confirmed');
   return { payout_id: ref.identifier_value };
