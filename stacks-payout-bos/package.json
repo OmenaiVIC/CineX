@@ -1,0 +1,54 @@
+{
+  "name": "@degents/stacks-payout-bos",
+  "version": "0.1.0",
+  "description": "Bridge Orchestration Service — STX chain burn → xReserve attestation → Yellow Card NGN payout state machine",
+  "type": "module",
+  "main": "src/disbursementService.js",
+  "exports": {
+    ".": "./src/disbursementService.js",
+    "./types": "./src/types.js",
+    "./stateMachine": "./src/stateMachine.js",
+    "./transitionActions": "./src/transitionActions.js",
+    "./transitionGuards": "./src/transitionGuards.js",
+    "./pipelineWorker": "./src/pipelineWorker.js",
+    "./preflight": "./src/preflight.js",
+    "./bridgeAdapterFactory": "./src/bridgeAdapterFactory.js",
+    "./xreserveAdapter": "./src/xreserveAdapter.js",
+    "./yellowcardAdapter": "./src/yellowcardAdapter.js",
+    "./webhookVerifier": "./src/webhookVerifier.js",
+    "./fallbackPoller": "./src/fallbackPoller.js",
+    "./auditTimeline": "./src/auditTimeline.js",
+    "./evidenceCollector": "./src/evidenceCollector.js",
+    "./payoutGates": "./src/payoutGates.js",
+    "./twoPersonApproval": "./src/twoPersonApproval.js",
+    "./circuitBreaker": "./src/circuitBreaker.js",
+    "./reconciliationWorker": "./src/reconciliationWorker.js",
+    "./stuckStateReaper": "./src/stuckStateReaper.js",
+    "./adapterInterfaces": "./src/types/adapterInterfaces.js",
+    "./monitoring/thresholdConfig": "./src/monitoring/thresholdConfig.js",
+    "./monitoring/monitorJob": "./src/monitoring/monitorJob.js",
+    "./monitoring/alertDeduplicator": "./src/monitoring/alertDeduplicator.js",
+    "./monitoring/dashboardQueries": "./src/monitoring/dashboardQueries.js",
+    "./monitoring/notifier": "./src/monitoring/notifier.js",
+    "./migrations/*": "./migrations/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@stacks/network": "^6.17.0",
+    "@stacks/transactions": "^6.17.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  },
+  "files": [
+    "src/",
+    "migrations/",
+    "README.md",
+    "ARCHITECTURE.md",
+    "ADAPTER_SPEC.md",
+    "vitest.config.js"
+  ]
+}
