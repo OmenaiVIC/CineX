@@ -133,7 +133,7 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - **Vitest** with `@hirosystems/clarinet-sdk` (contracts) and `jsdom` + `@testing-library` (frontend).
 - **322 contract tests** across 14 files: `tests/funding-pool.test.ts` (28), `tests/integration.test.ts` (22), `tests/pilot-campaign-parameterization.test.ts` (32), plus 11 individual contract test files.
 - **232 backend tests** across 12 files: 53 BOS pipeline/adapter tests (`bosWorkers.test.js`), relay/sponsor tests, API route tests, 9 AI tests (`ai.test.js`).
-- **50 frontend tests** across 5 files: OnboardingWizard, CampaignCreationForm, DemoScenarioPage, EscrowStatus, MilestoneVoting.
+- **41 frontend tests** across 4 files: OnboardingWizard, CampaignCreationForm, EscrowStatus, MilestoneVoting. (`DemoScenarioPage.test.tsx` was removed during the cinex-canvas reconciliation.)
 - `integration.test.ts` has 5 flows: create+contribute → milestone-escrow wrappers → milestone-verification lifecycle → claim → edge cases.
 - `createLinkedCampaigns()` helper creates campaign in both `milestone-escrow` (user-specified id) and `campaign-module` (auto-incremented).
 - Rendezvous fuzzing: `node scripts/run-rv-for-all.js` runs property tests on all contracts; requires `.tests.clar` stubs in `contracts/`.

@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import MediaLinkCard from './MediaLinkCard';
-import { API_BASE } from '../../services/api';
+import { ImagePicker } from '../common/ProjectThumb';
 import { CATEGORY_VALUES } from '../../constants/categories';
 import type { PortfolioItem } from '../../types';
 
@@ -25,7 +24,6 @@ export default function PortfolioForm({ address, item, onSubmit, onCancel }: Por
   const [mediaUrlInput, setMediaUrlInput] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>(item?.mediaUrls || []);
   const [thumbnailUrl, setThumbnailUrl] = useState(item?.thumbnailUrl || '');
-  const [thumbnailUploading, setThumbnailUploading] = useState(false);
   const [awardsInput, setAwardsInput] = useState(item?.awards?.join(', ') || '');
   const [error, setError] = useState('');
 
@@ -84,45 +82,7 @@ export default function PortfolioForm({ address, item, onSubmit, onCancel }: Por
 
           <div>
             <label className="block text-xs text-gray-400 mb-1">Thumbnail</label>
-            {thumbnailUrl ? (
-              <div className="relative w-full h-32 rounded-lg overflow-hidden mb-2">
-                <img src={thumbnailUrl} alt="Thumbnail" className="w-full h-full object-cover" />
-                <button
-                  onClick={() => setThumbnailUrl('')}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center text-xs hover:bg-black/80"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <label className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-800 rounded-lg cursor-pointer hover:border-gray-600 transition-colors">
-                <span className="text-xs text-gray-500">Click to upload thumbnail image</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setThumbnailUploading(true);
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    try {
-                      const token = localStorage.getItem('cinex_auth_token');
-                      const headers: Record<string, string> = {};
-                      if (token) headers['Authorization'] = `Bearer ${token}`;
-                      const res = await fetch(`${API_BASE}/upload`, { method: 'POST', headers, body: formData });
-                      const data = await res.json();
-                      if (data.url) setThumbnailUrl(data.url);
-                    } catch {
-                      setError('Failed to upload thumbnail');
-                    }
-                    setThumbnailUploading(false);
-                  }}
-                />
-              </label>
-            )}
-            {thumbnailUploading && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+            <ImagePicker value={thumbnailUrl} onChange={url => setThumbnailUrl(url)} />
           </div>
 
           <div>

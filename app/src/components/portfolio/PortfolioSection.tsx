@@ -3,6 +3,8 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import MediaLinkCard from './MediaLinkCard';
 import PortfolioForm from './PortfolioForm';
+import { ProjectThumb } from '../common/ProjectThumb';
+import { EmptyState } from '../common/ui-kit';
 import { getPortfolioForUser, createPortfolioItem, deletePortfolioItem } from '../../services/portfolioService';
 import type { PortfolioItem } from '../../types';
 
@@ -56,21 +58,32 @@ export default function PortfolioSection({ address, isOwnProfile }: PortfolioSec
       )}
 
       {items.length === 0 ? (
-        <Card variant="light" padding="default">
-          <p className="text-sm text-gray-500">
-            {isOwnProfile ? 'No portfolio items yet. Add your work to showcase your projects.' : 'No portfolio items yet.'}
-          </p>
-        </Card>
+        <EmptyState
+          title={isOwnProfile ? 'No portfolio items yet' : 'No portfolio items yet'}
+          description={
+            isOwnProfile
+              ? 'Add your work to showcase your projects to backers and gatekeepers.'
+              : 'This creator hasn’t added any portfolio items yet.'
+          }
+          action={
+            isOwnProfile ? (
+              <Button variant="outline" size="small" onClick={() => setShowForm(true)}>
+                + Add Work
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {items.map(item => (
             <Card key={item.id} variant="light" padding="small">
               <div className="flex flex-col h-full">
-                {item.thumbnailUrl && (
-                  <div className="w-full h-36 rounded-lg overflow-hidden mb-3 -mx-1 -mt-1">
-                    <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                )}
+                <ProjectThumb
+                  src={item.thumbnailUrl || item.mediaUrls?.[0]}
+                  alt={item.title}
+                  tone="from-[#1a1a2e] to-[#0a0a0f]"
+                  className="h-36 w-full rounded-lg mb-3"
+                />
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm font-semibold text-white truncate">{item.title}</h4>
