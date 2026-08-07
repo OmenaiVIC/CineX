@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import ActivityFeed from '../components/common/ActivityFeed';
 
 const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zjqATsGenADtVbBjooyTkUjwqyciJg/viewform?usp=sharing&ouid=116038147133763497901';
@@ -6,6 +7,16 @@ const WAITLIST = 'https://docs.google.com/forms/d/e/1FAIpQLSdkgWvR_q1ZWPRVfl3-zj
 export default function HomePage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const scrollTo = (location.state as { scrollTo?: string } | null)?.scrollTo;
+    if (!scrollTo) return;
+    requestAnimationFrame(() => {
+      document.getElementById(scrollTo)?.scrollIntoView({ behavior: 'smooth' });
+    });
+    window.history.replaceState({}, '');
+  }, [location.state]);
 
   useEffect(() => {
     const c = canvasRef.current;
@@ -76,14 +87,14 @@ export default function HomePage() {
       />
 
       {/* HERO */}
-      <section className="lp-hero">
+      <section id="about" className="lp-hero">
         <div className="lp-hero-content">
           <div className="lp-hero-badge">Africa's Creative Economy Financing Infrastructure</div>
           <h1>Fintech Infrastructure for<br /><em>African Creative IP</em></h1>
-          <p className="lp-hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative work investable, verifiable, and bankable — on a unified financial rail.</p>
+          <p className="lp-hero-sub">Milestone‑based financing. Verified projects. Productive escrow. We make African creative IP verifiable, investable, and bankable — on a unified financial rail.</p>
           <div className="lp-hero-actions">
             <a href={WAITLIST} target="_blank" rel="noopener" className="lp-btn lp-btn-primary">Join the Waitlist →</a>
-            <a href="#demo" className="lp-btn lp-btn-secondary">See Live Demo</a>
+            <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="lp-btn lp-btn-secondary">How It Works →</button>
           </div>
         </div>
       </section>
@@ -138,12 +149,12 @@ export default function HomePage() {
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">1</div>
               <h3>Get Verified</h3>
-              <p>Register your identity on-chain. Name, project vertical, and wallet address are recorded in the verification contract. This is Step 1 of the demo — a live contract call on testnet.</p>
+              <p>Register your identity on-chain. Name, project vertical, and wallet address are recorded in the verification contract. This happens on-chain — a live contract call on testnet.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">2</div>
               <h3>Create Escrow Campaign</h3>
-              <p>Define your project milestones and funding goal in the milestone-escrow contract. Each milestone has a name and release amount. Funds are locked in escrow — only the contract controls disbursement. This is Step 2 of the demo.</p>
+              <p>Define your project milestones and funding goal in the milestone-escrow contract. Each milestone has a name and release amount. Funds are locked in escrow — only the contract controls disbursement. This is Step 2 of the milestone lifecycle.</p>
             </div>
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">3</div>
@@ -166,108 +177,6 @@ export default function HomePage() {
               <p>When all milestones are released, the campaign completes. The full lifecycle — from registration to final withdrawal — is recorded on-chain. Verifiable, transparent, and automated.</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* LIVE DEMO */}
-      <section id="demo" className="lp-demo">
-        <div className="lp-demo-inner">
-          <div className="lp-label" style={{ textAlign: 'center' }}>Live Demo</div>
-          <h2 className="lp-title" style={{ textAlign: 'center' }}>See It Working Right Now</h2>
-          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto 48px' }}>
-          These are live smart contracts deployed on the Stacks testnet. No backend simulation. No video. No screenshots. You are looking at the actual contracts that will power CineX.
-          </p>
-
-          <div
-            style={{
-              background: 'rgba(74,222,128,0.06)',
-              borderRadius: '12px',
-              padding: '1rem 1.5rem',
-              marginBottom: '1.5rem',
-              border: '1px solid rgba(74,222,128,0.15)',
-              fontSize: '0.95rem',
-              textAlign: 'center',
-            }}
-          >
-            🎥 First time? Watch the{' '}
-            <a
-              href="https://www.youtube.com/watch?v=kYELvHIWjIk"
-              target="_blank"
-              rel="noopener"
-              style={{ color: 'var(--green)', fontWeight: 600 }}
-            >
-              6-minute walkthrough
-            </a>{' '}
-            → How to Install Hiro Wallet, Switch to Testnet &amp; Get Free STX
-          </div>
-
-          {/* PRE‑DEMO SETUP */}
-          <div style={{ background: 'rgba(74,222,128,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(74,222,128,0.2)' }}>
-            <h4 style={{ marginBottom: '0.5rem' }}>🧪 Before you start (5 minutes, free)</h4>
-            <ol style={{ marginLeft: '1.5rem', lineHeight: '1.7', color: 'var(--text-dim)' }}>
-              <li>Install the <a href="https://www.hiro.so/wallet" target="_blank" rel="noopener" style={{ color: 'var(--green)' }}>Hiro Wallet</a> browser extension.</li>
-              <li>In the wallet, click the network dropdown → select <strong>Testnet</strong>.</li>
-              <li>Copy your testnet address (starts with <code>ST</code>).</li>
-              <li>Go to the <a href="https://explorer.hiro.so/sandbox/faucet?chain=testnet" target="_blank" rel="noopener" style={{ color: 'var(--green)' }}>Hiro Faucet</a>, paste your address, and request free STX (gas).</li>
-              <li>Wait 1–2 minutes, then refresh your wallet balance. You'll see a small amount of testnet STX – no real value.</li>
-            </ol>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>✅ Now you're ready to call the contracts below.</p>
-          </div>
-
-          <div className="lp-demo-step">
-            <h4>Interactive Demo</h4>
-            <p style={{ color: 'var(--text-dim)', fontSize: '.9rem', marginBottom: 12, lineHeight: 1.7 }}>
-              Click the button below to open the full interactive demo. It guides you through all five steps:
-              register creator → create campaign → deposit → approve milestone → release funds.
-            </p>
-            <iframe
-              src="https://cinex-milestone-flow.vercel.app"
-              width="100%"
-              style={{ border: 'none', borderRadius: '16px', minHeight: '700px', height: '100%' }}
-              title="CineX Interactive Demo"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-            />
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <a
-                href="https://cinex-milestone-flow.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: '.8rem', color: 'var(--text-dim)', opacity: 0.6 }}
-              >
-                Open full demo in new tab ↗
-              </a>
-            </div>
-          </div>
-
-          <div className="lp-demo-note">
-            <strong>What you're seeing:</strong> Two live Clarity smart contracts on the Stacks testnet. The <strong>Verification Module</strong> registers creators and tracks their reputation. The <strong>Milestone Escrow</strong> holds deposited STX and releases funds when milestones are endorsed. These are part of a suite of <strong>27+ contracts</strong> powering the full CineX protocol — including escrow yield, reputation scoring, portfolio tracking, and admin controls. <br /><br />
-            <em>This is the raw engine view — the final CineX dashboard will wrap these contracts in a clean, friendly interface.</em><br /><br />
-            <strong>To interact:</strong> You already installed the wallet and got free testnet STX. Use the interactive demo above. Connect your wallet (Hiro or Xverse) on testnet and follow the five steps. No real money involved – testnet STX have zero value.
-          </div>
-
-          <div className="lp-demo-closing">
-            This is not a mockup. This is the protocol, live and functional.
-          </div>
-
-          {/* 🔧 TECHNICAL PREVIEW (expandable) — ADDED */}
-          <div className="technical-preview">
-            <details>
-              <summary>
-                <span>🔧 Technical preview (for curious minds &amp; investors)</span>
-              </summary>
-              <div className="preview-content">
-                <p><strong>✅ Live right now:</strong> These Clarity smart contracts are deployed on the Stacks testnet. The demo calls them directly — no backend, no simulation, no smoke and mirrors.</p>
-                <ul>
-                  <li><code>milestone-escrow</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.milestone-escrow?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
-                  <li><code>project-verification-module</code> → <a href="https://explorer.hiro.so/txid/ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.project-verification-module?chain=testnet" target="_blank" rel="noopener noreferrer">View on explorer</a></li>
-                </ul>
-                <p><strong>✅ Now live:</strong> AI credibility summaries and global activity feed. <strong>Coming next:</strong> polished creator/backer dashboards and wallet abstraction — all informed by your feedback.</p>
-                <p><strong>📜 Full source code:</strong> <a href="https://github.com/mediafintech/CineX/tree/main/contracts" target="_blank" rel="noopener noreferrer">github.com/mediafintech/CineX</a></p>
-                <p><em>Every contract call you make today helps prove the financial engine is real. Your feedback decides what we build next.</em></p>
-              </div>
-            </details>
-          </div>
-
         </div>
       </section>
 
@@ -396,7 +305,7 @@ export default function HomePage() {
       </section>
 
       {/* ROADMAP */}
-      <section className="lp-section">
+      <section id="roadmap" className="lp-section">
         <div className="lp-section-inner">
           <div className="lp-label">Roadmap</div>
           <h2 className="lp-title">From Strategic Reset to Institutional Capital</h2>
@@ -430,7 +339,7 @@ export default function HomePage() {
       </section>
 
       {/* INVESTOR ASK */}
-      <section className="lp-section" style={{ textAlign: 'center' }}>
+      <section id="investors" className="lp-section" style={{ textAlign: 'center' }}>
         <div className="lp-section-inner">
           <div className="lp-label">For Investors</div>
           <h2 className="lp-title">We Are Raising Our Pre-Seed Round</h2>
@@ -471,60 +380,6 @@ export default function HomePage() {
         </div>
         <p>© 2026 Synergy Brand Storytelling © CineX. All rights reserved.</p>
       </footer>
-
-      {/* Corrected CSS for Technical Preview */}
-      <style>{`
-        .technical-preview {
-          margin: 2rem 0;
-          padding: 1.25rem;
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(4px);
-          border-radius: 16px;
-          border-left: 4px solid #4ade80;
-          color: #e5e7eb;
-        }
-        .technical-preview summary {
-          font-weight: 600;
-          cursor: pointer;
-          user-select: none;
-          color: #f9fafb;
-        }
-        .technical-preview summary:hover {
-          color: #4ade80;
-        }
-        .technical-preview summary:focus {
-          outline: none;
-        }
-        .technical-preview .preview-content {
-          margin-top: 1rem;
-          padding-top: 0.75rem;
-          border-top: 1px solid rgba(74, 222, 128, 0.3);
-          font-size: 0.95rem;
-          line-height: 1.5;
-        }
-        .technical-preview a {
-          color: #4ade80;
-          text-decoration: none;
-        }
-        .technical-preview a:hover {
-          text-decoration: underline;
-        }
-        .technical-preview code {
-          background: rgba(0, 0, 0, 0.5);
-          padding: 0.2rem 0.4rem;
-          border-radius: 6px;
-          font-size: 0.85rem;
-          color: #fbbf24;
-          font-family: monospace;
-        }
-        .technical-preview ul {
-          margin: 0.5rem 0;
-          padding-left: 1.5rem;
-        }
-        .technical-preview li {
-          margin: 0.25rem 0;
-        }
-      `}</style>
     </div>
   );
 }

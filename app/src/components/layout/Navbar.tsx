@@ -1,14 +1,20 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDemoMode } from '../../contexts/DemoModeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useGuide } from '../../contexts/GuideContext';
 
 export default function Navbar() {
   const { currentUser, isOnboarded, isDemoMode, toggleDemoMode, resetDemoData, logout: demoLogout } = useDemoMode();
   const { user, isAuthenticated, logout: authLogout } = useAuth();
-  const { openGuide } = useGuide();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const scrollToSection = (id: string) => {
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: id } });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const loggedIn = isAuthenticated || isOnboarded;
   const displayUser = user || currentUser;
@@ -37,13 +43,22 @@ export default function Navbar() {
             CineX <span className="text-[#4ade80] font-normal" style={{ fontSize: '.75rem', fontWeight: 400 }}>Fintech</span>
           </span>
           <div className="flex items-center gap-4">
-            <button onClick={openGuide} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+            <button onClick={() => scrollToSection('about')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+              About
+            </button>
+            <button onClick={() => scrollToSection('how-it-works')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
               How It Works
             </button>
-            <button onClick={() => navigate('/demo-scenario')} className="text-xs text-gray-500 hover:text-[#4ade80] transition-colors">
-              Try Demo
+            <button onClick={() => scrollToSection('pilots')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+              Pilots
             </button>
-            <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+            <button onClick={() => scrollToSection('roadmap')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">
+              Roadmap
+            </button>
+            <button onClick={() => scrollToSection('investors')} className="text-xs text-gray-500 hover:text-[#4ade80] transition-colors hidden sm:block">
+              Investors
+            </button>
+            <a href="/litepaper.html" target="_blank" rel="noopener" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
               Litepaper
             </a>
             <button onClick={() => navigate('/contact')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden sm:block">

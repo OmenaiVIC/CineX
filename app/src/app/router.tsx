@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import HomePage from '../pages/HomePage';
-import DemoPage from '../pages/DemoPage';
 import ExplorePage from '../pages/ExplorePage';
 import CampaignPage from '../pages/CampaignPage';
 import CreateCampaignPage from '../pages/CreateCampaignPage';
@@ -16,7 +15,6 @@ import PoolExplorePage from '../pages/PoolExplorePage';
 import PoolDetailPage from '../pages/PoolDetailPage';
 import PoolCreatePage from '../pages/PoolCreatePage';
 import AdminDashboard from '../pages/AdminDashboard';
-import DemoScenarioPage from '../pages/DemoScenarioPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -29,7 +27,6 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/demo" element={<DemoPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/explore" element={<ExplorePage />} />
@@ -42,7 +39,6 @@ export function AppRouter() {
       <Route path="/pools/create" element={<ProtectedRoute><PoolCreatePage /></ProtectedRoute>} />
       <Route path="/pools/:id" element={<PoolDetailPage />} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/demo-scenario" element={<DemoScenarioPage />} />
     </Routes>
   );
 }
