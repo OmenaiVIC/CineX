@@ -163,11 +163,11 @@ async function _readOnlyCall(contractId, functionName, hexArgs = []) {
  * @param {Object} params
  * @param {string} params.tx_id         — Stacks burn tx hash
  * @param {string} params.token_contract — USDCx contract principal (unused, for logging)
- * @param {number} params.amount_sats    — amount in base units (unused, for logging)
+ * @param {number} params.amount_base_units — USDCx amount in base units (6 decimals; unused, for logging)
  * @returns {Promise<{ attestation_id: string, status: string }>}
  */
-export async function requestAttestation({ tx_id, token_contract, amount_sats }) {
-  console.log(`[xreserve] requestAttestation: tx=${tx_id} amount=${amount_sats}`);
+export async function requestAttestation({ tx_id, token_contract, amount_base_units }) {
+  console.log(`[xreserve] requestAttestation: tx=${tx_id} amount=${amount_base_units}`);
 
   const txStatus = await _getTxStatus(tx_id);
 
@@ -213,12 +213,12 @@ export async function getAttestationStatus(attestationId) {
  * @param {Object} params
  * @param {string} params.attestation_id  — burn tx hash
  * @param {string} params.recipient_btc   — BTC address (logged, not used on-chain)
- * @param {number} params.amount_sats     — amount (logged)
+ * @param {number} params.amount_base_units — USDCx amount in base units (logged)
  * @param {string} params.idempotencyKey  — idempotency key (logged)
  * @returns {Promise<{ release_id: string, status: string }>}
  */
-export async function releaseDestination({ attestation_id, recipient_btc, amount_sats, idempotencyKey }) {
-  console.log(`[xreserve] releaseDestination: attestation=${attestation_id} recipient=${recipient_btc} amount=${amount_sats}`);
+export async function releaseDestination({ attestation_id, recipient_btc, amount_base_units, idempotencyKey }) {
+  console.log(`[xreserve] releaseDestination: attestation=${attestation_id} recipient=${recipient_btc} amount=${amount_base_units}`);
 
   // xReserve handles release off-chain — no on-chain call needed.
   // The burn tx being confirmed is sufficient for xReserve to process the release.

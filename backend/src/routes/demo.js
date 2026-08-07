@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import contractService from '../services/contractService.js';
-import { HIRO_API_URL, STACKS_NETWORK, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, EXPLORER_URL } from '../config/chain.js';
+import { HIRO_API_URL, DEPLOYER_ADDRESS, explorerAddressUrl } from '../config/chain.js';
 
 const router = Router();
 
@@ -91,7 +91,7 @@ router.get('/campaigns', async (req, res, next) => {
         raised,
         milestones: milestoneStates,
         status,
-        explorer_url: `https://explorer.hiro.so/address/${encodeURIComponent('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.campaign-module-2')}?chain=testnet`,
+        explorer_url: explorerAddressUrl(`${DEPLOYER_ADDRESS}.campaign-module-2`),
       };
     }));
     res.json({ campaigns: results });

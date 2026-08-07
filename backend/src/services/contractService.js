@@ -11,14 +11,13 @@ import {
   bufferCV,
   cvToHex,
   getAddressFromPrivateKey,
-  TransactionVersion,
   stringAsciiCV,
   boolCV,
   listCV,
   someCV,
   noneCV,
 } from '@stacks/transactions';
-import { HIRO_API_URL, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, EXPLORER_URL, USDCX_CONTRACT as CHAIN_USDCX, networkInstance, txVersion } from '../config/chain.js';
+import { HIRO_API_URL, DEPLOYER_ADDRESS, V2_DEPLOYER_ADDRESS, USDCX_CONTRACT as CHAIN_USDCX, NATIVE_STX_PRINCIPAL, networkInstance, txVersion, explorerUrl } from '../config/chain.js';
 
 const API_URL = HIRO_API_URL;
 const DEPLOYER = DEPLOYER_ADDRESS;
@@ -214,7 +213,7 @@ async function getTxStatus(txHash) {
       tx_hash: txHash,
       tx_status: 'success',
       block_height: data.block_height,
-      explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+      explorer_url: explorerUrl(txHash),
     };
   }
   if (data.tx_status === 'pending' || data.tx_status === 'queued') {
@@ -315,7 +314,7 @@ async function contribute(campaignId, amountUstx) {
   ]);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -329,7 +328,7 @@ async function submitProof(campaignId, milestoneIndex) {
   ]);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -341,7 +340,7 @@ async function approve(campaignId, milestoneIndex) {
   ]);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -353,7 +352,7 @@ async function release(campaignId, milestoneIndex) {
   ]);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -407,12 +406,12 @@ async function createCampaignInEscrow(projectId, asset, totalGoal, milestones, d
   }));
   const txHash = await callContract(pk, 'milestone-escrow', 'create-campaign', [
     uintCV(projectId),
-    contractPrincipalCV(asset === 'STX' ? 'SP000000000000000000002Q6VF78' : asset),
+    contractPrincipalCV(asset === 'STX' ? NATIVE_STX_PRINCIPAL : asset),
     uintCV(totalGoal),
     listCV(msCVs),
     uintCV(deadline),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function createCampaignInModule(description, fundingGoal, duration, rewardTiers, rewardDescription) {
@@ -427,7 +426,7 @@ async function createCampaignInModule(description, fundingGoal, duration, reward
     stringAsciiCV((rewardDescription || '').slice(0, 150)),
     contractPrincipalCV(DEPLOYER, 'project-verification-module'),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function depositToEscrow(campaignId, amountUstx) {
@@ -437,7 +436,7 @@ async function depositToEscrow(campaignId, amountUstx) {
     uintCV(campaignId),
     uintCV(amountUstx),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function rateUser(targetAddress, campaignId, rating, commentHash) {
@@ -454,7 +453,7 @@ async function rateUser(targetAddress, campaignId, rating, commentHash) {
     uintCV(Math.min(5, Math.max(1, rating))),
     commentHashCV,
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function getAverageRating(targetAddress) {
@@ -476,7 +475,7 @@ async function addPortfolio(projectName, projectUrl, projectDescription, complet
     stringAsciiCV(projectDescription.slice(0, 500)),
     uintCV(completionYear || 0),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function getPortfolio(creatorAddress, portfolioId) {
@@ -501,7 +500,7 @@ async function createMilestones(campaignId, deadlines) {
     uintCV(campaignId),
     listCV((deadlines || [100, 200, 300]).map(d => uintCV(d))),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function submitMilestone(campaignId, milestoneIndex) {
@@ -511,7 +510,7 @@ async function submitMilestone(campaignId, milestoneIndex) {
     uintCV(campaignId),
     uintCV(milestoneIndex),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function endorseMilestone(campaignId, milestoneIndex, vote) {
@@ -522,7 +521,7 @@ async function endorseMilestone(campaignId, milestoneIndex, vote) {
     uintCV(milestoneIndex),
     vote,
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function finalizeMilestone(campaignId, milestoneIndex) {
@@ -532,7 +531,7 @@ async function finalizeMilestone(campaignId, milestoneIndex) {
     uintCV(campaignId),
     uintCV(milestoneIndex),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
@@ -544,7 +543,7 @@ async function emergencyVerifyCreator(creatorAddress, expirationBlock) {
   ]);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -564,7 +563,7 @@ async function proxyRegisterCreator(creatorAddress, fullName, profileUrl, projec
   ], V2_DEPLOYER);
   return {
     tx_hash: txHash,
-    explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet`,
+    explorer_url: explorerUrl(txHash),
   };
 }
 
@@ -583,14 +582,14 @@ async function claimBackerYield(campaignId) {
   if (!_wallets?.backer) throw new Error('BACKER_KEY not configured');
   const pk = _wallets.backer.privateKey;
   const txHash = await callContract(pk, 'yield-escrow', 'claim-backer-yield', [uintCV(campaignId)]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function claimCreatorBonus(campaignId) {
   if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
   const pk = _wallets.creator.privateKey;
   const txHash = await callContract(pk, 'yield-escrow', 'claim-creator-bonus', [uintCV(campaignId)]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function isCreatorCurrentlyVerified(creatorAddress) {
@@ -636,7 +635,7 @@ async function adminCall(contractName, functionName, functionArgs, contractAddre
   if (!_wallets?.creator) throw new Error('CREATOR_KEY not configured');
   const pk = _wallets.creator.privateKey;
   const txHash = await callContract(pk, contractName, functionName, functionArgs, contractAddress);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 // --- funding-pool ---
@@ -779,7 +778,7 @@ async function createPoolInContract(name, targetAmount, minContribution, minRepu
     uintCV(duration),
     uintCV(maxMembers),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function joinPoolInContract(poolId, amount) {
@@ -788,7 +787,7 @@ async function joinPoolInContract(poolId, amount) {
   const txHash = await callContract(pk, 'funding-pool', 'join-pool', [
     uintCV(poolId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function contributeToPoolContract(poolId, amount) {
@@ -797,7 +796,7 @@ async function contributeToPoolContract(poolId, amount) {
   const txHash = await callContract(pk, 'funding-pool', 'contribute', [
     uintCV(poolId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function proposeAllocation(poolId, campaignId, amount) {
@@ -806,7 +805,7 @@ async function proposeAllocation(poolId, campaignId, amount) {
   const txHash = await callContract(pk, 'funding-pool', 'propose-allocation', [
     uintCV(poolId), uintCV(campaignId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function voteOnProposal(proposalId, approve) {
@@ -815,7 +814,7 @@ async function voteOnProposal(proposalId, approve) {
   const txHash = await callContract(pk, 'funding-pool', 'vote', [
     uintCV(proposalId), approve ? boolCV(true) : boolCV(false),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function executeAllocation(proposalId) {
@@ -824,7 +823,7 @@ async function executeAllocation(proposalId) {
   const txHash = await callContract(pk, 'funding-pool', 'execute-allocation', [
     uintCV(proposalId),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function closePoolInContract(poolId) {
@@ -833,7 +832,7 @@ async function closePoolInContract(poolId) {
   const txHash = await callContract(pk, 'funding-pool', 'close-pool', [
     uintCV(poolId),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function withdrawUnused(poolId, amount) {
@@ -842,7 +841,7 @@ async function withdrawUnused(poolId, amount) {
   const txHash = await callContract(pk, 'funding-pool', 'withdraw-unused', [
     uintCV(poolId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 // Read-only pool getters
@@ -868,7 +867,7 @@ async function withdrawFromCampaign(campaignId, amount) {
   const txHash = await callContract(pk, 'milestone-escrow', 'withdraw-from-campaign', [
     uintCV(campaignId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function collectCampaignFee(campaignId, amount) {
@@ -877,7 +876,7 @@ async function collectCampaignFee(campaignId, amount) {
   const txHash = await callContract(pk, 'milestone-escrow', 'collect-campaign-fee', [
     uintCV(campaignId), uintCV(amount),
   ]);
-  return { tx_hash: txHash, explorer_url: `${EXPLORER_URL}/${txHash}?chain=testnet` };
+  return { tx_hash: txHash, explorer_url: explorerUrl(txHash) };
 }
 
 async function deployContract(privateKey, contractName, codeBody, clarityVersion = ClarityVersion.Clarity2) {
@@ -903,10 +902,10 @@ async function deployContract(privateKey, contractName, codeBody, clarityVersion
   if (result.error) {
     throw new Error(`transaction rejected: ${result.error}`);
   }
-  const deployerAddr = getAddressFromPrivateKey(privateKey, TransactionVersion.Testnet);
+  const deployerAddr = getAddressFromPrivateKey(privateKey, txVersion);
   return {
     tx_hash: `0x${result.txid}`,
-    explorer_url: `${EXPLORER_URL}/${result.txid}?chain=testnet`,
+    explorer_url: explorerUrl(result.txid),
     contract_id: `${deployerAddr}.${contractName}`,
   };
 }

@@ -19,12 +19,14 @@ const CONFIGS = {
     hiroApi: 'https://api.testnet.hiro.so',
     deployer: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     v2Deployer: 'STK0ASFJK4DJG8G8YY556X7H9E1FWABCDWEBGQ12',
+    boot: 'ST000000000000000000002AMW42H',
   },
   mainnet: {
     usdcx: 'SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE.usdcx',
     hiroApi: 'https://api.mainnet.hiro.so',
     deployer: 'SP120SBRBQJ00MCWS7TM5R8WJNTTKD5K0HFRC2CNE',
     v2Deployer: null,
+    boot: 'SP000000000000000000002Q6VF78',
   },
 };
 
@@ -36,6 +38,19 @@ export const STACKS_NETWORK = NETWORK;
 export const DEPLOYER_ADDRESS = cfg.deployer;
 export const V2_DEPLOYER_ADDRESS = cfg.v2Deployer;
 export const EXPLORER_URL = 'https://explorer.hiro.so/txid';
+
+// Native STX token contract principal (boot address + .stx-token), network-aware.
+export const NATIVE_STX_PRINCIPAL = `${cfg.boot}.stx-token`;
+
+// Build a network-aware explorer link for a tx hash.
+export function explorerUrl(txHash) {
+  return `${EXPLORER_URL}/${txHash}?chain=${NETWORK}`;
+}
+
+// Build a network-aware explorer link for an address or contract principal.
+export function explorerAddressUrl(addressOrContract) {
+  return `https://explorer.hiro.so/address/${encodeURIComponent(addressOrContract)}?chain=${NETWORK}`;
+}
 
 // Pre-configured network instance for @stacks/transactions
 export const networkInstance = NETWORK === 'mainnet'

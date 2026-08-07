@@ -79,7 +79,7 @@ export async function checkBurnTimeouts() {
       `SELECT d.id, d.status, d.created_at,
               EXTRACT(EPOCH FROM (NOW() - d.created_at)) * 1000 AS ms_since_created
        FROM disbursements d
-       WHERE d.status IN ('initiated', 'burn_submitted')
+       WHERE d.status IN ('disbursement_initiated', 'burn_submitted')
          AND EXTRACT(EPOCH FROM (NOW() - d.created_at)) * 1000 > $1`,
       [thresholdConfig.THRESHOLDS_MS.burn_timeout]
     );

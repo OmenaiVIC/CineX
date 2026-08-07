@@ -5,8 +5,24 @@ import { acknowledgeAlert, getUnacknowledgedAlerts, getAlertStats } from '../ser
 import * as pipelineWorker from '../services/bos/pipelineWorker.js';
 import * as stuckReaper from '../services/bos/stuckStateReaper.js';
 import * as reconciliationWorker from '../services/bos/reconciliationWorker.js';
+import { syncAll } from '../services/indexerWorker.js';
+import { getDb } from '../database.js';
 
 const router = Router();
+
+/**
+ * Middleware — authenticate Vercel Cron invocations.
+ * When CRON_SECRET is configured, Vercel sends `Authorization: Bearer <CRON_SECRET>`.
+ * Requests without a matching secret are rejected; if no secret is configured the
+ * endpoints stay open for local/operator use.
+ */
+function requireCronAuth(req, res, next) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return next();
+  const header = req.headers.authorization || '';
+  if (header === `Bearer ${secret}`) return next();
+  return res.status(401).json({ error: 'Unauthorized' });
+}
 
 /**
  * GET /api/bos/monitoring/health
@@ -163,6 +179,76 @@ router.post('/workers/pipeline/run', async (req, res) => {
   } catch (err) {
     console.error('[bos:monitoring] Pipeline run failed:', err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Vercel Cron endpoints
+// Vercel Cron issues GET requests with `Authorization: Bearer <CRON_SECRET>`.
+// These are the live-serverless equivalents of the setInterval workers that only
+// run in local dev. Each triggers ONE tick of the underlying worker — idempotent.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** GET /api/bos/monitoring/cron/pipeline — advance all actionable disbursements one step */
+router.get('/cron/pipeline', requireCronAuth, async (req, res) => {
+  try {
+    const result = await pipelineWorker.runOnce();
+    res.json({ ok: true, result, stats: pipelineWorker.getStats() });
+  } catch (err) {
+    console.error('[bos:monitoring] Cron pipeline failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/bos/monitoring/cron/monitor — run monitor checks (SLA, webhook timeouts, fees) */
+router.get('/cron/monitor', requireCronAuth, async (req, res) => {
+  try {
+    const result = await monitorJob.runChecks();
+    res.json({ ok: true, result });
+  } catch (err) {
+    console.error('[bos:monitoring] Cron monitor failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/bos/monitoring/cron/stuck-reaper — flag disbursements stuck beyond SLA */
+router.get('/cron/stuck-reaper', requireCronAuth, async (req, res) => {
+  try {
+    await stuckReaper.reapOnce();
+    res.json({ ok: true, stats: stuckReaper.getStats() });
+  } catch (err) {
+    console.error('[bos:monitoring] Cron stuck-reaper failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/bos/monitoring/cron/reconciliation — reconcile unrecorded burns & orphaned payouts */
+router.get('/cron/reconciliation', requireCronAuth, async (req, res) => {
+  try {
+    await reconciliationWorker.reconcileOnce();
+    res.json({ ok: true, stats: reconciliationWorker.getStats() });
+  } catch (err) {
+    console.error('[bos:monitoring] Cron reconciliation failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/bos/monitoring/cron/indexer — sync feed_events from Hiro API */
+router.get('/cron/indexer', requireCronAuth, async (req, res) => {
+  let db;
+  try {
+    db = await getDb();
+    await syncAll({
+      get: async (sql, params) => { const r = await db.get(sql, params); return r; },
+      run: async (sql, params) => { await db.run(sql, params); },
+      all: async (sql, params) => db.all(sql, params),
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[bos:monitoring] Cron indexer failed:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (db && typeof db.release === 'function') db.release();
   }
 });
 

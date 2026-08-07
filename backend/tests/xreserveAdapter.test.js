@@ -39,7 +39,7 @@ describe('xreserveAdapter - requestAttestation', () => {
     const result = await requestAttestation({
       tx_id: 'abc123',
       token_contract: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx',
-      amount_sats: 1000000,
+      amount_base_units: 1000000,
     });
 
     expect(result.status).toBe('confirmed');
@@ -54,7 +54,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       json: async () => ({ tx_status: 'pending' }),
     });
 
-    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 });
+    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 });
     expect(result.status).toBe('pending');
   });
 
@@ -68,7 +68,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       json: async () => ({ error: 'not found' }),
     });
 
-    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 });
+    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 });
     expect(result.status).toBe('pending');
   });
 
@@ -83,7 +83,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       }),
     });
 
-    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 });
+    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 });
     expect(result.status).toBe('failed');
   });
 
@@ -95,7 +95,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       json: async () => ({ tx_status: 'replace_by_fee' }),
     });
 
-    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 });
+    const result = await requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 });
     expect(result.status).toBe('failed');
   });
 
@@ -107,7 +107,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       json: async () => ({ tx_status: 'success', block_height: 50 }),
     });
 
-    await requestAttestation({ tx_id: '0xdeadbeef', token_contract: 'x', amount_sats: 100 });
+    await requestAttestation({ tx_id: '0xdeadbeef', token_contract: 'x', amount_base_units: 100 });
 
     const calledUrl = fetchSpy.mock.calls[0][0];
     expect(calledUrl).toContain('/extended/v1/tx/deadbeef');
@@ -124,7 +124,7 @@ describe('xreserveAdapter - requestAttestation', () => {
       json: async () => ({ error: 'down' }),
     });
 
-    await expect(requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 }))
+    await expect(requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 }))
       .rejects.toThrow();
   });
 
@@ -133,7 +133,7 @@ describe('xreserveAdapter - requestAttestation', () => {
 
     fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
-    await expect(requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_sats: 100 }))
+    await expect(requestAttestation({ tx_id: 'abc123', token_contract: 'x', amount_base_units: 100 }))
       .rejects.toThrow('Failed to fetch');
   });
 });
@@ -228,7 +228,7 @@ describe('xreserveAdapter - releaseDestination', () => {
     const result = await releaseDestination({
       attestation_id: 'burn-tx-abc',
       recipient_btc: 'bc1qtest',
-      amount_sats: 500000,
+      amount_base_units: 500000,
       idempotencyKey: 'idem-1',
     });
 

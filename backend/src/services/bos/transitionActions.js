@@ -113,7 +113,7 @@ export async function requestAttestation(disbursement, ctx) {
   const attestation = await ctx.adapters.xreserve.requestAttestation({
     tx_id: disbursement.external_tx_id,
     token_contract: USDCX_CONTRACT,
-    amount_sats: disbursement.amount_usdcx,
+    amount_base_units: disbursement.amount_usdcx,
   });
 
   await upsertExternalRef(db, disbursement.id, 'xreserve', 'attestation_id', attestation.attestation_id, {
@@ -165,7 +165,7 @@ export async function submitDestinationRelease(disbursement, ctx) {
   const release = await ctx.adapters.xreserve.releaseDestination({
     attestation_id: await _getAttestationId(db, disbursement.id),
     recipient_btc: disbursement.creator_btc_address || disbursement.creator_address,
-    amount_sats: disbursement.amount_usdcx,
+    amount_base_units: disbursement.amount_usdcx,
     idempotencyKey: `release:${disbursement.id}`,
   });
 

@@ -26,7 +26,7 @@ export async function getPipelineSummary() {
            COUNT(*) FILTER (WHERE status = 'settled') AS settled,
            COUNT(*) FILTER (WHERE status = 'failed') AS failed,
            COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled,
-           COALESCE(SUM(amount_sats) FILTER (WHERE status = 'settled'), 0) AS total_volume_sats,
+           COALESCE(SUM(amount_usdcx) FILTER (WHERE status = 'settled'), 0) AS total_volume_usdcx,
            COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)))
              FILTER (WHERE status = 'settled'), 0) AS avg_settlement_seconds
          FROM disbursements`
@@ -52,7 +52,7 @@ export async function getActiveDisbursements({ limit = 50, offset = 0 } = {}) {
   const db = await getDb();
   try {
     const rows = await db.all(
-      `SELECT id, status, creator_address, amount_sats, amount_ngn,
+      `SELECT id, status, creator_address, amount_usdcx, amount_ngn_expected,
               created_at, updated_at,
               EXTRACT(EPOCH FROM (NOW() - updated_at)) * 1000 AS ms_in_state
        FROM disbursements
@@ -171,7 +171,7 @@ export async function getManualReviewQueue({ limit = 50, offset = 0 } = {}) {
   const db = await getDb();
   try {
     const rows = await db.all(
-      `SELECT d.id, d.status, d.creator_address, d.amount_sats, d.amount_ngn,
+      `SELECT d.id, d.status, d.creator_address, d.amount_usdcx, d.amount_ngn_expected,
               d.created_at, d.updated_at,
               EXTRACT(EPOCH FROM (NOW() - d.updated_at)) * 1000 AS ms_in_review
        FROM disbursements d

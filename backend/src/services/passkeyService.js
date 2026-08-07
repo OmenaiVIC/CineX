@@ -24,7 +24,6 @@ import {
   noneCV,
   stringAsciiCV,
   getAddressFromPrivateKey,
-  TransactionVersion,
 } from '@stacks/transactions';
 import { HIRO_API_URL, networkInstance, txVersion } from '../config/chain.js';
 import { recordTransfer, confirmTransfer, failTransfer } from './sponsorService.js';

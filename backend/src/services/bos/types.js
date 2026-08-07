@@ -139,7 +139,7 @@ export const FAILED_STATES = new Set([
  * @property {string} tx_id            — Stacks burn tx ID
  * @property {string} token_contract   — USDCx contract
  * @property {string} recipient_btc    — destination BTC address
- * @property {number} amount_sats      — amount in satoshis
+ * @property {number} amount_base_units — USDCx amount in base units (6 decimals)
  */
 
 /**
