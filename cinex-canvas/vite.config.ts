@@ -22,6 +22,8 @@ export default defineConfig(({ command }) => ({
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     // nitro/vite produces the deployable server output; build-only (dev server is
     // served by the tanstackStart plugin itself).
-    ...(command === "build" ? [nitro({ defaultPreset: "cloudflare-module" })] : []),
+    ...(command === "build"
+      ? [nitro({ defaultPreset: process.env.VERCEL ? "vercel" : "cloudflare-module" })]
+      : []),
   ],
 }));
