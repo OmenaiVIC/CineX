@@ -91,7 +91,7 @@ router.post('/login', async (req, res, next) => {
     if (user.password_hash) {
       if (!password) { db.release(); return res.status(401).json({ error: 'Password required' }); }
       if (!bcrypt.compareSync(password, user.password_hash)) { db.release(); return res.status(401).json({ error: 'Invalid password' }); }
-    } else if (!address) {
+    } else if (!address && user.address) {
       db.release(); return res.status(401).json({ error: 'This account uses Stacks address login' });
     }
 

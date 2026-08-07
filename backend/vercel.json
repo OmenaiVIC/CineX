@@ -7,12 +7,5 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "src/index.js" }
-  ],
-  "crons": [
-    { "path": "/api/bos/monitoring/cron/pipeline", "schedule": "*/1 * * * *" },
-    { "path": "/api/bos/monitoring/cron/monitor", "schedule": "*/5 * * * *" },
-    { "path": "/api/bos/monitoring/cron/stuck-reaper", "schedule": "*/5 * * * *" },
-    { "path": "/api/bos/monitoring/cron/reconciliation", "schedule": "*/10 * * * *" },
-    { "path": "/api/bos/monitoring/cron/indexer", "schedule": "*/5 * * * *" }
   ]
 }
