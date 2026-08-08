@@ -4,7 +4,7 @@
 -- Evidence artifacts per disbursement
 CREATE TABLE IF NOT EXISTS disbursement_evidence (
   id TEXT PRIMARY KEY,
-  disbursement_id TEXT NOT NULL REFERENCES disbursements(id) ON DELETE CASCADE,
+  disbursement_id UUID NOT NULL REFERENCES disbursements(id) ON DELETE CASCADE,
   evidence_type TEXT NOT NULL, -- api_response, tx_hash, webhook_payload, manual_note, gate_result, poll_result
   evidence_data JSONB NOT NULL DEFAULT '{}',
   recorded_by TEXT NOT NULL DEFAULT 'system',

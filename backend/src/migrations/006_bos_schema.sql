@@ -70,18 +70,34 @@ CREATE INDEX IF NOT EXISTS idx_audit_created ON disbursement_audit(created_at DE
 
 -- ─────────────────────────────────────────────────────────────
 -- 3. external_refs — Mutable external identifiers
+-- Migration runner executes all files on every boot (no tracking table), so
+-- this MUST be idempotent and non-destructive. An earlier schema used
+-- ref_type/ref_value/is_primary; CREATE TABLE IF NOT EXISTS would not repair
+-- an existing legacy table, so we add the corrected columns and drop only the
+-- legacy ones. Data is preserved even once BOS carries live records.
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS external_refs (
   id                SERIAL PRIMARY KEY,
   disbursement_id   UUID NOT NULL REFERENCES disbursements(id),
-  external_system   TEXT NOT NULL,          -- 'stacks' | 'xreserve' | 'yellowcard'
-  identifier_type   TEXT NOT NULL,          -- 'tx_id' | 'attestation_id' | 'release_id' | 'payout_id'
-  identifier_value  TEXT NOT NULL,
+  external_system   TEXT,                  -- 'stacks' | 'xreserve' | 'yellowcard'
+  identifier_type   TEXT,                  -- 'tx_id' | 'attestation_id' | 'release_id' | 'payout_id'
+  identifier_value  TEXT,
   metadata          JSONB DEFAULT '{}',
   created_at        TIMESTAMP DEFAULT NOW(),
   updated_at        TIMESTAMP DEFAULT NOW()
 );
 
+-- Repair a legacy (ref_type/ref_value/is_primary) table, idempotently:
+ALTER TABLE external_refs ADD COLUMN IF NOT EXISTS external_system TEXT;
+ALTER TABLE external_refs ADD COLUMN IF NOT EXISTS identifier_type TEXT;
+ALTER TABLE external_refs ADD COLUMN IF NOT EXISTS identifier_value TEXT;
+ALTER TABLE external_refs ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+ALTER TABLE external_refs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE external_refs DROP COLUMN IF EXISTS ref_type;
+ALTER TABLE external_refs DROP COLUMN IF EXISTS ref_value;
+ALTER TABLE external_refs DROP COLUMN IF EXISTS is_primary;
+
+DROP INDEX IF EXISTS idx_external_refs_unique;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_extrefs_unique ON external_refs(disbursement_id, external_system, identifier_type);
 CREATE INDEX IF NOT EXISTS idx_extrefs_disbursement ON external_refs(disbursement_id);
 CREATE INDEX IF NOT EXISTS idx_extrefs_system ON external_refs(external_system);
