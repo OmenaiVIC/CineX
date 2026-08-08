@@ -10,6 +10,10 @@ import type {
   Wallet,
   BackendRole,
   BackendVerificationLevel,
+  CampaignRow,
+  ContributionRow,
+  MilestoneRow,
+  MilestoneVoteRow,
   ProfileRow,
   PortfolioItemRow,
   RatingSummary,
@@ -18,8 +22,11 @@ import type {
 } from "./cinex-types";
 import {
   BACKEND_TO_CATEGORY,
+  BACKEND_TO_MILESTONE_STATUS,
   BACKEND_TO_ROLE,
   BACKEND_TO_TX_STATUS,
+  CATEGORY_TO_BACKEND,
+  categorySector,
   coverToneFor,
   parseNumber,
   ROLE_TO_BACKEND,
@@ -740,9 +747,123 @@ export class ApiDataSource implements DataSource {
     this.notify();
   }
 
+  private profileName = new Map<string, string>();
+
+  private async loadPublicData(): Promise<void> {
+    const [campRes, profRes] = await Promise.all([
+      get<{ campaigns: CampaignRow[] }>("/campaigns"),
+      get<ProfileRow[]>("/profiles"),
+    ]);
+    const profiles = profRes.success ? (profRes.data ?? []) : [];
+    this.profileName = new Map(
+      profiles.map((p) => [p.address, p.username || p.address])
+    );
+    const campaigns = await this.mapCampaigns(
+      campRes.success ? (campRes.data?.campaigns ?? []) : []
+    );
+    const creators = new Set(campaigns.map((c) => c.creatorId));
+    const users = profiles.map((p): User => ({
+      id: p.address,
+      name: p.username || p.address,
+      email: "",
+      role: creators.has(p.address) ? "Creative" : "Backer",
+      verificationTier: verificationTierFromLevel(p.verificationLevel),
+      reputationScore: 0,
+      bio: p.bio || "",
+      portfolio: [],
+      endorsements: [],
+    }));
+    this.state = {
+      ...this.state,
+      campaigns,
+      creatives: users.filter((u) => u.role === "Creative"),
+      backers: users.filter((u) => u.role === "Backer"),
+    };
+    this.notify();
+  }
+
+  private async mapCampaigns(rows: CampaignRow[]): Promise<Campaign[]> {
+    return Promise.all(
+      rows.map(async (row): Promise<Campaign> => {
+        const [contributionRes, milestoneRes] = await Promise.all([
+          get<ContributionRow[]>(`/campaigns/${row.id}/contributions`),
+          get<MilestoneRow[]>(`/milestones/campaign/${row.id}`),
+        ]);
+        const category: PortfolioCategory =
+          (BACKEND_TO_CATEGORY as Record<string, PortfolioCategory>)[row.category] || "Other";
+        const nameFor = (address: string) =>
+          this.profileName.get(address) || address;
+        return {
+          id: String(row.id),
+          title: row.title,
+          description: row.description || "",
+          fundingTarget: parseNumber(row.targetAmount),
+          raised: parseNumber(row.currentAmount),
+          creatorId: row.creator,
+          creatorName: nameFor(row.creator),
+          category,
+          coverTone: coverToneFor(category),
+          ...(row.mediaUrls?.[0] ? { mediaUrl: row.mediaUrls[0] } : {}),
+          contributions: (
+            contributionRes.success ? (contributionRes.data ?? []) : []
+          ).map(
+            (c): Contribution => ({
+              userId: c.contributor,
+              userName: nameFor(c.contributor),
+              amount: parseNumber(c.amount),
+              timestamp: new Date(
+                (c.createdAt as unknown as number) * 1000
+              ).toISOString(),
+            })
+          ),
+          milestones: await this.mapMilestones(
+            milestoneRes.success ? (milestoneRes.data ?? []) : []
+          ),
+        };
+      })
+    );
+  }
+
+  private async mapMilestones(rows: MilestoneRow[]): Promise<Milestone[]> {
+    const mapOne = async (row: MilestoneRow): Promise<Milestone> => {
+      const res = await get<{ votes: MilestoneVoteRow[] }>(
+        `/milestones/${row.id}/votes`
+      );
+      const votes = res.success ? (res.data?.votes ?? []) : [];
+      const voters: Record<string, "yes" | "no"> = {};
+      let yes = 0;
+      let no = 0;
+      let yesAmount = 0;
+      let noAmount = 0;
+      for (const v of votes) {
+        const direction: "yes" | "no" = v.approved ? "yes" : "no";
+        voters[v.voterAddress] = direction;
+        if (direction === "yes") {
+          yes += 1;
+          yesAmount += parseNumber(v.contributionWeight);
+        } else {
+          no += 1;
+          noAmount += parseNumber(v.contributionWeight);
+        }
+      }
+      const myVote = this.state.user ? voters[this.state.user.id] : undefined;
+      return {
+        id: String(row.id),
+        description: row.description || row.title || "",
+        amount: parseNumber(row.fundingRequired),
+        status: BACKEND_TO_MILESTONE_STATUS[row.status],
+        votes: { yes, no, yesAmount, noAmount },
+        voters,
+        ...(myVote ? { myVote } : {}),
+      };
+    };
+    return Promise.all(rows.map(mapOne));
+  }
+
   async hydrate(): Promise<void> {
     const token = getAuthToken();
     if (!token) {
+      await this.loadPublicData();
       this.state = { ...this.state, user: null };
       this.notify();
       return;
@@ -750,9 +871,11 @@ export class ApiDataSource implements DataSource {
     const me = await get<{ user: SessionUser }>("/auth/me");
     if (!me.success || !me.data?.user) {
       this.clearAuthState();
+      await this.loadPublicData();
       return;
     }
     await this.loadSessionUser(me.data.user);
+    await this.loadPublicData();
   }
 
   async register({ name, email, role }: { name: string; email: string; role: Role }): Promise<boolean> {
@@ -764,6 +887,7 @@ export class ApiDataSource implements DataSource {
     if (!res.success || !res.data?.token) return false;
     setAuthToken(res.data.token);
     await this.loadSessionUser(res.data.user);
+    await this.loadPublicData();
     return true;
   }
 
@@ -772,6 +896,7 @@ export class ApiDataSource implements DataSource {
     if (!res.success || !res.data?.token) return false;
     setAuthToken(res.data.token);
     await this.loadSessionUser(res.data.user);
+    await this.loadPublicData();
     return true;
   }
 
@@ -820,19 +945,198 @@ export class ApiDataSource implements DataSource {
     await this.updateUser({ portfolio: user.portfolio.filter((p) => p.id !== id) });
   }
 
-  addCampaign(): string {
-    return "";
+  addCampaign({
+    title,
+    description,
+    fundingTarget,
+    mediaUrl,
+    category,
+    milestones,
+  }: {
+    title: string;
+    description: string;
+    fundingTarget: number;
+    mediaUrl?: string;
+    category: PortfolioCategory | "";
+    milestones: { description: string; amount: number }[];
+  }): string {
+    const id = `cmp-${uid()}`;
+    const user = this.state.user;
+    if (!user) return id;
+    const campaign: Campaign = {
+      id,
+      title,
+      description,
+      fundingTarget,
+      raised: 0,
+      creatorId: user.id,
+      creatorName: user.name,
+      category: category || "Other",
+      coverTone: coverToneFor(category || "Other"),
+      ...(mediaUrl ? { mediaUrl } : {}),
+      contributions: [],
+      milestones: milestones.map<Milestone>((m) => ({
+        id: uid(),
+        description: m.description,
+        amount: m.amount,
+        status: "Pending",
+        votes: { yes: 0, no: 0, yesAmount: 0, noAmount: 0 },
+        voters: {},
+      })),
+    };
+    this.state = { ...this.state, campaigns: [campaign, ...this.state.campaigns] };
+    this.notify();
+    void post<{ id: number }>("/campaigns", {
+      title,
+      description,
+      creator: user.id,
+      target_amount: String(fundingTarget),
+      deadline: 0,
+      category: CATEGORY_TO_BACKEND[categorySector(category || "Other")],
+      media_urls: mediaUrl ? [mediaUrl] : [],
+      tags: [],
+    }).then((res) => {
+      const createdId = res.success ? res.data?.id : null;
+      if (createdId == null) return;
+      for (const m of milestones) {
+        void post("/milestones", {
+          campaign_id: createdId,
+          title: m.description,
+          description: m.description,
+          funding_required: String(m.amount),
+        }).catch(() => {
+          /* optimistic — reconcile on next hydrate */
+        });
+      }
+    });
+    return id;
   }
 
-  contribute(): boolean {
-    return false;
+  contribute(campaignId: string, amount: number): boolean {
+    const user = this.state.user;
+    if (!user || user.role !== "Backer" || amount <= 0) return false;
+    const campaign = this.state.campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return false;
+    const remaining = campaign.fundingTarget - campaign.raised;
+    if (remaining <= 0 || amount > remaining) return false;
+    const contribution: Contribution = {
+      userId: user.id,
+      userName: user.name,
+      amount,
+      timestamp: new Date().toISOString(),
+    };
+    const tx: Transaction = {
+      id: uid(),
+      type: `Contribution — ${campaign.title}`,
+      amount,
+      currency: "USDCx",
+      status: "Approved",
+      timestamp: new Date().toISOString(),
+    };
+    this.state = {
+      ...this.state,
+      campaigns: this.state.campaigns.map((c) =>
+        c.id === campaignId
+          ? { ...c, raised: c.raised + amount, contributions: [contribution, ...c.contributions] }
+          : c,
+      ),
+      wallet: {
+        ...this.state.wallet,
+        usdcxBalance: Math.max(0, this.state.wallet.usdcxBalance - amount),
+        transactions: [tx, ...this.state.wallet.transactions],
+      },
+    };
+    this.notify();
+    void post(`/campaigns/${campaignId}/contribute`, {
+      contributor: user.id,
+      amount,
+      message: "",
+    }).catch(() => {
+      /* optimistic — reconcile on next hydrate */
+    });
+    return true;
   }
 
-  voteMilestone(): boolean {
-    return false;
+  voteMilestone(campaignId: string, milestoneId: string, vote: "yes" | "no"): boolean {
+    const campaign = this.state.campaigns.find((c) => c.id === campaignId);
+    const milestone = campaign?.milestones.find((m) => m.id === milestoneId);
+    if (!campaign || !milestone || milestone.status === "Released") return false;
+    const user = this.state.user;
+    if (!user || user.role !== "Backer") return false;
+    if (this.contributionOf(campaign, user.id) <= 0) return false;
+    if (milestone.voters[user.id] === vote) return false;
+
+    const voters: Record<string, "yes" | "no"> = { ...milestone.voters };
+    if (voters[user.id]) delete voters[user.id];
+    voters[user.id] = vote;
+
+    const totalContributed = campaign.contributions.reduce((sum, c) => sum + c.amount, 0);
+    let yesAmount = 0;
+    let noAmount = 0;
+    let yes = 0;
+    let no = 0;
+    for (const [id, direction] of Object.entries(voters)) {
+      const amount = this.contributionOf(campaign, id);
+      if (direction === "yes") {
+        yes += 1;
+        yesAmount += amount;
+      } else {
+        no += 1;
+        noAmount += amount;
+      }
+    }
+    const status: Milestone["status"] =
+      yesAmount > totalContributed / 2
+        ? "Approved"
+        : noAmount >= totalContributed / 2
+          ? "Disputed"
+          : "Pending";
+
+    this.state = {
+      ...this.state,
+      campaigns: this.state.campaigns.map((c) =>
+        c.id !== campaignId
+          ? c
+          : {
+              ...c,
+              milestones: c.milestones.map((m) =>
+                m.id !== milestoneId
+                  ? m
+                  : { ...m, votes: { yes, no, yesAmount, noAmount }, voters, myVote: vote, status },
+              ),
+            },
+      ),
+    };
+    this.notify();
+    void post(`/milestones/${milestoneId}/vote`, {
+      voterAddress: user.id,
+      approved: vote === "yes",
+      contributionWeight: this.contributionOf(campaign, user.id),
+    }).catch(() => {
+      /* optimistic — reconcile on next hydrate */
+    });
+    return true;
   }
 
-  addTransaction(): void {}
+  private contributionOf(campaign: Campaign, userId: string): number {
+    return campaign.contributions
+      .filter((c) => c.userId === userId)
+      .reduce((sum, c) => sum + c.amount, 0);
+  }
+
+  addTransaction(t: Omit<Transaction, "id" | "timestamp">): void {
+    this.state = {
+      ...this.state,
+      wallet: {
+        ...this.state.wallet,
+        transactions: [
+          { ...t, id: uid(), timestamp: new Date().toISOString() },
+          ...this.state.wallet.transactions,
+        ],
+      },
+    };
+    this.notify();
+  }
 }
 
 export function resolveDataMode(): DataMode {
