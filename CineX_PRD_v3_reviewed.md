@@ -8,7 +8,7 @@ Version 3.0 | July 2026 | Confidential
 
 | **Attribute**   | **Detail**                                                                  |
 |-----------------|-----------------------------------------------------------------------------|
-| Company         | CineX / MediaFinTech                                                        |
+| Company         | CineX (owned by Victor Omenai)                                             |
 | Grant Body      | Stacks Endowment                                                            |
 | Sprint Duration | 12 Weeks (July–September 2026)                                              |
 | Grant Stage     | Build Milestone                                                             |
@@ -18,7 +18,7 @@ Version 3.0 | July 2026 | Confidential
 
 ## 1. Executive Summary
 
-CineX is a Bitcoin-secured, milestone-based financing platform for Africa's creative economy. All 12 Clarity smart contracts have been deployed and tested on Stacks testnet. The 12-week Stacks Endowment sprint is therefore an acceleration milestone — moving from testnet to mainnet, completing the wallet and UI layer, and executing two funded pilot projects — not a greenfield build.
+CineX is a Bitcoin-secured, milestone-based financing platform for Africa's creative economy. All 19 Clarity smart contracts have been deployed and tested on Stacks testnet. The 12-week Stacks Endowment sprint is therefore an acceleration milestone — moving from testnet to mainnet, completing the wallet and UI layer, and executing two funded pilot projects — not a greenfield build.
 
 This PRD v3.0 is the single source of truth. It supersedes PRD v2.0 and reconciles all GitHub implementation plans, correcting sequencing for the testnet-complete reality.
 
@@ -31,8 +31,8 @@ This PRD v3.0 is the single source of truth. It supersedes PRD v2.0 and reconcil
 | Settlement asset — escrow    | USDCx (Circle xReserve on Stacks)                                                                        | Stablecoin. No BTC volatility for creatives during production.                            |
 | Treasury & yield layer       | sBTC (Bitcoin-pegged Stacks asset)                                                                       | Platform treasury + Bitflow yield in sBTC. Supports Stacks sBTC narrative.                |
 | Milestone approval authority | Backers only — backer-weighted sequential voting (milestone-verification.clar)                           | Gatekeepers endorse creative profiles only. They do NOT approve fund releases.            |
-| Grant contract deliverable   | 2 headline contracts on mainnet (milestone-escrow + project-verification-module)                         | 12 total logic files deployed. Grant report leads with 2 user-facing contracts.           |
-| Contract deployment status   | All 12 contracts + 10 trait files deployed and tested on Stacks testnet                                  | Epic 1 mainnet sprint = deploy scripts + bug bounty + mainnet deploy. Not rebuild.        |
+| Grant contract deliverable   | 2 headline contracts on mainnet (milestone-escrow + project-verification-module)                         | 19 total logic files deployed. Grant report leads with 2 user-facing contracts.           |
+| Contract deployment status   | All 19 contracts + 13 trait files deployed and tested on Stacks testnet                                  | Epic 1 mainnet sprint = deploy scripts + bug bounty + mainnet deploy. Not rebuild.        |
 | Frontend scope — Weeks 1–8   | Tier 1: wallet dashboard, passkey login, campaign creation, escrow status, milestone tracking, demo mode | Tier 2 (profiles, pools, AI summary, activity feed) ships Weeks 9–12.                     |
 | Backend infrastructure       | Neon (serverless PostgreSQL) replacing Render + Supabase                                                 | Scale-to-zero free tier. Never expires. Vercel-native. Ideal for low-burn pre-seed stage. |
 | Verification tiers           | Unverified (≤$1,000 cap), Basic ($25 fee, ≤$10,000), Standard ($75 fee, unlimited)                   | Demo/test mode bypasses all verification fees to enable frictionless UI testing.          |
@@ -112,7 +112,7 @@ With limited runway and the pre-seed raise in progress, the backend must run fre
 
 ## 4. Smart Contract Status — Testnet Complete
 
-> All 12 logic contracts and 10 trait files have been deployed to Stacks testnet and unit-tested. Epic 1 of the grant sprint is therefore NOT a build sprint — it is a mainnet delivery sprint. The work is: deployment scripts, Zero Authority bug bounty, and mainnet deploy of the 2 headline contracts.
+> All 19 logic contracts and 13 trait files have been deployed to Stacks testnet and unit-tested. Epic 1 of the grant sprint is therefore NOT a build sprint — it is a mainnet delivery sprint. The work is: deployment scripts, Zero Authority bug bounty, and mainnet deploy of the 2 headline contracts.
 
 | **Contract**                       | **Files**                | **Tests**  | **Testnet Status** | **Mainnet Action**                   |
 |------------------------------------|--------------------------|------------|--------------------|--------------------------------------|
@@ -129,7 +129,7 @@ With limited runway and the pre-seed raise in progress, the backend must run fre
 | bitflow-strategy.clar              | 1 .clar + 1 trait + mock | 20 passing | ✅ Deployed        | Include in mainnet deploy batch      |
 | funding-pool.clar                  | 1 .clar + 1 trait        | 28 passing | ✅ Deployed        | Include in mainnet deploy batch      |
 
-Total: 22 .clar source files, 11 test files, ~173 unit test cases passing. 7 integration flows (A–G) passing on testnet.
+Total: 32 .clar source files, 11 test files, ~173 unit test cases passing. 7 integration flows (A–G) passing on testnet.
 
 ## 5. Functional Requirements by Epic
 
@@ -137,19 +137,19 @@ Total: 22 .clar source files, 11 test files, ~173 unit test cases passing. 7 int
 
 ### Epic 1+2 (Combined): Mainnet Deployment + Passkey Wallet [P0 — Foundation | Weeks 1–4 (Accelerated: contracts testnet-complete)]
 
-All 12 contracts already testnet-deployed. Phase 1 sprint = bug bounty → mainnet deploy → wallet integration. Victor and McDaniells run in parallel from Day 1. Epic 2 (Passkey Wallet) begins Week 2 concurrently, not sequentially.
+All 19 contracts already testnet-deployed. Phase 1 sprint = bug bounty → mainnet deploy → wallet integration. Victor and McDaniells run in parallel from Day 1. Epic 2 (Passkey Wallet) begins Week 2 concurrently, not sequentially.
 
 #### Implementation Tasks
 
 | **When** | **Task**                                                                          | **Owner**              |
 |----------|-----------------------------------------------------------------------------------|------------------------|
-| Week 1   | Write deployment scripts for all 12 contracts in correct dependency order         | Victor                 |
+| Week 1   | Write deployment scripts for all 19 contracts in correct dependency order         | Victor                 |
 | Week 1   | Add DEMO_MODE oracle-proxy variant for verification bypass                        | Victor                 |
 | Week 1   | Neon migration: pg_dump → pg_restore → env var update → parallel run              | McDaniells             |
 | Week 2   | Request Pillar Wallet credentials. Confirm Yellow Card sandbox access.            | Theophilus             |
 | Week 2   | Launch Zero Authority bug bounty — minimum 5 reviewers, scope published           | Victor + Theophilus    |
 | Week 2   | Integrate Pillar Wallet SDK: passkey account creation, login, transaction signing | McDaniells             |
-| Week 3   | Deploy all 12 contracts to Stacks mainnet in dependency order                     | Victor                 |
+| Week 3   | Deploy all 19 contracts to Stacks mainnet in dependency order                     | Victor                 |
 | Week 3   | Build USDCx deposit/withdraw/sign flows against mainnet contracts                 | McDaniells             |
 | Week 3   | Integrate Yellow Card: USDCx → NGN conversion sandbox                             | McDaniells             |
 | Week 4   | Resolve all critical/high bug bounty findings                                     | Victor                 |
@@ -161,7 +161,7 @@ All 12 contracts already testnet-deployed. Phase 1 sprint = bug bounty → mainn
 
 - Both headline contracts (milestone-escrow + project-verification-module) live on Stacks mainnet, verifiable on Stacks Explorer
 
-- All 12 logic contracts publicly verifiable on mainnet
+- All 19 logic contracts publicly verifiable on mainnet
 
 - Zero Authority bug bounty complete, no unresolved critical findings
 
@@ -253,7 +253,7 @@ The features that transform CineX from a grant deliverable into a full social-re
 
 - Tribe/Pool pages live — funding-pool.clar readable from frontend
 
-- Activity feed indexing on-chain events from all 12 contracts
+- Activity feed indexing on-chain events from all 19 contracts
 
 - AI Credibility Summary functional (requires API key provisioned)
 
@@ -310,7 +310,7 @@ Apache 2.0. Satisfies Stacks Endowment open-source requirement and enables ecosy
 
 | **When** | **Task**                                                                                        | **Owner**        |
 |----------|-------------------------------------------------------------------------------------------------|------------------|
-| Week 11  | GitHub wiki: function-level docs for all 12 logic contracts + error code table                  | McDaniells       |
+| Week 11  | GitHub wiki: function-level docs for all 19 logic contracts + error code table                  | McDaniells       |
 | Week 12  | Per-contract README: integration hooks, example calls, deployment notes                         | McDaniells       |
 | Week 12  | Publish cross-contract call table (Section 5.1 of SMART_CONTRACT_IMPLEMENTATION_PLAN_2WEEKS.md) | McDaniells       |
 | Week 12  | Compile Week 12 grant proof package: all success metrics with on-chain evidence                 | Eno + Theophilus |
@@ -327,7 +327,7 @@ Apache 2.0. Satisfies Stacks Endowment open-source requirement and enables ecosy
 
 | **Layer**          | **Component**                                                                                            | **Notes**                                                                                          |
 |--------------------|----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| Blockchain         | Stacks mainnet. 22 .clar files (12 logic + 10 traits). All testnet-complete.                             | Immutable contracts. No proxy/upgrade. Migration = new deploy + emergency withdraw.                |
+| Blockchain         | Stacks mainnet. 32 .clar files (19 logic + 13 traits). All testnet-complete.                             | Immutable contracts. No proxy/upgrade. Migration = new deploy + emergency withdraw.                |
 | Escrow Currency    | USDCx (Circle xReserve on Stacks)                                                                        | Stablecoin. No BTC volatility for creatives. All milestone amounts denominated in USDCx.           |
 | Treasury/Yield     | sBTC (Bitcoin-pegged)                                                                                    | Platform treasury + Bitflow yield in sBTC. Supports Stacks sBTC narrative for grant.               |
 | Admin Governance   | 2-of-3 multi-sig + 2880-block timelock                                                                   | Victor, co-founder, trusted advisor. Emergency bypass available on all contracts.                  |
@@ -376,7 +376,7 @@ Three templates — one per phase. Fill in actual evidence at submission time. [
 
 | **Field**        | **Value**                           |
 |------------------|-------------------------------------|
-| Grant Recipient  | CineX / MediaFinTech                |
+| Grant Recipient  | CineX (owned by Victor Omenai)      |
 | Grant Program    | Stacks Endowment — Build Milestone  |
 | Reporting Period | Weeks 1–4 (July 2026)               |
 | Submitted By     | Theophilus Adelekun — Operations PM |
@@ -390,9 +390,9 @@ Three templates — one per phase. Fill in actual evidence at submission time. [
 | milestone-escrow.clar            | [FILL IN]         | [FILL IN]              | [ ] Deployed |
 | project-verification-module.clar | [FILL IN]         | [FILL IN]              | [ ] Deployed |
 
-### 1C. Full Architecture Deployed (All 12 Contracts + Infrastructure)
+### 1C. Full Architecture Deployed (All 19 Contracts + Infrastructure)
 
-> All 12 contracts were deployed to Stacks testnet prior to the grant sprint. Mainnet deploy is the grant milestone. Report all 12 addresses as evidence of over-delivery.
+> All 19 contracts were deployed to Stacks testnet prior to the grant sprint. Mainnet deploy is the grant milestone. Report all 19 addresses as evidence of over-delivery.
 
 | **Contract**                | **Mainnet Address** | **Unit Tests** | **Role**                |
 |-----------------------------|---------------------|----------------|-------------------------|
@@ -433,7 +433,7 @@ Three templates — one per phase. Fill in actual evidence at submission time. [
 
 - 2 headline contracts on Stacks mainnet: [ ] YES [ ] NO
 
-- All 12 contracts publicly verifiable on Stacks Explorer: [ ] YES [ ] NO
+- All 19 contracts publicly verifiable on Stacks Explorer: [ ] YES [ ] NO
 
 - Bug bounty complete, no unresolved critical findings: [ ] YES [ ] NO
 
@@ -520,7 +520,7 @@ Three templates — one per phase. Fill in actual evidence at submission time. [
 | **KPI**                       | **Target**     | **Achieved** | **Evidence**   |
 |-------------------------------|----------------|--------------|----------------|
 | Headline contracts on mainnet | 2              | [NUMBER]   | Explorer links |
-| Total contracts deployed      | 12 logic files | [NUMBER]   | Explorer links |
+| Total contracts deployed      | 19 logic files | [NUMBER]   | Explorer links |
 | Unit tests passing            | ~173           | [NUMBER]   | CI report      |
 | Pilot campaigns funded        | 2              | [NUMBER]   | Campaign IDs   |
 | Milestones funded on mainnet  | ≥2             | [NUMBER]   | Tx hashes      |
@@ -532,7 +532,7 @@ Three templates — one per phase. Fill in actual evidence at submission time. [
 | Neon migration complete       | Yes            | [Y/N]      | Neon console   |
 | Tier 2 UI features live       | Yes            | [Y/N]      | App URL        |
 
-> Document prepared by Victor Omenai (Technical Founder) + Eno Peters (Senior PM) + Theophilus Adelekun (Operations PM) | CineX / MediaFinTech | PRD Version 3.0 — July 2026 | For Stacks Endowment Grant Reporting
+> Document prepared by Victor Omenai (Technical Founder) + Eno Peters (Senior PM) + Theophilus Adelekun (Operations PM) | CineX (owned by Victor Omenai) | PRD Version 3.0 — July 2026 | For Stacks Endowment Grant Reporting
 
 ## Reviewer Addendum — Required Insertions and Clarifications
 

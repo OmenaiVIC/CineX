@@ -1,7 +1,9 @@
 # stacks-payout-bos
 
 **STX → fiat payout orchestration engine**  
-Bridge Orchestration Service (BOS) — open-source DeGrants M1 deliverable.
+Bridge Orchestration Service (BOS) — a standalone, open-source library for converting on-chain STX/USDCx into fiat (NGN via Yellow Card).
+
+This component is published as an independent, reusable open-source library. Builders can adopt it as-is or use it as a reference for their own payout orchestration. (The full CineX BOS also lives within the main CineX repository; this package extracts the reusable state machine and adapter pattern.)
 
 Manages the full lifecycle of converting on-chain STX/USDCx into fiat (NGN via Yellow Card):
 

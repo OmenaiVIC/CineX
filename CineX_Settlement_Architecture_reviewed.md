@@ -544,7 +544,7 @@ Do not write any code. Do not make assumptions. Reference only official Circle a
 
 ## CONTEXT ANCHOR:
 
-All 12 CineX Clarity smart contracts are deployed and passing tests on Stacks testnet. This sprint writes the production deployment scripts, adds DEMO_MODE infrastructure, and executes mainnet deployment in the correct contract dependency order.
+All 19 CineX Clarity smart contracts are deployed and passing tests on Stacks testnet. This sprint writes the production deployment scripts, adds DEMO_MODE infrastructure, and executes mainnet deployment in the correct contract dependency order.
 
 DO NOT rewrite or modify any existing contract logic unless a bug bounty finding requires it. DO NOT introduce new contracts.
 
@@ -602,7 +602,7 @@ milestone-escrow, cinex-multisig)
 
 Write a Clarinet deployment script (deploy.ts or deploy.sh) that:
 
-- - Deploys all 12 contracts in the exact order above
+- - Deploys all 19 contracts in the exact order above
 
 - - After each contract deploy, calls Stacks Explorer API to verify the contract is live before proceeding to the next
 
@@ -620,7 +620,7 @@ Write a Clarinet deployment script (deploy.ts or deploy.sh) that:
 
 - - Do not write migration scripts
 
-- - Do not write test files — existing tests are already passing DEFINITION OF DONE for Task 1A: [ ] Script deploys all 12 contracts in correct order on testnet with no errors [ ] Script halts on failure and logs the failing contract name [ ] deployment-manifest.json written with all 12 addresses [ ] Stacks Explorer verification call confirms each contract after deploy [ ] Script requires explicit -- network=mainnet + confirmation for mainnet
+- - Do not write test files — existing tests are already passing DEFINITION OF DONE for Task 1A: [ ] Script deploys all 19 contracts in correct order on testnet with no errors [ ] Script halts on failure and logs the failing contract name [ ] deployment-manifest.json written with all 19 addresses [ ] Stacks Explorer verification call confirms each contract after deploy [ ] Script requires explicit -- network=mainnet + confirmation for mainnet
 
 ## TASK 1B — DEMO_MODE ORACLE PROXY:
 
@@ -788,7 +788,7 @@ CineX frontend is React + TypeScript + Vite hosted on Vercel.
 
 The backend is Node.js + PostgreSQL (Neon) on Render.
 
-All 12 Clarity contracts are deployed on Stacks testnet.
+All 19 Clarity contracts are deployed on Stacks testnet.
 
 This sprint integrates Pillar Wallet for seedless passkey login and builds the deposit/withdraw/sign transaction flows.
 
@@ -1710,7 +1710,7 @@ const DEMO_CAMPAIGNS = [ { id: "demo-campaign-001", title: "Death of Eternity", 
 
 ### The indexer subscribes to Stacks blockchain events
 
-### from all 12 contracts
+### from all 19 contracts
 
 ### and writes them to an events table in Neon:
 

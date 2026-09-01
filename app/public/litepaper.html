@@ -478,15 +478,15 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 7. TECHNOLOGY -->
   <h2 id="tech"><span class="num">07</span>Technology Architecture</h2>
 
-  <p>CineX is built on a modular, security-first architecture with <strong>29 smart contracts</strong> organized across 9 layers, all deployed and tested on Stacks testnet.</p>
+  <p>CineX is built on a modular architecture with <strong>19 logic smart contracts</strong> (plus shared trait interfaces) organized across 9 layers, deployed and tested on Stacks testnet.</p>
 
   <h3>System Architecture</h3>
   <p>The system comprises four layers that work together to deliver a seamless user experience:</p>
 
   <div class="card">
     <div class="card-header" style="color:var(--green)">Layer 1: Smart Contracts (Stacks Blockchain)</div>
-    <p>29 Clarity contracts deployed on Stacks testnet, organized across 9 layers: Admin (2-of-3 multisig + timelock), Oracle/Reputation/Verification (identity verification, pricing, ratings), Campaign (campaign lifecycle), Escrow (milestone-gated capital), Yield (70/20/10 distribution), Strategy (DeFi yield), Milestone Verification (backer-weighted voting), Funding Pool (collaborative pools), and Base (shared traits). All contracts are immutable — the 2-of-3 multisig can only pause or emergency-withdraw, not change contract logic.</p>
-    <p style="font-size:.85rem;color:var(--text-muted)"><strong>Deployment:</strong> <code>ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM</code> on Stacks testnet · <strong>Tests:</strong> 50 passing (28 funding-pool + 22 integration) · <strong>Security:</strong> 7 issues found and fixed in audit, 8 vulnerabilities analyzed, 0 critical unaddressed</p>
+    <p>19 logic Clarity contracts (plus 13 shared trait interfaces) deployed on Stacks testnet, organized across 9 layers: Admin (2-of-3 multisig + timelock), Oracle/Reputation/Verification (identity verification, pricing, ratings), Campaign (campaign lifecycle), Escrow (milestone-gated capital), Yield (70/20/10 distribution), Strategy (DeFi yield), Milestone Verification (backer-weighted voting), Funding Pool (collaborative pools), and Base (shared traits). Contracts are designed to be immutable after deploy — the 2-of-3 multisig can only pause or emergency-withdraw, not change contract logic.</p>
+    <p style="font-size:.85rem;color:var(--text-muted)"><strong>Deployment:</strong> <code>ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM</code> on Stacks testnet · <strong>Status:</strong> prototype / reference implementation · <strong>Audits:</strong> internal engineering review performed (see <code>SECURITY_AUDIT_PLAN.md</code>); <strong>not independently audited</strong></p>
   </div>
 
   <div class="card">
@@ -521,7 +521,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 8. SECURITY -->
   <h2 id="security"><span class="num">08</span>Security &amp; Risk Management</h2>
 
-  <p>CineX underwent a comprehensive security audit across all smart contracts. <strong>7 findings were identified and fixed; zero critical issues remain unaddressed.</strong></p>
+  <p>CineX performed an <strong>internal engineering security review</strong> of its smart contracts (see <code>SECURITY_AUDIT_PLAN.md</code>). The findings below were identified and addressed in the current test suite. This review is <strong>not an independent third-party audit</strong>; treat the contracts as experimental before any mainnet use.</p>
 
   <h3>Audit Summary</h3>
   <table>
@@ -529,7 +529,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
     <tr><td><span class="tag tag-green">Critical</span></td><td>3</td><td>3 ✓</td><td>Arithmetic underflow from let-binding before assertions (bitflow-strategy, yield-escrow); inverted capacity check (Co-EP module)</td></tr>
     <tr><td><span class="tag tag-warm">High</span></td><td>1</td><td>1 ✓</td><td>Double integer truncation causing failed withdrawals in yield-escrow — fixed with ceiling division</td></tr>
     <tr><td><span class="tag tag-warm">Medium</span></td><td>2</td><td>2 ✓</td><td>State reads before authorization check; zero exchange-rate guard missing</td></tr>
-    <tr><td><span class="tag tag-neon">Low</span></td><td>2</td><td>2 ✓</td><td>Missing emergency ops log (yield-escrow — acknowledged for v2); strategy hardcoding (accepted for v1 mock)</td></tr>
+    <tr><td><span class="tag tag-neon">Low</span></td><td>2</td><td>Acknowledged</td><td>Missing emergency ops log (yield-escrow — acknowledged for v2); strategy hardcoding (accepted for v1 mock)</td></tr>
   </table>
 
   <h3>Security Architecture</h3>
@@ -697,7 +697,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
 
   <div class="card card-green">
     <div class="card-header">Victor Omenai — Technical Founder <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"><a href="https://x.com/paper2screen" target="_blank" rel="noopener">𝕏</a> · <a href="https://www.linkedin.com/in/victor-olumese-omenai/" target="_blank" rel="noopener">LinkedIn</a></span></div>
-    <p>Victor conceived CineX from direct experience in the African creative economy. He designed the full smart contract architecture (29 contracts across 9 layers), led product discovery with 34 gatekeepers, built the economic model, and drives product strategy and fundraising. His background spans fintech product design, blockchain engineering, and creative project management.</p>
+    <p>Victor conceived CineX from direct experience in the African creative economy. He designed the smart contract architecture (19 logic contracts across 9 layers), led discovery with 34+ creative community members, built the economic model, and drives product strategy and fundraising. His background spans fintech product design, blockchain engineering, and creative project management.</p>
   </div>
 
   <div class="card card-green">
@@ -739,7 +739,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
 
   <table>
     <tr><th>Period</th><th>Milestone</th><th>Key Deliverable</th></tr>
-    <tr><td>Q2 2026</td><td>Pre-Seed Close + Mainnet Launch</td><td>$600k raised · 29 contracts on mainnet · Backend production-ready · 4 pilot projects initiated</td></tr>
+    <tr><td>Q2 2026</td><td>Strategic Reset</td><td>Reference build — 19 logic contracts on testnet · Prototype status · Planned pilots identified</td></tr>
     <tr><td>Q3 2026</td><td>Validation Sprint Complete</td><td>100+ creatives onboarded · 4 pilots active · Gatekeeper model proven · Dual-currency wallet pilot</td></tr>
     <tr><td>Q4 2026</td><td>Public Launch (Beta)</td><td>Public platform open · Wallet abstraction live · NGN/USD on-ramp active · 50+ projects financed</td></tr>
     <tr><td>H1 2027</td><td>Scale &amp; Institutional</td><td>Institutional capital partnerships · NGN/USD on-ramps scaled · Pan-African gatekeeper expansion · 100+ projects financed</td></tr>
@@ -804,7 +804,7 @@ footer{padding:40px 24px;text-align:center;color:var(--text-muted);font-size:.8r
   <!-- 14. APPENDIX -->
   <h2 id="appendix"><span class="num">14</span>Appendix — Technical Detail</h2>
 
-  <h3>Smart Contract Architecture (29 Contracts, 9 Layers)</h3>
+  <h3>Smart Contract Architecture (19 Logic Contracts, 9 Layers)</h3>
   <table>
     <tr><th>Layer</th><th>Contracts</th><th>Purpose</th></tr>
     <tr><td>Admin</td><td>cinex-multisig, timelock, emergency-module, module-base</td><td>2-of-3 multisig admin, 24h timelock for non-emergency actions, emergency pause and fund recovery</td></tr>

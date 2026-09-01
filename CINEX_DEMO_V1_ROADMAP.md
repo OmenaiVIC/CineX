@@ -34,7 +34,7 @@ All changes live in the React SPA (`app/`). No backend, no smart contracts, no r
 
 1. **Hero** — animated particle canvas, headline + subtitle
 2. **The Problem** — "Filmmakers in Africa raise money through WhatsApp groups, spreadsheets, and trust"
-3. **Trust Stats** — $3.2B crowdfunding gap, 27 contracts audited, 1:1 STX escrow
+3. **Trust Stats** — $3.2B crowdfunding gap, 19 contracts audited, 1:1 STX escrow
 4. **How It Works** — 3-step creator flow (Verify ✅ → Milestones 📌 → Proof 💸)
 5. **Live Demo** — Pre-demo setup → YouTube walkthrough → Step 1 (verify-creator iframe) → Step 2 (create-campaign iframe) → "raw engine view" note → closing
 6. **Why It Matters Now** — $200B African creative economy statistic

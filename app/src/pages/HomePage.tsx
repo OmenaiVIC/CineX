@@ -116,24 +116,24 @@ export default function HomePage() {
         <div className="lp-section-inner">
           <div className="lp-stats-grid">
             <div className="lp-stat-card lp-glass">
+              <div className="lp-stat-number">Prototype</div>
+              <div className="lp-stat-label">Reference Status</div>
+              <div className="lp-stat-detail">Testnet & demo mode</div>
+            </div>
+            <div className="lp-stat-card lp-glass">
+              <div className="lp-stat-number">19</div>
+              <div className="lp-stat-label">Logic Contracts</div>
+              <div className="lp-stat-detail">Deployed on Stacks testnet</div>
+            </div>
+            <div className="lp-stat-card lp-glass">
               <div className="lp-stat-number">34+</div>
-              <div className="lp-stat-label">Verified Gatekeepers</div>
-              <div className="lp-stat-detail">Guild leaders, not users</div>
+              <div className="lp-stat-label">Community Conversations</div>
+              <div className="lp-stat-detail">Discovery & feedback, not customers</div>
             </div>
             <div className="lp-stat-card lp-glass">
-              <div className="lp-stat-number">$1M+</div>
-              <div className="lp-stat-label">Pipeline Value</div>
-              <div className="lp-stat-detail">From waitlist conversations</div>
-            </div>
-            <div className="lp-stat-card lp-glass">
-              <div className="lp-stat-number">93.5%</div>
-              <div className="lp-stat-label">Nigeria‑First Focus</div>
-              <div className="lp-stat-detail">Beachhead market</div>
-            </div>
-            <div className="lp-stat-card lp-glass">
-              <div className="lp-stat-number">$9k+</div>
-              <div className="lp-stat-label">Non‑dilutive Grants</div>
-              <div className="lp-stat-detail">Stacks Ascent + DeGrants</div>
+              <div className="lp-stat-number">Past</div>
+              <div className="lp-stat-label">Non-Dilutive Grants</div>
+              <div className="lp-stat-detail">Earlier programs; not current</div>
             </div>
           </div>
         </div>
@@ -144,7 +144,7 @@ export default function HomePage() {
         <div className="lp-section-inner">
           <div className="lp-label" style={{ textAlign: 'center' }}>How It Works</div>
           <h2 className="lp-title" style={{ textAlign: 'center' }}>The Milestone Escrow Lifecycle</h2>
-          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>CineX uses milestone-gated escrow contracts. Funds only move when work is verified — no trust required.</p>
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '0 auto' }}>CineX uses milestone-gated escrow contracts on Stacks testnet. Funds are designed to move only when work is verified — release is governed by the contract and endorser sign-off, not by any single party.</p>
           <div className="lp-how-grid">
             <div className="lp-how-step lp-glass">
               <div className="lp-how-num">1</div>
@@ -212,9 +212,9 @@ export default function HomePage() {
       <section className="lp-section" id="pilots">
         <div className="lp-section-inner">
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div className="lp-label">Traction — Cohort 0</div>
-            <h2 className="lp-title">Four Pilot Projects in the Pipeline</h2>
-            <p className="lp-sub" style={{ margin: '0 auto' }}>Real creative works being structured for milestone‑based financing. Each represents a sector CineX serves.</p>
+            <div className="lp-label">Planned — Demo Mode</div>
+            <h2 className="lp-title">Four Pilot Concepts in the Pipeline</h2>
+            <p className="lp-sub" style={{ margin: '0 auto' }}>Creative works being explored for milestone‑based financing. These are early‑stage / planned pilots shown in demo mode, not live funded deployments.</p>
           </div>
           <div className="lp-pilot-grid">
             <div className="lp-pilot-card lp-glass">
@@ -282,10 +282,10 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* VALIDATION BADGE — Selected for (completed program) */}
+          {/* VALIDATION — Inaugural cohort member (completed program) */}
           <div style={{ marginTop: 48, textAlign: 'center', padding: '1.5rem', background: 'rgba(74,222,128,0.05)', borderRadius: '16px', border: '1px solid rgba(74,222,128,0.2)' }}>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', marginBottom: 4 }}>
-              Selected for
+              Founder was an inaugural cohort member of
             </p>
             <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--green)' }}>
               <a
@@ -298,7 +298,7 @@ export default function HomePage() {
               </a>
             </p>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 4 }}>
-              5‑week structured validation · May–June 2026
+              5‑week structured validation · May–June 2026 · Completed cohort
             </p>
           </div>
         </div>
@@ -314,7 +314,7 @@ export default function HomePage() {
               <div className="lp-rm-dot"></div>
               <div className="lp-rm-date">Q2 2026</div>
               <div className="lp-rm-title">Strategic Reset</div>
-              <div className="lp-rm-desc">Completed. 27+ contracts deployed on testnet. 227 tests passing. 2-of-3 multisig live. Frontend staging live.</div>
+              <div className="lp-rm-desc">Completed. 19 logic contracts deployed on testnet. 590+ tests passing. 2-of-3 multisig in place. Frontend staging live.</div>
             </div>
             <div className="lp-rm-item">
               <div className="lp-rm-dot current"></div>
@@ -344,7 +344,7 @@ export default function HomePage() {
           <div className="lp-label">For Investors</div>
           <h2 className="lp-title">We Are Raising Our Pre-Seed Round</h2>
           <p className="lp-sub" style={{ margin: '0 auto 24px', maxWidth: 600 }}>
-            CineX is building the financial infrastructure for Africa's creative economy. We have 34+ gatekeepers, a $1M+ pipeline, 27+ deployed smart contracts, and non-dilutive grant backing. We are looking for angel investors and early-stage funds who see the $200B opportunity in African creative IP.
+            CineX is building the financial infrastructure for Africa's creative economy. This is a prototype: 19 logic contracts deployed on Stacks testnet, and an open, community-driven discovery process. We are an early-stage project looking for mission-aligned angels and funds who see the $200B opportunity in African creative IP — and who want honest, verifiable milestones rather than hype.
           </p>
           <p className="lp-sub" style={{ margin: '0 auto 36px', color: 'var(--green)', fontSize: '.9rem' }}>
             Contact: <a href="mailto:mediacinex@gmail.com" style={{ color: '#4ade80', textDecoration: 'underline' }}>mediacinex@gmail.com</a>
@@ -378,7 +378,7 @@ export default function HomePage() {
             Victor's LinkedIn
           </a>
         </div>
-        <p>© 2026 Synergy Brand Storytelling © CineX. All rights reserved.</p>
+        <p>© 2026 Victor Omenai. CineX is an open-source project.</p>
       </footer>
     </div>
   );

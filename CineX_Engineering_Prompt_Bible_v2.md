@@ -360,7 +360,7 @@ PRD Reference:
 
 - PRD §1.1 Ground Truth — row "Contract deployment status"
 
-- Epic 1+2 (Combined): Mainnet Deployment + Passkey Wallet — Implementation Tasks, Week 1 and Week 3 Build the CineX contract deployment system for all 12 logic contracts and their dependencies on Stacks mainnet.
+- Epic 1+2 (Combined): Mainnet Deployment + Passkey Wallet — Implementation Tasks, Week 1 and Week 3 Build the CineX contract deployment system for all 19 logic contracts and their dependencies on Stacks mainnet.
 
 Requirements:
 
@@ -390,7 +390,7 @@ Requirements:
 
 - rollback / emergency response notes for failed partial deployments
 
-- test plan for deployment order correctness Definition of done: All 12 contracts can be deployed in the correct order with deterministic artifacts and zero manual copy-paste dependency substitution.
+- test plan for deployment order correctness Definition of done: All 19 contracts can be deployed in the correct order with deterministic artifacts and zero manual copy-paste dependency substitution.
 
 ### 4.2 `oracle-proxy.clar` DEMO_MODE Prompt
 
@@ -2063,7 +2063,7 @@ Naira,” “send to bank,” “account security,” and “verification.”* *
 
 Requirements:
 
-- index all relevant events from the 12 contracts
+- index all relevant events from the 19 contracts
 
 - populate Neon on_chain_events
 
@@ -2205,7 +2205,7 @@ Requirements:
 
 PRD Reference:
 
-- Epic 7: Open-Source Documentation — Implementation Tasks, Week 11–12 Produce function-level documentation for all 12 CineX logic contracts.
+- Epic 7: Open-Source Documentation — Implementation Tasks, Week 11–12 Produce function-level documentation for all 19 CineX logic contracts.
 
 Requirements:
 

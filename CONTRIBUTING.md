@@ -30,7 +30,7 @@ clarinet devnet start
 
 ```
 CineX/
-├── contracts/           # 27 Clarity smart contracts
+├── contracts/           # 19 logic + 13 trait Clarity contracts
 │   ├── .base/           # Base contracts (sip-010, trait, owned)
 │   ├── .admin/          # Admin utilities
 │   ├── .campaign/       # Campaign lifecycle
@@ -83,7 +83,7 @@ CineX/
 ## Testing Requirements
 
 ### Contract Tests
-- All 27 contracts must pass `clarinet check`
+- All 32 contracts must pass `clarinet check`
 - Integration tests in `tests/integration.test.ts`
 - Individual contract tests in `tests/*.test.ts`
 

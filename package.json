@@ -16,8 +16,8 @@
   "bin": {
     "run": "./node_modules/@stacks/rendezvous/dist/cli.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Victor Omenai",
+  "license": "MIT",
   "dependencies": {
     "@hirosystems/clarinet-sdk": "^2.3.2",
     "@stacks/common": "^7.3.1",

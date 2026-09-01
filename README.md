@@ -1,121 +1,120 @@
-# CineX — Funding Engine & Project Delivery System for Africa's Creative Economy
+# CineX
 
-A financial setup for African creative projects. It handles secure digital safes, project payouts released step-by-step, two-currency smart wallets, and a business model that makes African creative work reliable and safe to fund.
+Open-source milestone-based project financing for Africa's creative economy, built on Stacks/Clarity.
 
----
-
-## 📋 Simple Overview
-
-CineX is building the financial pipeline for Africa's creative industry. We connect verified African creators (filmmakers, musicians, game creators, and digital artists) with global funders.
-
-Our system ensures safety by splitting total project funding into milestone steps. Capital is held securely and only moves forward when work is delivered. We use simplified digital wallets that hide all technical blockchain complexity, letting users transact easily in local currency (Naira) and global currency (US Dollars).
-
-Africa's creative industry is worth over $5 billion, yet it is almost entirely locked out of traditional banking. Creators cannot get loans because there is no system to verify their identity, check their track record, or give funders peace of mind that their money is safe. Existing setups are either donation-based (where creators are not held accountable) or require massive property collateral that most creators do not have.
-
-CineX fixes this by creating a reliable, work-based funding setup.
-
-- **34** Industry Hub Leaders Vouched for Us
-- **$1M+** Worth of Projects Waiting in Line
-- **70/20/10** Earnings Split (Funder / CineX / Creator Bonus)
-- **$200B** Total Global Creative Funding Market
-- **29** Digital Rulesets Deployed Live
-- **50** Quality Check Tests Passed Successfully
+CineX is an open-source project owned and maintained by **Victor Omenai**. This repository contains the current implementation / reference code.
 
 ---
 
-## 🏗️ Technical Architecture & Internal Logic Connections
+## ⚠️ Project Status — Read First
 
-CineX is built like a digital fortress using **29 distinct rulesets (smart contracts) organized into 9 separate layers** of safety. All code is permanently locked on the test network, meaning it can never be secretly altered or tampered with.
+CineX is a **prototype / reference implementation**. Please read the following so you can assess the project accurately:
 
-### How the Core Rulesets Talk to Each Other:
+- **Networks:** Smart contracts are deployed on the **Stacks testnet** (and exercised locally). The product is **not** in production on Stacks mainnet.
+- **Demo / test mode:** The frontend ships a demo and mock-data mode (`VITE_USE_MOCK_DATA`, `VITE_DATA_MODE`) for exploration without real funds. Demo figures and simulated campaigns are **not** real adoption, users, revenue, or traction.
+- **Audits:** Engineering review has been performed on the contracts. The project is **not independently audited** by a third party.
+- **HRF research (separate, proposed):** The proposed **Human Rights Foundation (HRF) work** — investigating whether milestone-based conditional settlement can be represented with **Bitcoin-native mechanisms** (DLCs, oracle-based milestone attestations, BTC/USD determination, Lightning as an optional payout rail, and BitVM only as an exploratory branch) — is a **separate proposed research/public-good program**. It is **not yet funded, not yet implemented**, and is distinct from the existing Stacks/Clarity prototype in this repository. Nothing in this repo should be read as an implemented Bitcoin-native architecture.
 
-Our setup is designed to be highly secure. Instead of having one massive program do everything, we split the jobs across specialized modules that work as a team:
-
-- **The Master Controller (milestone-escrow):** This acts as the main engine room. It keeps track of funding campaigns, stores work proof submissions, and locks capital in digital safes. It is the core hub that coordinates everything.
-- **The Price Checker (oracle-proxy):** The Master Controller cannot see real-world exchange rates on its own. It dials into this Price Checker module to find out exactly how much a US Dollar is worth in local tokens. This module also has a temporary "Demo Mode" switch so we can safely train local creators in Jos without using real money.
-- **The Productivity Engine (bitflow-strategy):** While a filmmaker is busy shooting their first scene, their funding capital sits idle. To stop inflation from eating that money, the Master Controller automatically hands the funds to this engine to earn automated market returns. When work is approved, this module splits the returns safely: 70% goes back to the funder as a reward, 20% keeps CineX running, and 10% is paid to the creator as a bonus for good work. If a creator fails to deliver three times, they forfeit their bonus, and it is automatically split between the funder and the platform.
-
-### The Multi-Layer Pipeline:
-
-- **The Smart Wallets:** Every user gets a simplified profile dashboard showing three balances (Naira, Dollars, and fraction-Bitcoin). The system automatically tracks prices and converts funds with a tiny 0.75% platform fee. Users never see long crypto code addresses, never sign weird technical messages, and never pay network gas fees—the backend handles all background operations invisibly.
-- **The Interface:** A fast landing page built using clean, universal code templates that run smoothly on basic mobile devices without demanding heavy computing power.
-- **The Backend Tracker:** A centralized database helper that constantly indexes activity feeds, manages automatic currency rates, and generates easy-to-read text summaries of user credibility.
+This README intentionally distinguishes prototype / research / aspiration from shipped functionality.
 
 ---
 
-## ⚡ The Seamless Money Routing Pipeline (Bridge Orchestration)
+## What CineX Does
 
-To remove cross-border payment barriers, CineX runs an automated money-routing service on the backend that handles the entire pipeline within a strict **30-minute delivery guarantee**.
+CineX is building a financial pipeline for Africa's creative industry — filmmakers, musicians, game creators, and digital artists. Total project funding is split into **milestone steps**. Capital is held in escrow and only released as work is delivered and verified, which gives backers more confidence and gives creators a verifiable track record.
 
-- **The Unbreakable Pathway:** When a payout is triggered, the digital dollars are burned out of circulation on the secondary network and simultaneously minted on the main network using native validation systems. This pathway bypasses old, outdated technology protocols, protecting our users from global system shut-downs or service interruptions.
-- **The Local Naira Off-Ramp:** Once the digital funds land on the main ledger, our system routes them directly through an institutional partnership payment gateway. This translates digital states into instant Naira bank deposits or mobile money payouts directly to the creator's Nigerian bank account. The creator simply taps "Withdraw to Bank" and watches the status bar update in plain English without ever knowing a blockchain was involved.
+The reference workflow in this repository:
 
----
+1. **Verify** — a creator registers their identity and project vertical on-chain.
+2. **Create a campaign** — the creator defines milestones and a funding goal in the milestone-escrow contract.
+3. **Backers fund escrow** — contributors fund the campaign; STX is held by the contract, not by the creator.
+4. **Submit proof of work** — a creator completes a milestone and submits proof on-chain.
+5. **Endorse & release** — a designated endorser (gatekeeper / backer representative) verifies the submission. On approval, the milestone amount is released from escrow to the creator.
 
-## 🔒 Security, Safety Audits & Risk Control
-
-CineX underwent a top-to-bottom security audit across its entire codebase. 7 flaws were found and completely patched. There are zero unaddressed vulnerabilities left in the system.
-
-- **Anti-Exploit Protection:** We fixed 3 critical mathematical bugs that could have caused transaction errors under heavy load, ensuring funds can never be locked up or withdrawn incorrectly.
-- **Precision Safety Adjustments:** We updated our payout division code to prevent tiny rounding errors from blocking successful withdrawals.
-- **The 24-Hour Wait Lock:** For absolute safety, all major system updates require a mandatory 24-hour waiting period. This gives our independent oversight keys plenty of time to inspect, spot, and cancel any unauthorized or unusual proposals before they settle.
+Dual-currency wallet tooling (local currency and global currency) and a backend tracker (activity feed, exchange-rate management, credibility summaries) are part of the product architecture.
 
 ---
 
-## 📊 Business Model — How the Platform Sustains Itself
+## Technical Status
 
-CineX runs a highly scalable model with six healthy, transparent revenue paths:
+- **Contracts:** **19 deployable logic contracts** (admin, oracle, reputation/verification, campaign, escrow, yield, strategy, milestone verification, funding pool, and base layers), with **13 trait/interface contracts** — **32 total** Clarity files in the Clarinet configuration.
+- **Network:** deployed to Stacks **testnet**. See `deployments/artifacts/testnet/contract-addresses.json`.
+- **Bridge Orchestration Service (BOS):** a backend orchestration service for milestone-based disbursement state transitions is included in this repository. A separately-published, standalone open-source BOS (`stacks-payout-bos`) is maintained for builders who want to reuse the state machine and adapter pattern on their own stacks.
 
-1.  **Market Yield Split (20% share):** We keep a minority share of the automatic returns generated while capital sits safely in digital safes waiting for project steps to finish.
-2.  **Currency Exchange Spread (0.75%):** A tiny processing margin charged when moving funds automatically between local Naira and global Dollars.
-3.  **Project Escrow Fee (5%):** A standard platform fee deducted only when a project step is successfully cleared and paid out to the creator.
-4.  **Institutional Reports ($5,000/year):** Detailed data dashboards sold to impact funds, development finance institutions, and film boards who want verified investment analytics in Africa.
-5.  **Lead Investor Membership ($2,000/year):** An annual pass for major funders who want priority access to highly vetted creative teams and early-stage project flows.
-6.  **Slippage Penalties:** If a creator continuously fails to deliver their milestones, their bonus fund is closed and redistributed to protect backer capital.
+### Tests
 
----
-
-## 🚀 Go-to-Market & Active Pilot Projects
-
-In Africa, people adopt new platforms based on community trust networks. CineX does not spend money buying internet ads. Instead, we onboard trusted community leaders, guild heads, and studio founders. One single leader endorsement unlocks their entire trusted network of creators at zero marketing cost to us.
-
-We are actively launching within the next 60 days across four foundational pilot projects in Nigeria:
-
-- **Rain (Drama Series Development):** An episodic series detailing life and relationships in modern Lagos, serving as our first milestone rollout.
-- **Death of Eternity (Narrative Feature Film):** A thought-provoking movie checking full-lifecycle step payouts.
-- **PrePARE VR (Immersive Digital Simulation):** A modern virtual reality training simulation built to prepare everyday users for real-world emergency response.
-- **Northern Travels (Documentary Series):** A cinematic travel show capturing the historical landscapes and diverse cultures of Northern Nigeria.
+- **322 contract tests** across 14 test files.
+- **232 backend tests** across 12 test files.
+- **41 frontend tests** across 4 test files.
 
 ---
 
-## 🛠️ How to Set Up and Test the Code Locally
+## Adoption & Traction — What Is and Isn't Claimed
 
-### Prerequisites for Tech Reviewers
+There is **no claimed live adoption, production deployment, or independently validated traction** in this repository. To be transparent:
 
-- Install **Clarinet** (the standardized simulator tool used to check smart contract logic).
-- Ensure your computer has **Node.js** and a local database configuration ready.
+- **Community discovery:** CineX has run informal discovery conversations with creative-industry community members (surveys and feedback sessions). These are **not** customers, paying users, or endorsements.
+- **Any "$1M+ pipeline" figure** is a **conjecture/aspiration** based on those conversations, not a validated or committed figure.
+- **Pilot projects** (e.g., Rain, Death of Eternity, PrePARE VR, Northern Travels) are **planned** works being explored for structured milestone financing. They are **not** active funded deployments.
+- **PCICS** (Plateau Creative Industries Cooperative Society, Jos, Nigeria): CineX is in ongoing community engagement with PCICS, a creative-industry cooperative. The relationship reflects shared interest in creator financing and is in an **early formation stage**; CineX looks forward to formalizing collaboration as the platform moves toward launch.
 
-### 1. Download the Project Directory
+---
 
-Run this command in your computer's terminal to copy our codebase:
+## Funding & Partnerships (for the record)
+
+- **Past, non-current:** CineX has received **non-dilutive grants from earlier programs (Stacks Ascent, DeGrants)**. These supported **previous work and cohorts** and are **not** funding for the current pivot.
+- **2026 cohort:** CineX was not selected as a 2026 grantee by the programs previously targeted; the project is continuing independent of any specific program.
+- **Program affiliation:** Victor Omenai was an **inaugural cohort member of the Stacks Foundry Validate Program (May–June 2026)**, a completed cohort participation. This does not imply ongoing backing, endorsement, or funding.
+- **HRF / Bitcoin Development Fund:** not funded. The proposed HRF research is a separate, not-yet-funded program.
+- **Vendors vs. partners:** Any external services referenced (e.g., Yellow Card, xReserve) are **service providers / technical dependencies**, not institutional partners or endorsers.
+
+---
+
+## Business Model (Proposed — Not Current Revenue)
+
+The following are **planned / proposed** revenue streams that CineX aims to explore. They are **not current revenue** and are **not** supported by the proposed HRF research. Any implementation would be subject to the actual product, users, and regulatory environment:
+
+- A proposed share of yield earned while capital sits in escrow.
+- A proposed currency-exchange processing margin.
+- A proposed project escrow fee on cleared milestones.
+- Proposed institutional analytics reports and investor membership access.
+- Proposed slippage / bonus redistribution mechanics.
+
+---
+
+## Security
+
+- An **internal engineering security review** was performed on the Clarity contracts. Findings were addressed in the current test suite (see `SECURITY_AUDIT_PLAN.md`).
+- The contracts are **not independently audited** by a third party.
+- Because this is a prototype, treat all contracts as **experimental** — do not trust them with real funds on mainnet.
+
+---
+
+## How to Set Up and Test Locally
+
+### Prerequisites
+
+- **Clarinet** (the Stacks smart-contract simulator / tooling).
+- **Node.js** and a local database configuration.
+
+### 1. Download the project
 
 ```bash
-git clone https://github.com/mediaCineX/CineX
+git clone https://github.com/OmenaiVIC/CineX
 cd CineX
 npm install
 ```
 
-### 2. Run the 50 Quality Verification Tests
-
-Run our complete automated testing routine to ensure all mathematical parameters and safety checks pass perfectly:
+### 2. Run the contract tests
 
 ```bash
-clarinet test
+clarinet check
+npm test
 ```
 
-### 3. Spin Up the Local Training Simulator
+### 3. Run the frontend in demo/mock mode
 
-To evaluate the user interface dashboard on your computer screen without connecting to real blockchain nodes or using real gas fees, turn on the mock simulator flag:
+To evaluate the UI dashboard locally without connecting to real blockchain nodes or spending real gas, use the mock simulator:
 
 ```bash
 VITE_USE_MOCK_DATA=true npm run dev
@@ -123,17 +122,24 @@ VITE_USE_MOCK_DATA=true npm run dev
 
 ---
 
-## 📜 Our Long-Term Open Source Goal
+## Open Source
 
-CineX is completely free, open-source software built for the public good. Our 12-month design pathway is focused on moving all cross-chain payment routes entirely onto native, trustless foundations. We are actively researching modern fraud-proof systems and automated digital escrow mechanics to process all conditional creator payouts directly on the base layer of Bitcoin, completely removing external platform dependencies.
+CineX is **free, open-source software** published under the **MIT License** (see [LICENSE](./LICENSE)).
+
+Note: Open-source status is a statement about licensing and code availability. It **does not** mean the software is production-ready, secure, audited, or endorsed.
 
 ---
 
 ## Learn More
 
-- **[Backend & Smart Contract Architecture](./BACKEND_README.md)** — Module system, contract relationships, deployment
-- **[Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md)** — How dual-currency wallets work behind the scenes
+- [Backend & Smart Contract Architecture](./BACKEND_README.md) — module system, contract relationships, deployment.
+- [Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md) — how the dual-currency wallet abstraction works.
 
 ---
 
-_Disclaimer: This repository and documentation are for informational and educational purposes only and do not constitute an offer or financial solicitation._
+## License & Ownership
+
+- Copyright (c) 2026 Victor Omenai
+- Licensed under the [MIT License](./LICENSE).
+
+_Disclaimer: This repository and documentation are for informational, educational, and research purposes only and do not constitute an offer, investment solicitation, or financial advice._
