@@ -13,7 +13,7 @@ CineX is a **prototype / reference implementation**. Please read the following s
 - **Networks:** Smart contracts are deployed on the **Stacks testnet** (and exercised locally). The product is **not** in production on Stacks mainnet.
 - **Demo / test mode:** The frontend ships a demo and mock-data mode (`VITE_USE_MOCK_DATA`, `VITE_DATA_MODE`) for exploration without real funds. Demo figures and simulated campaigns are **not** real adoption, users, revenue, or traction.
 - **Audits:** Engineering review has been performed on the contracts. The project is **not independently audited** by a third party.
-- **HRF research (separate, proposed):** The proposed **Human Rights Foundation (HRF) work** — investigating whether milestone-based conditional settlement can be represented with **Bitcoin-native mechanisms** (DLCs, oracle-based milestone attestations, BTC/USD determination, Lightning as an optional payout rail, and BitVM only as an exploratory branch) — is a **separate proposed research/public-good program**. It is **not yet funded, not yet implemented**, and is distinct from the existing Stacks/Clarity prototype in this repository. Nothing in this repo should be read as an implemented Bitcoin-native architecture.
+- **Bitcoin-native mechanisms (roadmap):** CineX is exploring whether milestone-based conditional settlement can be represented with **Bitcoin-native mechanisms** — DLCs, oracle-based milestone attestations, BTC/USD determination, and Lightning as an optional payout rail. This is a **planned research direction**, not yet implemented or funded, and is distinct from the Stacks/Clarity prototype in this repository. Nothing in this repo should be read as an implemented Bitcoin-native architecture.
 
 This README intentionally distinguishes prototype / research / aspiration from shipped functionality.
 
@@ -62,17 +62,16 @@ There is **no claimed live adoption, production deployment, or independently val
 
 ## Funding & Partnerships (for the record)
 
-- **Past, non-current:** CineX has received **non-dilutive grants from earlier programs (Stacks Ascent, DeGrants)**. These supported **previous work and cohorts** and are **not** funding for the current pivot.
-- **2026 cohort:** CineX was not selected as a 2026 grantee by the programs previously targeted; the project is continuing independent of any specific program.
+- **Past, non-current:** CineX has received **non-dilutive grants from earlier programs**. These supported **previous work and cohorts** and are **not** funding for the current pivot.
 - **Program affiliation:** Victor Omenai was an **inaugural cohort member of the Stacks Foundry Validate Program (May–June 2026)**, a completed cohort participation. This does not imply ongoing backing, endorsement, or funding.
-- **HRF / Bitcoin Development Fund:** not funded. The proposed HRF research is a separate, not-yet-funded program.
+- **Bitcoin-native research:** not funded and separate from the existing prototype. Any Bitcoin-native plan is research only and confers no funding, backing, or endorsement.
 - **Vendors vs. partners:** Any external services referenced (e.g., Yellow Card, xReserve) are **service providers / technical dependencies**, not institutional partners or endorsers.
 
 ---
 
 ## Business Model (Proposed — Not Current Revenue)
 
-The following are **planned / proposed** revenue streams that CineX aims to explore. They are **not current revenue** and are **not** supported by the proposed HRF research. Any implementation would be subject to the actual product, users, and regulatory environment:
+The following are **planned / proposed** revenue streams that CineX aims to explore. They are **not current revenue**. Any implementation would be subject to the actual product, users, and regulatory environment:
 
 - A proposed share of yield earned while capital sits in escrow.
 - A proposed currency-exchange processing margin.
