@@ -107,7 +107,9 @@ function Landing() {
 
       <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
         <div className="flex items-end justify-between">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">Live campaigns</h2>
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">
+            Demo campaigns <span className="text-xs font-semibold uppercase tracking-wide text-primary">— sample data, not live</span>
+          </h2>
           <Link to="/discover" className="text-sm text-primary hover:underline">
             View all
           </Link>
