@@ -127,7 +127,7 @@ export function Footer() {
   return (
     <footer className="mt-24 border-t border-border/70">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>© {new Date().getFullYear()} CineX — milestone financing for Africa's creative economy.</p>
+        <p>© {new Date().getFullYear()} Victor Omenai. CineX is an open-source project.</p>
         <p className="text-xs">Funds held in productive escrow. Payouts settle in local currency.</p>
       </div>
     </footer>

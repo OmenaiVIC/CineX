@@ -77,10 +77,10 @@ function Landing() {
 
           <dl className="mt-16 grid grid-cols-2 gap-6 sm:max-w-2xl sm:grid-cols-4">
             {[
-              ["$1 M", "Pipeline Value"],
-              ["34", "Verified Gatekeepers"],
-              ["96%", "Milestones delivered"],
-              ["93.5%", "Nigeria-First focus - Beachhead market"],
+              ["Prototype", "Reference Status"],
+              ["19", "Logic Contracts"],
+              ["34+", "Community Conversations"],
+              ["Past", "Non-Dilutive Grants"],
             ].map(([v, l]) => (
               <div key={l}>
                 <dt className="font-display text-2xl font-bold text-primary">{v}</dt>
