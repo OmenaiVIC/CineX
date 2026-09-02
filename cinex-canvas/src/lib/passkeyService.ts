@@ -379,7 +379,6 @@ export async function passkeyTransfer(params: TransferParams): Promise<TransferR
   // 3. Send to relay backend
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Relay-Api-Key': '***REMOVED***',
     'X-Relay-User-Address': keypair.address,
   };
 
@@ -484,7 +483,6 @@ export async function proposeRecovery(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Relay-Api-Key': '***REMOVED***',
     'X-Relay-User-Address': keypair.address,
   };
 
@@ -518,7 +516,6 @@ export async function executeRecovery(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Relay-Api-Key': '***REMOVED***',
     'X-Relay-User-Address': keypair.address,
   };
 

@@ -132,7 +132,6 @@ export default function RecoveryStatus({ vaultAddress = VAULT_CONTRACT_ADDRESS, 
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-Relay-Api-Key': '***REMOVED***',
                 'X-Relay-User-Address': kp.address,
               },
               body: JSON.stringify({ cancelRecovery: true, vaultAddress, vaultName }),

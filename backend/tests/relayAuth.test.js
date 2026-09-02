@@ -79,6 +79,28 @@ describe('relayAuth', () => {
       expect(result.address).toBe('ST1SESSIONUSER...');
       delete process.env.RELAY_API_KEY;
     });
+
+    it('should accept a valid relay user address (browser passkey flow, no API key)', () => {
+      const req = {
+        headers: { 'x-relay-user-address': 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM' },
+      };
+      const result = validateAuth(req);
+      expect(result.valid).toBe(true);
+      expect(result.address).toBe('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM');
+      expect(result.authMethod).toBe('relay');
+    });
+
+    it('should reject an invalid relay user address', () => {
+      const req = { headers: { 'x-relay-user-address': 'not-a-stacks-address' } };
+      const result = validateAuth(req);
+      expect(result.valid).toBe(false);
+    });
+
+    it('should reject a relay address with invalid prefix', () => {
+      const req = { headers: { 'x-relay-user-address': 'XX1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM' } };
+      const result = validateAuth(req);
+      expect(result.valid).toBe(false);
+    });
   });
 
   describe('validateIdempotencyKey', () => {

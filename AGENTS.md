@@ -417,5 +417,5 @@ Pattern: `await readOnlyCall(contractName, functionName, [args...])`
 - Explorer: `https://explorer.hiro.so/txid/{txid}?chain=testnet`
 - Hiro API: `https://api.testnet.hiro.so`
 - Relay Wallet: `ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4` (CREATOR, funded ~500 STX)
-- Relay API Key: `***REMOVED***`
+- Relay API Key: ~~`***REMOVED***`~~ retired (2026-09) — client bundle no longer sends it; server-to-server may set `RELAY_API_KEY` env only, never in source.
 - Testnet Deployer: `ST29JKDEFRY0RYMGF97FZC9PZWJ4H4VBSQFFERNXX` (~498 STX, vault contracts)

@@ -211,7 +211,6 @@ window.p256 = p256;
 
 const HIRO_API = 'https://api.testnet.hiro.so';
 const BACKEND_API = 'https://cine-x-api.vercel.app';
-const RELAY_API_KEY = '***REMOVED***';
 
 // ─── Logging ───────────────────────────────────────────────────
 const logEl = document.getElementById('logArea');
@@ -556,7 +555,6 @@ async function executeTransfer() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Relay-Api-Key': RELAY_API_KEY,
         'X-Relay-User-Address': vaultPrincipal,
       },
       body: JSON.stringify(body),

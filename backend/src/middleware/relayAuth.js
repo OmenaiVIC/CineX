@@ -56,22 +56,42 @@ function checkHourlyRateLimit(address, limit = 10) {
 // ---------------------------------------------------------------------------
 
 /**
- * Validate that the request has a valid session or API key.
+ * Validate that the request has a valid session, API key, or relay address.
  *
  * Session-based auth: req.user.address must be set by upstream auth middleware.
  * API key auth: X-Relay-API-Key header matches RELAY_API_KEY env var.
+ * Relay address auth: X-Relay-User-Address header carries a valid Stacks principal.
  *
- * For the passkey relay, we accept:
+ * For the passkey relay we accept:
  *   1. A valid session (user is authenticated via passkey)
- *   2. A valid relay API key (for server-to-server calls)
+ *   2. A valid relay API key (for trusted server-to-server calls)
+ *   3. A self-asserted X-Relay-User-Address (browser passkey flow)
+ *
+ * Security note: the shared API key was historically hardcoded in the public
+ * frontend bundles (cinex-canvas + app), which made it effectively public.
+ * The real spend-authorization for these endpoints is enforced ON-CHAIN by the
+ * vault contract, not this key:
+ *   - stx-transfer requires a P-256 signature matching the vault owner-pubkey.
+ *   - propose-recovery / execute-recovery are restricted to the contract's
+ *     `admin` principal and the relay always signs with its own fixed key.
+ * The API-key path is retained here only for trusted server-to-server callers
+ * and is optional; the passkey relay is authenticated by the signed payload it
+ * carries, so the address header is a binding facilitator for rate limiting and
+ * domain-wallet, not a standing spend credential on its own.
  */
+function isValidStacksPrincipal(value) {
+  // c32-checked testnet/mainnet Stacks address (e.g. ST... / SP...), 39-41 chars.
+  // c32 alphabet = 0-9 + A-Z excluding I, L, O, U.
+  return typeof value === 'string' && /^(ST|SP)[0-9A-HJKMNP-TV-Z]{38,40}$/.test(value);
+}
+
 function validateAuth(req) {
   // Option 1: Session-based (user authenticated via passkey)
   if (req.user && req.user.address) {
     return { valid: true, address: req.user.address, authMethod: 'session' };
   }
 
-  // Option 2: API key (server-to-server)
+  // Option 2: API key (trusted server-to-server)
   const apiKey = req.headers['x-relay-api-key'];
   const expectedKey = process.env.RELAY_API_KEY;
   if (apiKey && expectedKey && apiKey === expectedKey) {
@@ -83,7 +103,13 @@ function validateAuth(req) {
     return { valid: true, address: userAddress, authMethod: 'api_key' };
   }
 
-  return { valid: false, reason: 'Authentication required. Provide a session token or X-Relay-API-Key header.' };
+  // Option 3: Relay address (browser passkey flow, no shared secret)
+  const relayAddress = req.headers['x-relay-user-address'];
+  if (relayAddress && isValidStacksPrincipal(relayAddress)) {
+    return { valid: true, address: relayAddress, authMethod: 'relay' };
+  }
+
+  return { valid: false, reason: 'Authentication required. Provide a session token, X-Relay-API-Key header, or X-Relay-User-Address header.' };
 }
 
 // ---------------------------------------------------------------------------

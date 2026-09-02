@@ -21,7 +21,7 @@ const {
 const { STACKS_TESTNET } = netPkg;
 
 const HIRO_API = 'https://api.testnet.hiro.so';
-const RELAY_KEY = '***REMOVED***';
+const RELAY_KEY = process.env.RELAY_KEY;
 const RELAY_ADDR = 'ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4';
 const NETWORK = STACKS_TESTNET;
 const VAULT_CONTRACT = 'cinex-demo-vault';

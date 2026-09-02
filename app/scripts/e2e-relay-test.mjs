@@ -24,8 +24,7 @@ const { STACKS_TESTNET } = netPkg;
 
 const BACKEND_URL = 'https://cine-x-api.vercel.app';
 const HIRO_API = 'https://api.testnet.hiro.so';
-const RELAY_API_KEY = '***REMOVED***';
-const RELAY_KEY = '***REMOVED***';
+const RELAY_KEY = process.env.RELAY_KEY;
 const RELAY_ADDR = 'ST3CAYVEF4T5REN8DXXVD2RNVXDXVGQAG3RPX2SB4';
 const BACKER_ADDRESS = 'ST3MW8XN0A69B5TGRMNDSEVC75ABFRGGGY0D5KXXF';
 const CINEX_RP_ID_HASH = 'b1c4e8f3a2d56709c8e4f1a3b6d9e2c5f8a1b4d7e0c3f6a9b2d5e8c1f4a7d0e3';
@@ -214,7 +213,6 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Relay-Api-Key': RELAY_API_KEY,
       'X-Relay-User-Address': VAULT_ADDR,
       'X-Idempotency-Key': crypto.randomUUID(),
     },
