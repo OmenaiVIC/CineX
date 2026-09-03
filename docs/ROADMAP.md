@@ -22,21 +22,21 @@ This roadmap reflects **current direction**. CineX is a **prototype / reference 
 ```mermaid
 flowchart LR
   subgraph Frontend
-    A[app / cinex-canvas]
+    A["app / cinex-canvas"]
   end
   subgraph Backend
-    B[Express API]
-    C[BOS pipeline worker]
-    D[Activity-feed indexer]
-    E[Relay / fee sponsorship]
+    B["Express API"]
+    C["BOS pipeline worker"]
+    D["Activity-feed indexer"]
+    E["Relay / fee sponsorship"]
   end
   subgraph Chain
-    F[Stacks testnet<br/>milestone-escrow, campaign-module,<br/>milestone-verification, funding-pool,<br/>reputation, project-verification, oracle-proxy]
+    F["Stacks testnet<br/>milestone-escrow, campaign-module,<br/>milestone-verification, funding-pool,<br/>reputation, project-verification, oracle-proxy"]
   end
   subgraph External
-    G[Hiro API]
-    H[xReserve (attestation)]
-    I[Yellow Card (payout)]
+    G["Hiro API"]
+    H["xReserve (attestation)"]
+    I["Yellow Card (payout)"]
   end
   A --> B
   B --> C
