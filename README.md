@@ -1,5 +1,8 @@
 # CineX
 
+![Tests](https://img.shields.io/github/actions/workflow/status/OmenaiVIC/CineX/deploy.yml?label=CI%20tests)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Open-source milestone-based project financing for Africa's creative economy, built on Stacks/Clarity.
 
 CineX is an open-source project owned and maintained by **Victor Omenai**. This repository contains the current implementation / reference code.
@@ -44,8 +47,9 @@ Dual-currency wallet tooling (local currency and global currency) and a backend 
 ### Tests
 
 - **322 contract tests** across 14 test files.
-- **232 backend tests** across 12 test files.
+- **235 backend tests** across 12 test files.
 - **41 frontend tests** across 4 test files.
+- CI runs `clarinet check` plus the contract, backend, and frontend test suites before every deploy.
 
 ---
 
@@ -131,6 +135,10 @@ Note: Open-source status is a statement about licensing and code availability. I
 
 ## Learn More
 
+- **Live demo (deployed frontend):** https://cine-x-iota.vercel.app — a hosted demo of the presentation frontend. It runs in demo/mock mode and does **not** represent real usage, users, or traction (see the status section above).
+- [Public Roadmap](./docs/ROADMAP.md) — current direction, architecture diagram, and backlog.
+- [Security Policy](./SECURITY.md) — how to report a vulnerability.
+- [Code of Conduct](./CODE_OF_CONDUCT.md) — community standards.
 - [Backend & Smart Contract Architecture](./BACKEND_README.md) — module system, contract relationships, deployment.
 - [Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md) — how the dual-currency wallet abstraction works.
 

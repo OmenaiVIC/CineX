@@ -1,10 +1,47 @@
-name: Deploy
+name: Test & Deploy
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Clarinet CLI (for clarinet check)
+        run: |
+          curl -sSL https://hirosystems.github.io/clarinet/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install root dependencies (contract tests)
+        run: npm install
+
+      - name: Clarinet check (contract validity)
+        run: clarinet check
+
+      - name: Contract tests (Clarinet SDK / Vitest)
+        run: npm test
+
+      - name: Install backend dependencies
+        run: cd backend && npm install
+
+      - name: Backend tests
+        run: cd backend && npm test
+
+      - name: Install frontend dependencies
+        run: cd app && npm install
+
+      - name: Frontend tests
+        run: cd app && npm test
+
   deploy-frontend:
+    needs: test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +57,8 @@ jobs:
         run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
 
   deploy-backend:
+    needs: test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
