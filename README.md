@@ -42,7 +42,9 @@ Dual-currency wallet tooling (local currency and global currency) and a backend 
 
 - **Contracts:** **19 deployable logic contracts** (admin, oracle, reputation/verification, campaign, escrow, yield, strategy, milestone verification, funding pool, and base layers), with **13 trait/interface contracts** — **32 total** Clarity files in the Clarinet configuration.
 - **Network:** deployed to Stacks **testnet**. See `deployments/artifacts/testnet/contract-addresses.json`.
-- **Bridge Orchestration Service (BOS):** a backend orchestration service for milestone-based disbursement state transitions is included in this repository. A separately-published, standalone open-source BOS (`stacks-payout-bos`) is maintained for builders who want to reuse the state machine and adapter pattern on their own stacks.
+- **Bridge Orchestration Service (BOS):** a backend orchestration service for milestone-based disbursement state transitions is included in this repository. The BOS has since been extracted, corrected, and expanded into an independent open-source project — **Payout Rail** (https://github.com/OmenaiVIC/payout-rail) — which adds a canonical evidence chain, five-mode reconciliation, deterministic idempotency, a compare-and-swap concurrency guard, a corrected Yellow Card `YcHmacV1` adapter, a versioned v1 public API, and a full test suite.
+
+Payout Rail is the more capable successor. CineX intends to consume Payout Rail as its payout orchestration layer in a future integration; the plan for that cutover is documented in [`docs/PAYOUT_RAIL_INTEGRATION_PLAN.md`](docs/PAYOUT_RAIL_INTEGRATION_PLAN.md). The BOS in this repository remains functional and is not deprecated yet. Integration is scheduled for after Payout Rail completes its Stacks Endowment Milestone 2 sandbox verification.
 
 ### Tests
 
@@ -141,6 +143,8 @@ Note: Open-source status is a statement about licensing and code availability. I
 - [Code of Conduct](./CODE_OF_CONDUCT.md) — community standards.
 - [Backend & Smart Contract Architecture](./BACKEND_README.md) — module system, contract relationships, deployment.
 - [Wallet Abstraction Plan](./WALLET_ABSTRACTION_PLAN.md) — how the dual-currency wallet abstraction works.
+
+Payout Rail — the extracted, expanded successor to CineX's BOS: https://github.com/OmenaiVIC/payout-rail
 
 ---
 
