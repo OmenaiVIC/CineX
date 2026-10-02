@@ -380,7 +380,7 @@ CineX is not just a consumer. It is proof that the infrastructure is adoptable.
 
 
 
-\*\*After Milestone 2 of Payout Rail's Stacks Endowment grant\*\* (target: December 12, 2026), when Payout Rail has:
+\*\*After Milestone 2 of Payout Rail's Stacks Endowment grant\*\* (target: December 5, 2026), when Payout Rail has:
 
 \- Testnet evidence for the Stacks burn
 
